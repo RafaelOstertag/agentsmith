@@ -18,10 +18,9 @@
 
 /* $Id$ */
 
-#ifndef FOLLOW_H
-#define FOLLOW_H
+#ifndef SIGHANDLER_H
+#define SIGHANDLER_H
 
-extern void follow();
-extern void follow_stop();
+extern void signalhandler_setup();
 
 #endif

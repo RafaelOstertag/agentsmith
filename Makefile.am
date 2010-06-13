@@ -1,2 +1,3 @@
+# $Id$
 
-SUBDIRS = src
+SUBDIRS = example src tests

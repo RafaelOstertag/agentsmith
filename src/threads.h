@@ -18,10 +18,10 @@
 
 /* $Id$ */
 
-#ifndef FOLLOW_H
-#define FOLLOW_H
+#ifndef THREADS_H
+#define THREADS_H
 
-extern void follow();
-extern void follow_stop();
+extern void threads_start();
+extern void threads_stop();
 
 #endif

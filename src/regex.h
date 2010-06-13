@@ -18,10 +18,10 @@
 
 /* $Id$ */
 
-#ifndef FOLLOW_H
-#define FOLLOW_H
+#ifndef REGEX_H
+#define REGEX_H
 
-extern void follow();
-extern void follow_stop();
+extern void regex_prepare();
+extern void regex_do(const char* buff);
 
 #endif

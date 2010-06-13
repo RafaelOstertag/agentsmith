@@ -1,7 +1,10 @@
+# -*- makefile -*-
+#
 # $Id$
 
 FILES = aclocal.m4 config.h.in configure depcomp install-sh Makefile.in missing	\
-src/Makefile.in
+src/Makefile.in example/Makefile.in tests/Makefile.in config.log config.sub	\
+config.guess core config.log.1
 DIRS = autom4te.cache
 
 all: configure Makefile.in
@@ -13,7 +16,7 @@ configure: configure.ac config.h.in Makefile.boot
 config.h.in: configure.ac Makefile.boot
 	autoheader
 
-Makefile.in: Makefile.boot Makefile.am src/Makefile.am
+Makefile.in: Makefile.boot Makefile.am src/Makefile.am example/Makefile.am tests/Makefile.am
 	automake --add-missing --copy --gnu
 
 clean:

@@ -18,10 +18,12 @@
 
 /* $Id$ */
 
-#ifndef FOLLOW_H
-#define FOLLOW_H
+#ifndef GLOBALS_H
+#define GLOBALS_H
 
-extern void follow();
-extern void follow_stop();
+enum {
+    _MAX_PATH = 1024,
+    BUFFSIZE=1024
+};
 
 #endif

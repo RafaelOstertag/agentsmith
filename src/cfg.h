@@ -18,10 +18,24 @@
 
 /* $Id$ */
 
-#ifndef FOLLOW_H
-#define FOLLOW_H
+#ifndef CFG_H
+#define CFG_H
 
-extern void follow();
-extern void follow_stop();
+#include "globals.h"
+
+struct _config {
+	char pidfile[_MAX_PATH];
+	char syslogfile[_MAX_PATH];
+	char action[_MAX_PATH];
+	char regex[BUFFSIZE];
+	int action_threshold;
+	int time_interval;
+	int purge_after;
+};
+
+typedef struct _config config;
+
+extern config* config_read(const char* file);
+extern config* config_get();
 
 #endif

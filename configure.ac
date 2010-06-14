@@ -54,12 +54,15 @@ AC_CHECK_TYPES([pthread_mutex_t],,
 
 # Checks for library functions.
 AC_FUNC_STRERROR_R
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_FORK
 AC_CHECK_LIB([pcre],[pcre_compile],,[
 	AC_MSG_ERROR([libpcre was not found.])
 ])
 AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
         AC_MSG_ERROR([libpcre lacks crucial function(s)])])
-AC_CHECK_FUNCS([strerror vsnprintf strsep strchr usleep strdup memset sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy realloc ceil ctime_r ctime])
+AC_CHECK_FUNCS([strerror vsnprintf strsep strchr usleep strdup memset sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime])
 
 # Enable
 AC_SUBST([ENABLE_DEBUG],[no],[Whether or not debug code should be built])
@@ -106,7 +109,8 @@ AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT
 
 echo ""
+echo "Prefix:             $prefix"
 echo "PID File:           $DEFAULT_PIDFILE"
 echo "Configuration File: $DEFAULT_CONFIGFILE"
-echo "Debug Code:         $ENABLE_DEBUG"
+echo "With debug code:    $ENABLE_DEBUG"
 echo ""

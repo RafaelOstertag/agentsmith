@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<!--
+$Id$
+
+This is the SMF manifest for @PACKAGE@ for Solaris 10 or later.
+
+-->
+
+<service_bundle type='manifest' name='GGL:@PACKAGE@'>
+    <service
+	name='application/@PACKAGE@'
+	type='service'
+	version='1'>
+
+	<create_default_instance enabled='false' />
+
+	<dependency
+	    name='system-log'
+	    grouping='require_all'
+	    restart_on='none'
+	    type='service'>
+	    <service_fmri value='svc:/system/system-log:default' />
+	</dependency>
+
+	<dependency
+	    name='files'
+	    grouping='require_all'
+	    restart_on='none'
+	    type='path'>
+	    <service_fmri value='file://@sysconfdir@/sshsentinel.d/action.sh' />
+	    <service_fmri value='file://@DEFAULT_CONFIGFILE@' />
+	</dependency>
+
+	<exec_method
+	    type='method'
+	    name='start'
+	    exec='@sbindir@/sshsentinel'
+	    timeout_seconds='15' />
+
+	<exec_method
+	    type='method'
+	    name='stop'
+	    exec=':kill -15'
+	    timeout_seconds='15' />
+
+	<stability value='Evolving' />
+
+	<template>
+	    <common_name>
+		<loctext xml:lang='C'>@PACKAGE@</loctext>
+	    </common_name>
+	    <documentation>
+		<manpage title='@PACKAGE@' section='8' />
+		<manpage title='@PACKAGE@.conf' section='4' />
+	    </documentation>
+	</template>
+    </service>
+</service_bundle>

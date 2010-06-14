@@ -1,8 +1,8 @@
 # $Id$
 AUTOMAKE_OPTIONS=color-tests
 
-TESTS = records1 records2 records3 records4 records5 records6
-check_PROGRAMS = records1 records2 records3 records4 records5 records6
+TESTS = records1 records2 records3 records4 records5 records6 records7
+check_PROGRAMS = records1 records2 records3 records4 records5 records6 records7
 
 needed_files = $(top_srcdir)/src/records.c $(top_srcdir)/src/output.c	\
 $(top_srcdir)/src/cfg.c
@@ -20,3 +20,4 @@ records3_SOURCES = records3.c $(needed_files)
 records4_SOURCES = records4.c $(needed_files)
 records5_SOURCES = records5.c $(needed_files)
 records6_SOURCES = records6.c $(needed_files)
+records7_SOURCES = records7.c $(needed_files)

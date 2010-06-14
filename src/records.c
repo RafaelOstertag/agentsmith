@@ -196,10 +196,15 @@ records_maintenance() {
 	return RETVAL_ERR;
     }
 
+    out_dbg("Maintenance: Before maintenance: vector size %li, fill %li, chunk_size %i", hr_vector_size, hr_vector_fill, hr_vector_chunksize);
+
     ptr = hr_vector;
     for (i=0; i<hr_vector_size; i++) {
 	if (ptr[i] != NULL &&
 	    ptr[i]->remove != 0 ) {
+	    out_dbg("Maintenance: remove entry %li due to request (%i)",
+		    i,
+		    ptr[i]->remove);
 	    free(ptr[i]);
 	    ptr[i] = NULL;
 	}
@@ -210,8 +215,10 @@ records_maintenance() {
     ptr = hr_vector;
     for (i=0; i<hr_vector_size; i++) {
 	if ( ptr[i] != NULL )
-	    last_used = i;
+	    last_used = i + 1;
     }
+    out_dbg("Maintenance: Last used slot %li",
+	    last_used);
 
     /* If everything is used, bail out */
     if ( last_used == hr_vector_size )
@@ -220,19 +227,28 @@ records_maintenance() {
     new_size =
 	ceil((double)last_used / (double)hr_vector_chunksize) *
 	hr_vector_chunksize;
+    out_dbg("Maintenance: computed new size %li",
+	    new_size);
     assert ( (new_size % hr_vector_chunksize) == 0 );
 
     new_size = new_size < hr_vector_chunksize ? hr_vector_chunksize : new_size;
+    out_dbg("Maintenance: computed new size used %li",
+	    new_size);
     assert ( new_size >= last_used );
 
     hr_vector_size = new_size;
     hr_vector_fill = last_used;
 
+    out_dbg("Maintenance: address of vector before realloc() %p",
+	    hr_vector);
     hr_vector = (hostrecord_t**)realloc(hr_vector, sizeof(hostrecord_t*) * new_size);
     if ( hr_vector == NULL ) {
 	out_err("Unable to shrink hr_vector");
 	exit (3);
     }
+    out_dbg("Maintenance: address of vector after realloc() %p",
+	    hr_vector);
+    out_dbg("Maintenance: After maintenance: vector size %li, fill %li, chunk_size %i", hr_vector_size, hr_vector_fill, hr_vector_chunksize);
     goto END_OK;
 
  END_OK:

@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# Simple init.d script for starting @PACKAGE@
+
+PATH=@sbindir@:/bin:/usr/bin
+
+OPTIONS=""
+DAEMON_BINARY=@sbindir@/@PACKAGE@
+DAEMON_NAME=@PACKAGE@
+PIDFILE=@DEFAULT_PIDFILE@
+PIDDIRECTORY=`dirname ${PIDFILE}`
+
+case "$1" in
+    start)
+	echo -n "Starting service ${DAEMON_NAME}..."
+
+	if [ ! -d "${PIDDIRECTORY}" ]
+	then
+	    mkdir -p "${PIDDIRECTORY}"
+	    chmod 775 "${PIDDIRECTORY}"
+	    chown root:root "${PIDDIRECTORY}"
+	fi
+
+	if [ ! -x "${DAEMON_BINARY}" ]; then
+	    echo "${DAEMON_NAME} binary missing - not starting"
+	    exit 1
+	fi
+
+	if "${DAEMON_BINARY}" -p "${PIDFILE}" ${OPTIONS} ; then
+	    echo " ok"
+	    exit 0
+	else
+	    echo " failed"
+	    exit 1
+	fi
+	;;
+
+    stop)
+	echo "Stopping... ${DAEMON_NAME}"
+
+	if [ ! -f "${PIDFILE}" ]
+	then
+	    echo "Pid file not found. Exiting."
+	    exit 1
+	fi
+
+	pid=`cat "${PIDFILE}"`
+	if [ -n "$pid" ]; then
+	    kill -15 $pid 2>/dev/null
+	fi
+	exit $?
+	;;
+
+    restart)
+	$0 stop
+	$0 start
+	;;
+
+    *)
+	echo "Usage: /etc/init.d/${DAEMON_NAME} {start|stop|restart}"
+	exit 1
+    ;;
+esac
+
+exit 0

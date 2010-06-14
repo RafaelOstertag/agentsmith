@@ -63,11 +63,9 @@ pthread_mutex_t vector_mutex;
 
 static int initialized = 0;
 
-#ifdef DEBUG
 unsigned long records_dbg_get_vector_size() { return hr_vector_size; }
 unsigned long records_dbg_get_vector_chunksize() { return hr_vector_chunksize; }
 unsigned long records_dbg_get_vector_fill() { return hr_vector_fill; }
-#endif
 
 /*
  * @return

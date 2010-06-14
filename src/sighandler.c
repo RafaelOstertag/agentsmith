@@ -51,8 +51,13 @@ static int
 _records_callback_output(hostrecord_t *ptr) {
     char *format = "IP Addr %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
 #ifdef HAVE_CTIME_R
-#warning "Using ctime_r"
+#ifdef DEBUG
+#warning "Using ctime_r()"
+#endif
 #define TIMEBUFSIZE 128
+#ifdef DEBUG
+#warning "Using ctime()"
+#endif
     char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
 #endif
 
@@ -92,7 +97,12 @@ _records_callback_remove_all(hostrecord_t *ptr) {
 
 static void
 sighandler_unhandled(int no) {
+    int sav_errno;
+    
+    sav_errno = errno;
     out_msg("Received unhandled signal %i. Ignoring", no);
+
+    errno = sav_errno;
 }
 
 static void
@@ -109,22 +119,28 @@ signalhandler_termination(int no) {
 
 static void
 signalhandler_usr1(int no) {
-    int retval;
+    int retval, sav_errno;
 
+    sav_errno = errno;
     out_msg("Output of host records follows...");
     retval = records_enumerate(_records_callback_output);
     if (retval != 0)
 	out_err("Error enumerating records for output");
+
+    errno=sav_errno;
 }
 
 static void
 signalhandler_usr2(int no) {
-    int retval;
+    int retval, sav_errno;
 
+    sav_errno = errno;
     out_msg("Host records will be purged upon the next run of the maintenance thread");
     retval = records_enumerate(_records_callback_remove_all);
     if (retval != 0)
 	out_err("Error enumerating records for purging");
+
+    errno = sav_errno;
 }
 
 void

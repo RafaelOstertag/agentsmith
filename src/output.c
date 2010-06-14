@@ -105,15 +105,16 @@ out_syserr(int no, const char *format, ...) {
     char buff[BUFFSIZE];
     char buff2[BUFFSIZE];
     va_list ap;
+
 #ifdef HAVE_STRERROR_R
 #ifdef DEBUG
-#warning "Using strerror_r"
+#warning "Using strerror_r()"
 #endif
     char strerr[BUFFSIZE];
     strerror_r(no, strerr, BUFFSIZE);
 #elif HAVE_STRERROR
 #ifdef DEBUG
-#warning "Using strerror"
+#warning "Using strerror()"
 #endif
     char *strerr;
     strerr = strerror(no);

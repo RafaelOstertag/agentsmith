@@ -233,6 +233,11 @@ signalhandler_setup() {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
+    retval = sigaction ( SIGHUP, &sa, NULL);
+    if ( retval == -1 ) {
+	out_syserr(errno, "Error setting up signal handler");
+	abort();
+    }
 
     /* The fatal signals */
     sigfillset(&(sa.sa_mask));

@@ -47,6 +47,10 @@
 #include <errno.h>
 #endif
 
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
+#endif
+
 #include "cfg.h"
 #include "output.h"
 #include "follow.h"
@@ -57,9 +61,10 @@
 
 #define HELPSTR "Usage:\n"				\
     PACKAGE_NAME " [-d] [-t] [-c <file>] [-p <file>]\n"	\
-    "-c           read the config file <file>\n"	\
+    "-c <file>    read the config file <file>\n"	\
     "-d           run in foreground\n"			\
     "-h           this help\n"				\
+    "-p <file>    write the pid to <file>\n"		\
     "-t           test configuration and exit\n"	\
     "-L           print license and exit\n"		\
     "-V           print version and exit\n"
@@ -100,8 +105,8 @@ int
 main(int argc, char** argv) {
     FILE *pfile;
     pid_t pid;
-    int c, testonly=0, daemonmode = 1;
-    char *cfgfile = NULL, optstr[] = "c:dthLV";
+    int c, testonly=0, daemonmode = 1, pidfile_from_cmdline = 0;
+    char *cfgfile = NULL, optstr[] = "c:p:dthLV", *cmdline_pidfile = NULL;
     config *cfg;
     extern char *optarg;
     extern int optind, optopt, opterr;
@@ -111,6 +116,11 @@ main(int argc, char** argv) {
     	case 'c':
     	    cfgfile = strdup(optarg);
     	    break;
+	case 'p':
+	    /* pid file specified on cmd line takes precedence */
+	    cmdline_pidfile = strdup(optarg);
+	    pidfile_from_cmdline = 1;
+	    break;
     	case 'd':
 	    daemonmode = 0;
     	    break;
@@ -161,6 +171,11 @@ main(int argc, char** argv) {
 
     /* Read the configuration file */
     cfg = config_read(cfgfile);
+
+    if ( pidfile_from_cmdline ) {
+	assert ( cmdline_pidfile != NULL );
+	strncpy(cfg->pidfile, cmdline_pidfile, _MAX_PATH);
+    }
 
     if ( daemonmode ) {
 	pfile = fopen(cfg->pidfile, "w");

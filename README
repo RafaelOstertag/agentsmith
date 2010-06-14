@@ -7,6 +7,15 @@ attempts and calls a script or other suitable application.
 
 For more information refer to the man page.
 
+Dependencies
+------------
+
+sshsentinel is known to work on Solaris 10, OpenSolaris, FreeBSD, OpenBSD, and
+Linux.
+
+It  requires a  more  or  less recent  version  of the  PCRE  library which  is
+available from http://www.pcre.org.
+
 
 Installation
 ------------

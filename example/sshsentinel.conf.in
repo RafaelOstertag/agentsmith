@@ -18,12 +18,16 @@
 
 # The location of the pid file
 pidfile=@DEFAULT_PIDFILE@
+
 # The syslog log to read
 syslogfile=/var/log/authlog
+
 # How many occurences before the action kicks in
 action_threshold=3
+
 # Maximum time between subsequent matches in seconds
 time_interval=60
+
 # The action script. It will be invoked if action_threshold is exceeded in
 # time_interval seconds.
 #
@@ -33,6 +37,7 @@ time_interval=60
 #
 # Make sure it has the execution bit set, i.e. chmod +x <action_script>
 action=@sysconfdir@/sshsentinel.d/action.sh
+
 # Remove host records after this many seconds (this should obviously be a value
 # greater than time_interval)
 purge_after=300

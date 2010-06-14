@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# This is an example of an action script that can be used with @PACKAGE@. It is
+# not very sophisticated, but should give a basic clue how to write more
+# sophisticated scripts.
+#
+# Action scripts are called with the first command line argument set to the
+# catching pattern of the regular expression (see @DEFAULT_CONFIGFILE@) and the
+# second command line argument set to the number of occurrences of the matches
+# regular expression in the logfile.
+
+mail root <<EOF
+Subject: Mail from @PACKAGE@
+
+sshsentinel regrets to inform you, that the host $1 has attempted $2 times
+to access `hostname` using an invalid account or wrong password.
+EOF
+
+exit 0

@@ -44,6 +44,13 @@ AC_CHECK_HEADER([pcre.h],
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
+AC_CHECK_TYPES([pthread_mutex_t],,
+	[AC_MSG_ERROR([Crucial data type was not found])],
+	[AC_INCLUDES_DEFAULT
+         #ifdef HAVE_PTHREAD_H
+         #include <pthread.h>
+         #endif]
+)
 
 # Checks for library functions.
 AC_FUNC_STRERROR_R
@@ -93,6 +100,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	example/Makefile
 	tests/Makefile
+	doc/Makefile
 ])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT

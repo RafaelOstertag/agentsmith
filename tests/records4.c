@@ -23,7 +23,6 @@
 #define ITERATIONS 32
 
 int main (int wdc1, char** wdc2) {
-#ifdef DEBUG
     int retval;
     hostrecord_t *ptr;
     char str[BUFFSIZE];
@@ -86,8 +85,4 @@ int main (int wdc1, char** wdc2) {
     }
     records_destroy();
     exit (0);
-#else
-    printf("Test will only be ran if --enable-debug was given to configure\n");
-    exit (0);
-#endif
 }

@@ -110,7 +110,6 @@ int main (int wdc1, char** wdc2) {
 	}
     }
 
-#ifdef DEBUG
     if ( records_dbg_get_vector_size() != records_dbg_get_vector_chunksize() ) {
 	out_err("records_dbg_get_vector_size() != records_dbg_get_vector_chunksize().\nrecords_dbg_get_vector_size() == %i\nrecords_dbg_get_vector_chunksize()==%i",records_dbg_get_vector_size(),records_dbg_get_vector_chunksize());
 	exit(1);
@@ -119,9 +118,6 @@ int main (int wdc1, char** wdc2) {
 	out_err("records_dbg_get_vector_fill().\nrecords_dbg_get_vector_fill()==%i.",records_dbg_get_vector_fill());
 	exit(1);
     }
-#else
-    printf("Some portions of this test require --enable-debug\n");
-#endif
     records_destroy();
     exit (0);
 }

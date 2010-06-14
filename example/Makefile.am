@@ -20,13 +20,13 @@ do_subst = $(SED) -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
 	-e 's,[@]sbindir[@],$(sbindir),g'
 
 sshsentinel.conf.example: sshsentinel.conf.in Makefile
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/sshsentinel.conf.in > $@
 
 sshsentinel.xml: sshsentinel.xml.in Makefile
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/sshsentinel.xml.in > $@
 
 sshsentinel: sshsentinel.in Makefile
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/sshsentinel.in > $@
 
 action.sh.example: action.sh.in Makefile
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/action.sh.in > $@

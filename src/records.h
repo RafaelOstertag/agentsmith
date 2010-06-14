@@ -70,10 +70,8 @@ extern int records_remove(const char *ipaddr);
 extern int records_enumerate(records_enum_callback cb);
 extern hostrecord_t *records_get(const char *ipaddr);
 
-#ifdef DEBUG
 extern unsigned long records_dbg_get_vector_size();
 extern unsigned long records_dbg_get_vector_chunksize();
 extern unsigned long records_dbg_get_vector_fill();
-#endif
 
 #endif

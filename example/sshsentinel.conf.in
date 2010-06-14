@@ -1,0 +1,48 @@
+# This is the configuration file for @PACKAGE@
+#
+# Comments start with '#'. Comments are only allowed at the start of the line.
+# Configuration options ARE CASE-SENSITIVE.  Spaces between the configuration
+# option  and the equal sign ('=') are not allowed. E.g.:
+#
+# foo = bar
+# foo= bar
+# foo =bar
+#
+# are not allowed. The only way to do it is like this
+#
+# foo=bar
+#
+# If you run @PACKAGE@ with the -t switch, it will check the configuration and
+# the regular expression. So, it is always a good idea to use -t switch after
+# modifying the configuration file.
+
+# The location of the pid file
+pidfile=@DEFAULT_PIDFILE@
+# The syslog log to read
+syslogfile=/var/log/authlog
+# How many occurences before the action kicks in
+action_threshold=3
+# Maximum time between subsequent matches in seconds
+time_interval=60
+# The action script. It will be invoked if action_threshold is exceeded in
+# time_interval seconds.
+#
+# The action is invoked with the following parameters
+#
+# actionscript <ip_address> <occurrences>
+#
+# Make sure it has the execution bit set, i.e. chmod +x <action_script>
+action=@sysconfdir@/sshsentinel.d/action.sh
+# Remove host records after this many seconds (this should obviously be a value
+# greater than time_interval)
+purge_after=300
+# The (PERL) regular expression used to extract the ip addresses. Be aware, it
+# may only contain one catching '(...)' pattern. If you need to use alternation
+# '(...|...)' use '(?:...|...)'
+#
+# Regex for Solaris
+regex=Failed keyboard-interactive for [\w ]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})
+# Regex for Linux
+#regex=Failed password for (?:invalid user |)[\w]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})
+# Regex for FreeBSD
+#regex=error: PAM: authentication error for (?:illegal user |)[\w]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})

@@ -36,6 +36,10 @@
 # endif
 #endif
 
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+
 enum {
     /* Should be sufficient even for IPv6 */
     IPADDR_SIZE = 46

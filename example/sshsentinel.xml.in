@@ -51,7 +51,7 @@ This is the SMF manifest for @PACKAGE@ for Solaris 10 or later.
 		<loctext xml:lang='C'>@PACKAGE@</loctext>
 	    </common_name>
 	    <documentation>
-		<manpage title='@PACKAGE@' section='8' />
+		<manpage title='@PACKAGE@' section='1' />
 		<manpage title='@PACKAGE@.conf' section='4' />
 	    </documentation>
 	</template>

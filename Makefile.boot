@@ -16,7 +16,7 @@ configure: configure.ac config.h.in Makefile.boot
 config.h.in: configure.ac Makefile.boot
 	autoheader
 
-Makefile.in: Makefile.boot Makefile.am src/Makefile.am example/Makefile.am tests/Makefile.am
+Makefile.in: Makefile.boot Makefile.am src/Makefile.am example/Makefile.am tests/Makefile.am doc/Makefile.am
 	automake --add-missing --copy --gnu
 
 clean:

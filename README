@@ -1,1 +1,22 @@
+sshsentinel
+===========
+
+sshsentinal  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
+attempts. It uses  a user customizable regular expression  to identify break-in
+attempts and calls a script or other suitable application.
+
+For more information refer to the man page.
+
+
+Installation
+------------
+
+Refer to the INSTALL file
+
+
+Copyright
+---------
+
+sshsentinel is licensed under the GPLv3. See the COPYING file.
+
 $Id$

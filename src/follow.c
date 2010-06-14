@@ -53,7 +53,10 @@
 
 static char BUFF[BUFFSIZE];
 static int stop = 0; /* Will be set by stop_following to 1 in order to stop */
+/* This will be fed to usleep() [usec] */
 static const int sleep_time = 250000;
+/* This will be fed to sleep() [sec] */
+static const int err_sleep_time = 30;
 
 static void
 readtoeof (FILE *file) {
@@ -118,26 +121,39 @@ follow (const char* fname) {
 	retval = stat(fname, &sb);
 	if (retval == -1) {
 	    /* The file is gone... */
-	    fclose ( file );
-	    file = NULL;
-	    usleep(sleep_time);
+
+	    /* This check is neccessary because we might up several times here
+	       before the file reappears */
+	    if ( file != NULL ) {
+		fclose ( file );
+		file = NULL;
+	    }
+	    out_err("The file '%s' has gone. Going to sleep for %i seconds",
+		    fname,
+		    err_sleep_time);
+	    sleep(err_sleep_time);
 	    continue;
 	} else {
 	    /* Maybe the file has reappeared */
 	    if ( file == NULL ) {
 		/* Ok, the file really reappeared */
+		out_msg("'%s' has reappeared.", fname);
 		file = fopen ( fname, "r" );
 		if ( file == NULL) {
-		    out_syserr(errno, "Unable to re-open '%s'", fname);
-		    exit (1);
+		    out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds", fname, err_sleep_time);
+		    sleep(err_sleep_time);
+		    continue;
 		}
 	    } else {
 		/* Maybe the inode changed? */
 		if ( lastino != curino ) {
+		    out_msg("inode changed from %i to %i on '%s'.", 
+			    lastino, curino, fname);
 		    file = freopen( fname, "r", file);
 		    if ( file == NULL ) {
-			out_syserr(errno, "Unable to re-open '%s'", fname);
-			exit (1);
+			out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds", fname, err_sleep_time);
+			sleep(err_sleep_time);
+			continue;
 		    }
 		    lastino = curino;
 		}
@@ -148,8 +164,17 @@ follow (const char* fname) {
 	    readtoeof(file);
 	    lastpos=curpos;
 	} else if ( lastpos > curpos ) {
+	    out_msg("'%s' shrunk from %i to %i bytes", fname, lastpos, curpos);
+	    file = freopen( fname, "r", file);
+	    if ( file == NULL ) {
+	    	out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds.", fname, err_sleep_time);
+	    	sleep(err_sleep_time);
+	    	continue;
+	    }
 	    rewind(file);
 	    clearerr(file);
+	    /* Reset the lastpos, since the file shrunk */
+	    lastpos = 0;
 	    readtoeof(file);
 	    lastpos=curpos;
 	}

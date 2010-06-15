@@ -11,10 +11,10 @@ all: configure Makefile.in
 
 configure: configure.ac config.h.in Makefile.boot
 	aclocal
-	autoconf
+	autoconf 
 
 config.h.in: configure.ac Makefile.boot
-	autoheader
+	autoheader -f
 
 Makefile.in: Makefile.boot Makefile.am src/Makefile.am example/Makefile.am tests/Makefile.am doc/Makefile.am
 	automake --add-missing --copy --gnu

@@ -54,4 +54,5 @@ regex=Failed keyboard-interactive for [\w ]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,
 #regex=Failed password for (?:invalid user |)[\w]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})
 # Regex for FreeBSD
 #regex=error: PAM: authentication error for (?:illegal user |)[\w]+ from ([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})
-
+# Regex for Sendmail
+#regex=ruleset=check_relay, .+, relay=(?:[\w -_]+|)\[([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})\], reject=550 .+

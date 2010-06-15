@@ -5,7 +5,7 @@
 .\" NAME
 .\"=========================================================
 .SH NAME
-\fB@PACKAGE@ \- monitor log file for break\-in attempts
+\fB@PACKAGE@\fR \- monitor log file for break\-in attempts
 .\"=========================================================
 .\" SYNOPSIS
 .\"=========================================================
@@ -52,7 +52,7 @@ Show the version and exit.
 .\"=========================================================
 .SH USAGE
 \fB@PACKAGE@\fR reads the configuration at the default location (see FILES) or
-at the location provided with the \fB-c\fB option when started. It is
+at the location provided with the \fB-c\fR option when started. It is
 recommended to launch \fB@PACKAGE@\fR with the \fB-t\fR option specified after
 the configuration has been altered in order to identify possible configuration
 errors.
@@ -76,14 +76,14 @@ If a IP address stored by \fB@PACKAGE@\fR is not seen for a specified amount of
 time, the action script will be called again and the IP address will be purged
 from memory.
 .P
-\fB@PACKAGE@\fB uses no persistent storage for holding the host IP addresses,
+\fB@PACKAGE@\fR uses no persistent storage for holding the host IP addresses,
 thus the information is only kept during the run time of the process.
 .\"
 .SS The Action Script
 The action script is called  two cases:
 .IP 1)
 A host has triggered the action script as explained above. The script will be
-invoked by \fB@PACKAGE@\fB with the following arguments:
+invoked by \fB@PACKAGE@\fR with the following arguments:
 .nf
 
 <\fIipaddress\fR> <\fIoccurrences\fR> new
@@ -105,12 +105,12 @@ expired. In that case, the script will be invoked with the following arguments:
 i.e. the host has not been blocked by the action script). The literal
 word 'remove' is used to indicate that the host will be purged from memory. 
 .P
-The action script is the corner stone of \fB@PACKAGE@\fB. You are completely
+The action script is the corner stone of \fB@PACKAGE@\fR. You are completely
 free to put whatever you suit in this file, e.g. commands for updating firewall
 rules, commands for sending mails, and so on.
 .P
 It is important that the execution bit is set (see also chmod(1)) and
-\fB@PACKAGE@\fB has read and execution access to the file.
+\fB@PACKAGE@\fR has read and execution access to the file.
 .\"=========================================================
 .\" CONFIGURATION
 .\"=========================================================
@@ -134,14 +134,14 @@ syslog.conf(@FILE_SECTION@) or your System Manual.
 .\" SIGNALS
 .\"=========================================================
 .SH SIGNALS
-\fB@PACKAGE@\fB recognizes following signals (see also to kill(1)).
+\fB@PACKAGE@\fR recognizes following signals (see also to kill(1)).
 .IP \fIUSR1\fR
 Request the list of the hosts that have attempted to break\-in will be printed
 to the system log (see also LOGGING).
 .IP \fIUSR2\fR
 Request that the known hosts are purged from the memory.
 .IP \fITERM\fR
-Terminate \fB@PACKAGE\fR@ gracefully.
+Terminate \fB@PACKAGE@\fR gracefully.
 .\"=========================================================
 .\" FILES
 .\"=========================================================
@@ -156,20 +156,20 @@ The default location of the configuration file. Can be override with the
 .\"=========================================================
 .SH CAVEATS
 .IP *
-Although calling \fB@PACKAGE@\fB with the \fB-t\fR option shows no error, it is
-possible that \fB@PACKAGE@\fB does not start because it cannot write the pid
+Although calling \fB@PACKAGE@\fR with the \fB-t\fR option shows no error, it is
+possible that \fB@PACKAGE@\fR does not start because it cannot write the pid
 file. Please make sure you check the system log after starting
-\fB@PACKAGE@\fB as daemon to make sure it started successfully.
+\fB@PACKAGE@\fR as daemon to make sure it started successfully.
 .IP *
-If started as root, \fB@PACKAGE@\fB does not drop root privileges.
+If started as root, \fB@PACKAGE@\fR does not drop root privileges.
 .IP *
-\fB@PACKAGE@\fB has to be started from an user account with read access to the
-specified log file, else \fB@PACKAGE@\fB is unable to read the log file and
+\fB@PACKAGE@\fR has to be started from an user account with read access to the
+specified log file, else \fB@PACKAGE@\fR is unable to read the log file and
 cannot start.
 .IP *
 Support for IPv6 addresses is intended but not tested.
 .IP *
-If the log file is removed during the operation of \fB@PACKAGE@\fB, it
+If the log file is removed during the operation of \fB@PACKAGE@\fR, it
 will repeatedly suspend for 30 seconds until the file reappears.
 .\"=========================================================
 .\" SEE ALSO

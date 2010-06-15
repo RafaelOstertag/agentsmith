@@ -7,13 +7,13 @@
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Foobar is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
+ * sshsentinel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * sshsentinel.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* $Id$ */
@@ -76,13 +76,13 @@
     "Software Foundation, either version 3 of the License, or (at your option)\n"	\
  "any later version." \
     "\n"								\
-    "Foobar is distributed in the hope that it will be useful, but WITHOUT ANY\n" \
+    "sshsentinel is distributed in the hope that it will be useful, but WITHOUT ANY\n" \
     "WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n"	\
     "FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more\n" \
     "details.\n"								\
     "\n"								\
     "You should have received a copy of the GNU General Public License along with\n" \
-    "Foobar.  If not, see <http://www.gnu.org/licenses/>.\n"
+    "sshsentinel.  If not, see <http://www.gnu.org/licenses/>.\n"
 
 #define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010 Rafael Ostertag\n" 
 

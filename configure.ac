@@ -47,9 +47,9 @@ AC_TYPE_PID_T
 AC_CHECK_TYPES([pthread_mutex_t],,
 	[AC_MSG_ERROR([Crucial data type was not found])],
 	[AC_INCLUDES_DEFAULT
-         #ifdef HAVE_PTHREAD_H
-         #include <pthread.h>
-         #endif]
+	 #ifdef HAVE_PTHREAD_H
+	 #include <pthread.h>
+	 #endif]
 )
 
 # Checks for library functions.
@@ -61,7 +61,7 @@ AC_CHECK_LIB([pcre],[pcre_compile],,[
 	AC_MSG_ERROR([libpcre was not found.])
 ])
 AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
-        AC_MSG_ERROR([libpcre lacks crucial function(s)])])
+	AC_MSG_ERROR([libpcre lacks crucial function(s)])])
 AC_CHECK_FUNCS([strerror vsnprintf strsep strchr usleep strdup memset sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime])
 
 # Enable
@@ -81,8 +81,8 @@ AC_ARG_WITH([config],
 		[location of the configuration file @<:@default=SYSCONFDIR/sshsentinel.conf@:>@])],
 	[if test "x$withval" = xyes -o "x$withval" = xno ; then
 	AC_MSG_FAILURE([--with-config expects a path])
-        fi
-         AC_SUBST([DEFAULT_CONFIGFILE],[$withval])
+	fi
+	 AC_SUBST([DEFAULT_CONFIGFILE],[$withval])
 	 ]
 )
 AC_ARG_WITH([pid],
@@ -90,12 +90,14 @@ AC_ARG_WITH([pid],
 		[location of the pid file @<:@default=LOCALSTATEDIR/sshsentinel/sshsentinel.pid@:>@])],
 	[if test "x$withval" = xyes -o "x$withval" = xno; then
 	AC_MSG_FAILURE([--with-pid expects a path])
-        fi
+	fi
 	 AC_SUBST([DEFAULT_PIDFILE],[$withval])
 	 ]
 )
 
 # AM Conditionals
+myOS=`uname -s 2>/dev/null`
+AM_CONDITIONAL([SUNOS],[test x$myOS = xSunOS])
 AM_CONDITIONAL([DEBUG], [test x$ENABLE_DEBUG = xyes])
 
 AC_CONFIG_FILES([

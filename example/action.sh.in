@@ -5,15 +5,51 @@
 # sophisticated scripts.
 #
 # Action scripts are called with the first command line argument set to the
-# catching pattern of the regular expression (see @DEFAULT_CONFIGFILE@) and the
+# catching pattern of the regular expression (see @DEFAULT_CONFIGFILE@), the
 # second command line argument set to the number of occurrences of the matches
-# regular expression in the logfile.
+# of the regular expression in the logfile.
+#
+# The third and last command line argument tells the script whether the call is
+# due to the host exceeds the action_threshold configured in the configuration
+# file, or the record for this host is being removed due to the purge_after
+# time. In the first case the value is 'new' in the second case 'remove'
 
-mail root <<EOF
-Subject: Mail from @PACKAGE@
+OS=`uname -s`
+
+# If a host appears at least 'action_threshold' times
+if test x"$3" = x"new"
+then
+    if test x"${OS}" = x"SunOS"
+    then
+	mail root <<EOF
+Subject: Mail from @PACKAGE@ ($3)
 
 sshsentinel regrets to inform you, that the host $1 has attempted $2 times
 to access `hostname` using an invalid account or wrong password.
 EOF
+    else
+	mail -s "Mail from @PACKAGE@ ($3)" root <<EOF
+sshsentinel regrets to inform you, that the host $1 has attempted $2 times
+to access `hostname` using an invalid account or wrong password.
+EOF
+    fi
+fi
+
+# If a host record is purged due to 'purge_after'
+if test x"$3" = x"remove"
+then
+    if test x"${OS}" = x"SunOS"
+    then
+	mail root <<EOF
+Subject: Mail from @PACKAGE@ ($3)
+
+sshsentinel has unblocked access for $1 to `hostname`.
+EOF
+    else
+	mail -s "Mail from @PACKAGE@ ($3)" root <<EOF
+sshsentinel has unblocked access for $1 to `hostname`.
+EOF
+    fi
+fi
 
 exit 0

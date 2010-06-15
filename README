@@ -1,5 +1,7 @@
-sshsentinel
-===========
+				  sshsentinel
+
+		      Copyright (c) 2010 Rafael Ostertag
+
 
 sshsentinal  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
 attempts. It uses  a user customizable regular expression  to identify break-in
@@ -21,6 +23,20 @@ Installation
 ------------
 
 Refer to the INSTALL file
+
+
+Examples
+--------
+
+After building sshsentinel,the example/ directory holds examples for
+
+ * action script (this is what gets executed if a break-in attempt is detected)
+
+ * configuration file (sshsentinel.conf)
+
+ * init.d start script (sshsentinel)
+
+ * Solaris SMF Manifest (sshsentinel.xml)
 
 
 Copyright

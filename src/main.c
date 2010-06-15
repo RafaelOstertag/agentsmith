@@ -213,7 +213,7 @@ main(int argc, char** argv) {
 
     threads_stop();
 
-    records_destroy();
+    records_destroy(threads_records_callback_action_removal);
 
     if ( daemonmode ) {
 	int retval;

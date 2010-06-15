@@ -21,7 +21,13 @@
 #ifndef THREADS_H
 #define THREADS_H
 
+#include "records.h"
+
 extern void threads_start();
 extern void threads_stop();
+/*
+ * This function is exported because it is also called from main.c upon exit.
+ */
+extern void threads_records_callback_action_removal(hostrecord_t *ptr);
 
 #endif

@@ -91,7 +91,7 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    retval = records_maintenance();
+    retval = records_maintenance(NULL);
     if (retval != 0) {
 	out_err("records_maintenance() returned value %i", retval);
 	exit(1);
@@ -118,6 +118,6 @@ int main (int wdc1, char** wdc2) {
 	out_err("records_dbg_get_vector_fill().\nrecords_dbg_get_vector_fill()==%i.",records_dbg_get_vector_fill());
 	exit(1);
     }
-    records_destroy();
+    records_destroy(NULL);
     exit (0);
 }

@@ -55,12 +55,12 @@ _records_callback_output(hostrecord_t *ptr) {
 #warning "Using ctime_r()"
 #endif
 #define TIMEBUFSIZE 128
+    char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
+#else
 #ifdef DEBUG
 #warning "Using ctime()"
 #endif
-    char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
 #endif
-
     assert( ptr != NULL );
 
 #ifdef HAVE_CTIME_R

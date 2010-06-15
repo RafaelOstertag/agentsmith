@@ -21,6 +21,10 @@
 #define BUFFSIZE 256
 #define EXPECTED_FILL 3
 
+/*
+ * Check the maintenance function to make sure we loose nothing
+ */
+
 int main (int wdc1, char** wdc2) {
     int retval;
     char str[BUFFSIZE];
@@ -28,7 +32,6 @@ int main (int wdc1, char** wdc2) {
 
     records_init();
 
-    /* Check the maintenance function to make sure we loose nothing */
     retval = records_add("192.168.100.1");
     if (retval != 0) {
 	fprintf(stderr, "records_add() returned %i\n", retval);
@@ -63,7 +66,7 @@ int main (int wdc1, char** wdc2) {
 	fprintf(stderr, "Expected fill is %i, but the actual value %il differs.\n", EXPECTED_FILL, records_dbg_get_vector_fill() );
     }
 
-    retval = records_maintenance();
+    retval = records_maintenance(NULL);
     if (retval != 0) {
 	fprintf(stderr, "records_maintenance() returned %i\n", retval);
 	exit(1);
@@ -73,6 +76,6 @@ int main (int wdc1, char** wdc2) {
 	fprintf(stderr, "After maintenance, expected fill is %i, but the actual value %il differs.\n", EXPECTED_FILL, records_dbg_get_vector_fill() );
     }
 
-    records_destroy();
+    records_destroy(NULL);
     exit (0);
 }

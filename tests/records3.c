@@ -65,6 +65,6 @@ int main (int wdc1, char** wdc2) {
 	fprintf(stderr, "Vector grew unexpected.\n");
 	exit (1);
     }
-    records_destroy();
+    records_destroy(NULL);
     exit (0);
 }

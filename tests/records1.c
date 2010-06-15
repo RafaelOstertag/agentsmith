@@ -38,6 +38,6 @@ int main (int wdc1, char** wdc2) {
 	    }
 	}
     }
-    records_destroy();
+    records_destroy(NULL);
     exit (0);
 }

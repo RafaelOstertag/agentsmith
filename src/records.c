@@ -159,7 +159,7 @@ records_init() {
 }
 
 void
-records_destroy () {
+records_destroy (records_remove_callback cb) {
     unsigned long i;
     hostrecord_t **ptr;
     int retval;
@@ -169,8 +169,11 @@ records_destroy () {
 
     ptr = hr_vector;
     for (i = 0; i < hr_vector_size; i++) {
-	if ( ptr[i] != NULL )
+	if ( ptr[i] != NULL ) {
+	    if ( cb != NULL ) 
+		cb(ptr[i]);
 	    free(ptr[i]);
+	}
     }
     free(ptr);
 
@@ -179,8 +182,11 @@ records_destroy () {
 	out_syserr(errno, "Error destroying vector_mutex" );
 }
 
+/*
+ * The callback function may be NULL.
+ */
 int
-records_maintenance() {
+records_maintenance(records_remove_callback cb) {
     int retval;
     hostrecord_t **ptr;
     unsigned long i, last_used, new_size;
@@ -198,8 +204,11 @@ records_maintenance() {
 
     ptr = hr_vector;
     for (i=0; i<hr_vector_size; i++) {
-	if (ptr[i] != NULL &&
-	    ptr[i]->remove != 0 ) {
+	if (ptr[i] != NULL && ptr[i]->remove != 0 ) {
+	    if ( cb != NULL ) {
+		out_dbg("Maintenance: call callback function");
+		cb(ptr[i]);
+	    }
 	    out_dbg("Maintenance: remove entry %li due to request (%i)",
 		    i,
 		    ptr[i]->remove);

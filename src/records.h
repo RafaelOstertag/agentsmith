@@ -60,15 +60,25 @@ struct _hostrecord {
 typedef struct _hostrecord hostrecord_t;
 
 /*
+ * The callback function which gets called when records are enumerated.
+ *
  * If the callback function returns a value != 0, the enumeration stops.
  */
 typedef int (*records_enum_callback)(hostrecord_t*);
 
+/*
+ * The callback function which gets called before record_maintenance() is
+ * removing a recor.
+ */
+typedef void (*records_remove_callback)(hostrecord_t*);
+
 extern pthread_mutex_t vector_mutex;
 extern void records_init();
-extern void records_destroy();
-/* Performs maintenance on records, i.e. tries to free space */
-extern int records_maintenance();
+extern void records_destroy(records_remove_callback cb);
+/* Performs maintenance on records, i.e. tries to free space and removes
+ * records that are marked for deletion.
+ */
+extern int records_maintenance(records_remove_callback cb);
 extern int records_add(const char *ipaddr);
 extern int records_remove(const char *ipaddr);
 extern int records_enumerate(records_enum_callback cb);

@@ -72,7 +72,7 @@ int main (int wdc1, char** wdc2) {
     }
 
     /* Now perform the maintenance */
-    retval = records_maintenance();
+    retval = records_maintenance(NULL);
     if (retval != 0) {
 	out_err("Error in records_maintenance()\n");
 	exit (1);
@@ -83,6 +83,6 @@ int main (int wdc1, char** wdc2) {
 	out_err("The vector size is not equal the chunk size.\n");
 	exit (1);
     }
-    records_destroy();
+    records_destroy(NULL);
     exit (0);
 }

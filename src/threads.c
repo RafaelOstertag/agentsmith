@@ -46,6 +46,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef STDC_HEADERS
+#include <string.h>
+#endif
+
 #include "globals.h"
 #include "threads.h"
 #include "records.h"
@@ -57,9 +61,20 @@ static const int action_sleep_time = 500000;
 static pthread_t action_thread_id;
 static pthread_t maintenance_thread_id;
 
+enum ac_type {
+    NEW = 0,
+    REMOVE
+};
+typedef enum ac_type ac_type_t;
+
+#define AC_TYPE_NEW_STR "new"
+#define AC_TYPE_REMOVE_STR "remove"
+#define AC_TYPE_UNKNOWN_STR "unknown"
+
 static void
-_do_action(const hostrecord_t *ptr, const config *cfg) {
+_do_action(const hostrecord_t *ptr, const config *cfg, ac_type_t t) {
     char action[BUFFSIZE];
+    char *type_str;
     int retval;
 
     retval = access (cfg->action, R_OK | X_OK | F_OK);
@@ -68,10 +83,30 @@ _do_action(const hostrecord_t *ptr, const config *cfg) {
 	return;
     }
 
-    snprintf(action, BUFFSIZE, "%s %s %i",
+    /*
+     * Get the action type string for passing to the script.
+     */
+    switch (t) {
+    case NEW:
+	type_str = strdup(AC_TYPE_NEW_STR);
+	break;
+    case REMOVE:
+	type_str = strdup(AC_TYPE_REMOVE_STR);
+	break;
+    default:
+	assert(0); /* In debug mode we want to abort */
+	type_str = strdup(AC_TYPE_UNKNOWN_STR);
+	out_err("Action type %i is unknown.", t);
+	break;
+    }
+
+    snprintf(action, BUFFSIZE, "%s %s %i %s",
 	     cfg->action,
 	     ptr->ipaddr,
-	     ptr->occurrences);
+	     ptr->occurrences,
+	     type_str);
+    free(type_str);
+
     out_dbg("Executing: %s", action);
     retval = system(action);
     out_dbg("'%s' returned %i", action, retval);
@@ -85,7 +120,7 @@ _do_action(const hostrecord_t *ptr, const config *cfg) {
 }
 
 static int
-_records_callback(hostrecord_t *ptr) {
+_records_callback_action_new(hostrecord_t *ptr) {
     config *cfg;
 
     assert( ptr != NULL);
@@ -97,7 +132,7 @@ _records_callback(hostrecord_t *ptr) {
 
     if ( ptr->occurrences >= cfg->action_threshold &&
 	 ptr->processed == 0) {
-	_do_action(ptr, cfg);
+	_do_action(ptr, cfg, NEW);
 	ptr->processed = 1;
 	return 0;
     }
@@ -122,7 +157,7 @@ static void*
 action_thread(void *wdc) {
     int retval;
     for (;;) {
-	retval = records_enumerate(_records_callback);
+	retval = records_enumerate(_records_callback_action_new);
 	if (retval != 0)
 	    out_err("records_enumerate() gave an error. Continuing...");
 
@@ -139,7 +174,7 @@ maintenance_thread(void *wdc) {
     for (;;) {
 
 	out_dbg("Starting records maintenance");
-	retval = records_maintenance();
+	retval = records_maintenance(threads_records_callback_action_removal);
 	out_dbg("Ending records maintenance");
 
 	usleep(maintenance_sleep_time);
@@ -192,4 +227,22 @@ threads_stop() {
 	out_syserr(errno, "Error joining action thread");
     }
 
+}
+
+/*
+ * This function is exported because it is also called from main.c upon exit.
+ */
+void
+threads_records_callback_action_removal(hostrecord_t *ptr) {
+    config *cfg;
+
+    assert (ptr != 0);
+
+    cfg = config_get();
+    if ( cfg == NULL ) {
+	out_err("<NULL> configuration received while enumerating records!.");
+	return;
+    }
+
+    _do_action(ptr, cfg, REMOVE);
 }

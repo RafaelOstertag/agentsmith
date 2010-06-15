@@ -3,7 +3,7 @@
 		      Copyright (c) 2010 Rafael Ostertag
 
 
-sshsentinal  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
+sshsentinel  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
 attempts. It uses  a user customizable regular expression  to identify break-in
 attempts and calls a script or other suitable application.
 

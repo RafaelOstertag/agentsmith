@@ -70,8 +70,10 @@ readtoeof (FILE *file) {
 	    break;
 	}
 	if ( ferror (file) ) {
-	    out_syserr(errno, "File error");
-	    exit (1);
+	    out_syserr(errno, "File error. Sleeping for %i seconds",
+		       err_sleep_time);
+	    sleep(err_sleep_time);
+	    return;
 	}
 
 	BUFF[buffpos] = (unsigned char)c;

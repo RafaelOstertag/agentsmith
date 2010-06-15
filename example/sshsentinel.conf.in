@@ -34,10 +34,10 @@ purge_after=3600
 
 # The action script. It will be called if 
 #
-# a) action_threshold is exceeded in time_interval seconds.
+# a) action_threshold is reached exceeded in time_interval seconds.
 # b) the host record is removed due to purging
 #
-# The action is invoked with the following parameters
+# The action is invoked with the following options
 #
 # actionscript <ip_address> <occurrences> <new|remove>
 #

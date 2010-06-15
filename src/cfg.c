@@ -51,7 +51,7 @@
 config CONFIG;
 
 static int config_initialized = 0;
-static const char DEFAULT_REGEX[] = "Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\.[\\d]{1,3}\\.[\\d]{1,3})";
+static const char DEFAULT_REGEX[] = "Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})";
 
 enum cfgvaltype {
     CFG_VAL_STR = 0,

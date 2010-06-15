@@ -206,7 +206,7 @@ main(int argc, char** argv) {
     /* Start threads */
     threads_start();
 
-    out_msg("%s successfully started", argv[0]);
+    out_msg("%s Version %s successfully started", argv[0], PACKAGE_VERSION);
 
     /* This will only return upon exit or error */
     follow(cfg->syslogfile);

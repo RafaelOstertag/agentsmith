@@ -1,3 +1,5 @@
 # $Id$
 
-SUBDIRS = example src tests
+EXTRA_DIST = INSTALL.generic
+
+SUBDIRS = example src tests doc

@@ -52,6 +52,8 @@ config CONFIG;
 
 static int config_initialized = 0;
 static const char DEFAULT_REGEX[] = "Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})";
+static const char DEFAULT_LOGFILE[] = "/var/log/authlog";
+static const char DEFAULT_ACTION[] = "/bin/true";
 
 enum cfgvaltype {
     CFG_VAL_STR = 0,
@@ -89,11 +91,11 @@ static void
 _init_config() {
     strncpy(CONFIG.pidfile, DEFAULT_PIDFILE, _MAX_PATH);
     strncpy(CONFIG.regex, DEFAULT_REGEX, BUFFSIZE);
-    memset(CONFIG.syslogfile, 0, _MAX_PATH);
-    memset(CONFIG.action, 0, _MAX_PATH);
+    strncpy(CONFIG.syslogfile, DEFAULT_LOGFILE, _MAX_PATH);
+    strncpy(CONFIG.action, DEFAULT_ACTION, _MAX_PATH);
     CONFIG.action_threshold = 3;
     CONFIG.time_interval = 60;
-    CONFIG.purge_after = 300;
+    CONFIG.purge_after = 3600;
 }
 
 static void

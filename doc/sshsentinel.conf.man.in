@@ -5,7 +5,7 @@
 .\" NAME
 .\"=========================================================
 .SH NAME
-\fB@PACKAGE@.conf \- configuration file for @PACKAGE@
+\fB@PACKAGE@.conf\fR \- configuration file for @PACKAGE@
 .\"=========================================================
 .\" SYNTAX
 .\"=========================================================
@@ -37,7 +37,7 @@ space.
 .P
 Empty lines are ignored.
 .P
-Invoking \fB@PACKAGE@\fB with the \fB-t\fR option specified checks the
+Invoking \fB@PACKAGE@\fR with the \fB-t\fR option specified checks the
 configuration file. It is recommended to run this command every time the
 configuration file has been altered.
 .\"=========================================================
@@ -46,7 +46,7 @@ configuration file has been altered.
 .SH OPTIONS
 The following options are recognized:
 .IP \fIpidfile\fR
-The location of the pid file. That is where \fB@PACKAGE@\fB writes the process
+The location of the pid file. That is where \fB@PACKAGE@\fR writes the process
 id when run in daemon mode.
 \br
 Default: @DEFAULT_PIDFILE@

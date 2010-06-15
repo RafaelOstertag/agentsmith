@@ -1,0 +1,34 @@
+Installation Instruction
+========================
+
+The build and installation is pretty straight forward. First, call
+
+    $ ./configure
+    $ make
+    $ make install
+
+By default, the pid file used by the daemon will live in
+
+   $LOCALSTATEDIR/sshsentinel/sshsentinel.pid
+
+The default location of the configuration file is
+
+    SYSCONFDIR/sshsentinel.conf
+
+Those  location can  be  changed by  either specifying  --localstatedir=<PATH>,
+--sysconfdir=<PATH>, --with-pid=<FILEPATH>, or --with-config=<FILEPATH>.
+
+If the PCRE library cannot be found, make sure you set the proper CPPFLAGS, and 
+LDFLAGS environment variable before calling configure, e.g. 
+
+    $ export CPPFLAGS='-I/usr/local/include'
+    $ export LDFLAGS='-L/usr/local/lib'
+
+Further, ensure that  the development packages for PCRE  are installed, this is
+especially important if you build sshsentinel on a Linux distribution.
+
+That's all folks.
+
+If more generic information, refer to INSTALL.generic.
+
+$Id$

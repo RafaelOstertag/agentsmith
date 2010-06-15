@@ -119,6 +119,16 @@ _do_action(const hostrecord_t *ptr, const config *cfg, ac_type_t t) {
     }
 }
 
+/*
+ * This function does two things:
+ *
+ * 1) if the action_threshold set in the configuration is reached, it calls the
+ *    action.
+ *
+ * 2) It sets the record remove flag if the purge_after time is reached. It
+ *    does not, however, purge the records itself, but lets the maintenance
+ *    thread do the job.
+ */
 static int
 _records_callback_action_new(hostrecord_t *ptr) {
     config *cfg;
@@ -244,5 +254,7 @@ threads_records_callback_action_removal(hostrecord_t *ptr) {
 	return;
     }
 
-    _do_action(ptr, cfg, REMOVE);
+    /* Only call the remove action if the record was processed */
+    if ( ptr->processed != 0 )
+	_do_action(ptr, cfg, REMOVE);
 }

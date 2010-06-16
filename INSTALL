@@ -13,7 +13,7 @@ By default, the pid file used by the daemon will live in
 
 The default location of the configuration file is
 
-    SYSCONFDIR/agentsmith/agentsmith.conf
+   $SYSCONFDIR/agentsmith/agentsmith.conf
 
 Those  location can  be  changed by  either specifying  --localstatedir=<PATH>,
 --sysconfdir=<PATH>, --with-pid=<FILEPATH>, or --with-config=<FILEPATH>.

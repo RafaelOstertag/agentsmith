@@ -4,7 +4,7 @@
 
 FILES = aclocal.m4 config.h.in configure depcomp install-sh Makefile.in missing	\
 src/Makefile.in example/Makefile.in tests/Makefile.in config.log config.sub	\
-config.guess core config.log.1
+config.guess core config.log.1 doc/Makefile.in
 DIRS = autom4te.cache
 
 all: configure Makefile.in

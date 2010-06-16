@@ -101,6 +101,8 @@ _init_config() {
 static void
 _set_config_option(const char* token, const char* value) {
     struct _cfgcfg *ptr;
+    int known_option = 0;
+
     assert(token != NULL && value != NULL);
 
     ptr = cfgcfg;
@@ -117,12 +119,17 @@ _set_config_option(const char* token, const char* value) {
 		sscanf(value, "%i", (int*)ptr->ptr);
 		break;
 	    default:
-		fprintf(stderr, "%i is not a known configuration type\n", ptr->type);
+		out_err("%i is not a known configuration type\n", ptr->type);
 		abort();
 	    }
+	    known_option=1;
 	}
 	ptr++;
     }
+    if (!known_option) {
+	out_err("'%s' is not a known option", token);
+    }
+	
 }
 
 static void
@@ -182,7 +189,22 @@ config_read(const char* file) {
 	    continue;
 
 	tmp = line;
+#ifdef HAVE_STRSEP
 	pos = strsep(&tmp, "=");
+#else
+	/* On e.g., solaris 10 strsep() is not available, so we try to simulate
+	   it... */
+	pos = strchr(tmp, '=');
+	if ( pos != NULL ) {
+	    tmp[pos-tmp]='\0';
+	    if ( pos+1 != '\0' ) {
+		tmp = pos+1;
+	    } else {
+		tmp = NULL;
+	    }
+	    pos=line;
+	}
+#endif
 	if ( pos != NULL ) {
 	    strncpy ( token, pos, BUFFSIZE );
 	    if ( tmp == NULL || strlen ( tmp ) == 0 )

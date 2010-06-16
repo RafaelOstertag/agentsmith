@@ -5,9 +5,9 @@
 
 sshsentinel  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
 attempts. It uses  a user customizable regular expression  to identify break-in
-attempts and calls a script or other suitable application.
+attempts and calls a script or other suitable application upon detection.
 
-For more information refer to the man page.
+For more information refer to the man pages.
 
 Dependencies
 ------------
@@ -30,9 +30,10 @@ Examples
 
 After building sshsentinel,the example/ directory holds examples for
 
- * action script (this is what gets executed if a break-in attempt is detected)
+ * action scripts (this is what gets executed if a break-in attempt is
+   detected)
 
- * configuration file (sshsentinel.conf)
+ * configuration file (sshsentinel.conf.example)
 
  * init.d start script (sshsentinel)
 

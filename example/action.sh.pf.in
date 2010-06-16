@@ -1,6 +1,8 @@
 #!/bin/sh
 #
-# Action script for sending a mail if a break-in attempt has been detected.
+# Action script for adding/removing a pf rule on OpenBSD if a break-in attempt
+# has been detected. The script expects a pf table named 'sshsentinel' to
+# exist.
 #
 # This is an example of an action script that can be used with @PACKAGE@. It is
 # not very sophisticated, but should give a basic clue how to write more
@@ -16,44 +18,30 @@
 # file, or the record for this host is being removed due to the purge_after
 # time. In the first case the value is 'new' in the second case 'remove'
 
-OS=`uname -s`
 HOSTNAME=`hostname`
+TABLENAME=sshsentinel
 MAILTO=root
 
 # If a host appears at least 'action_threshold' times
-if test x"$3" = x"new"
+if [ "$3" = "new" ]
 then
-    if test x"${OS}" = x"SunOS"
-    then
-	mail "${MAILTO}" <<EOF
-Subject: Mail from @PACKAGE@ ($3)
+    pfctl -t "${TABLENAME}" -T add $1
+    mail -s "Blocked access for $1 on ${HOSTNAME}" "${MAILTO}" <<EOF
+I had to block access from $1 to $HOSTNAME because of $2 attempts with wrong use
+rname/password.
 
-sshsentinel regrets to inform you, that the host $1 has attempted $2 times
-to access ${HOSTNAME} using an invalid account or wrong password.
+Offending host's DNS record:
+`host $1`
 EOF
-    else
-	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-sshsentinel regrets to inform you, that the host $1 has attempted $2 times
-to access ${HOSTNAME} using an invalid account or wrong password.
-EOF
-    fi
 fi
 
 # If a host record is purged due to 'purge_after'
-if test x"$3" = x"remove"
+if [ "$3" = "remove" ]
 then
-    if test x"${OS}" = x"SunOS"
-    then
-	mail "${MAILTO}" <<EOF
-Subject: Mail from @PACKAGE@ ($3)
-
-sshsentinel has unblocked access for $1 to ${HOSTNAME}.
+    pfctl -t "${TABLENAME}" -T delete $1
+    mail -s "Unblocked access for $1 on ${HOSTNAME}" "${MAILTO}" <<EOF
+Access for $1 to $HOSTNAME has been unblocked.
 EOF
-    else
-	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-sshsentinel has unblocked access for $1 to ${HOSTNAME}.
-EOF
-    fi
 fi
 
 exit 0

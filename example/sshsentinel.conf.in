@@ -22,7 +22,7 @@ pidfile=@DEFAULT_PIDFILE@
 # The syslog log to read
 syslogfile=/var/log/authlog
 
-# How many occurences before the action kicks in
+# How many occurrences before the action kicks in
 action_threshold=3
 
 # Maximum time between subsequent matches in seconds
@@ -39,7 +39,7 @@ purge_after=3600
 #
 # The action is invoked with the following options
 #
-# actionscript <ip_address> <occurrences> <new|remove>
+# <ip_address> <occurrences> <new|remove>
 #
 # Make sure it has the execution bit set, i.e. chmod +x <action_script>
 action=@sysconfdir@/sshsentinel.d/action.sh

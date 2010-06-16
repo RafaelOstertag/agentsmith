@@ -28,12 +28,12 @@ then
 	mail "${MAILTO}" <<EOF
 Subject: Mail from @PACKAGE@ ($3)
 
-sshsentinel regrets to inform you, that the host $1 has attempted $2 times
+agentsmith regrets to inform you, that the host $1 has attempted $2 times
 to access ${HOSTNAME} using an invalid account or wrong password.
 EOF
     else
 	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-sshsentinel regrets to inform you, that the host $1 has attempted $2 times
+agentsmith regrets to inform you, that the host $1 has attempted $2 times
 to access ${HOSTNAME} using an invalid account or wrong password.
 EOF
     fi
@@ -47,11 +47,11 @@ then
 	mail "${MAILTO}" <<EOF
 Subject: Mail from @PACKAGE@ ($3)
 
-sshsentinel has unblocked access for $1 to ${HOSTNAME}.
+agentsmith has unblocked access for $1 to ${HOSTNAME}.
 EOF
     else
 	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-sshsentinel has unblocked access for $1 to ${HOSTNAME}.
+agentsmith has unblocked access for $1 to ${HOSTNAME}.
 EOF
     fi
 fi

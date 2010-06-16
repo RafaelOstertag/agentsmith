@@ -1,19 +1,19 @@
 /* Copyright (C) 2010 Rafael Ostertag
  *
- * This file is part of sshsentinel.
+ * This file is part of agentsmith.
  *
- * sshsentinel is free software: you can redistribute it and/or modify it under
+ * agentsmith is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * sshsentinel is distributed in the hope that it will be useful, but WITHOUT
+ * agentsmith is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * sshsentinel.  If not, see <http://www.gnu.org/licenses/>.
+ * agentsmith.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* $Id$ */
@@ -76,13 +76,13 @@
     "Software Foundation, either version 3 of the License, or (at your option)\n"	\
  "any later version." \
     "\n"								\
-    "sshsentinel is distributed in the hope that it will be useful, but WITHOUT ANY\n" \
+    "agentsmith is distributed in the hope that it will be useful, but WITHOUT ANY\n" \
     "WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n"	\
     "FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more\n" \
     "details.\n"								\
     "\n"								\
     "You should have received a copy of the GNU General Public License along with\n" \
-    "sshsentinel.  If not, see <http://www.gnu.org/licenses/>.\n"
+    "agentsmith.  If not, see <http://www.gnu.org/licenses/>.\n"
 
 #define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010 Rafael Ostertag\n" 
 

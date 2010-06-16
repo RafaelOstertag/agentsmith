@@ -9,11 +9,11 @@ The build and installation is pretty straight forward. First, call
 
 By default, the pid file used by the daemon will live in
 
-   $LOCALSTATEDIR/sshsentinel/sshsentinel.pid
+   $LOCALSTATEDIR/agentsmith/agentsmith.pid
 
 The default location of the configuration file is
 
-    SYSCONFDIR/sshsentinel.conf
+    SYSCONFDIR/agentsmith/agentsmith.conf
 
 Those  location can  be  changed by  either specifying  --localstatedir=<PATH>,
 --sysconfdir=<PATH>, --with-pid=<FILEPATH>, or --with-config=<FILEPATH>.
@@ -25,7 +25,7 @@ LDFLAGS environment variable before calling configure, e.g.
     $ export LDFLAGS='-L/usr/local/lib'
 
 Further, ensure that  the development packages for PCRE  are installed, this is
-especially important if you build sshsentinel on a Linux distribution.
+especially important if you build agentsmith on a Linux distribution.
 
 That's all folks.
 

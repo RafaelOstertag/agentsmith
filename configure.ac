@@ -1,6 +1,6 @@
 # $Id$
 AC_PREREQ([2.65])
-AC_INIT([sshsentinel],[0.1],[rafi@guengel.ch])
+AC_INIT([agentsmith],[0.1],[rafi@guengel.ch])
 AC_REVISION([$Rev$])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([dist-bzip2 silent-rules])
@@ -73,12 +73,12 @@ AC_ARG_ENABLE(debug,
 )
 
 # ARGS
-AC_SUBST([DEFAULT_CONFIGFILE],[$sysconfdir/sshsentinel.conf],[The default location of the pid file])
-AC_SUBST([DEFAULT_PIDFILE],[$localstatedir/sshsentinel/sshsentinel.pid],[The default location of the pid file])
+AC_SUBST([DEFAULT_CONFIGFILE],[$sysconfdir/agentsmith/agentsmith.conf],[The default location of the pid file])
+AC_SUBST([DEFAULT_PIDFILE],[$localstatedir/agentsmith/agentsmith.pid],[The default location of the pid file])
 
 AC_ARG_WITH([config],
 	[AS_HELP_STRING([--with-config],
-		[location of the configuration file @<:@default=SYSCONFDIR/sshsentinel.conf@:>@])],
+		[location of the configuration file @<:@default=SYSCONFDIR/agentsmith/agentsmith.conf@:>@])],
 	[if test "x$withval" = xyes -o "x$withval" = xno ; then
 	AC_MSG_FAILURE([--with-config expects a path])
 	fi
@@ -87,7 +87,7 @@ AC_ARG_WITH([config],
 )
 AC_ARG_WITH([pid],
 	[AS_HELP_STRING([--with-pid],
-		[location of the pid file @<:@default=LOCALSTATEDIR/sshsentinel/sshsentinel.pid@:>@])],
+		[location of the pid file @<:@default=LOCALSTATEDIR/agentsmith/agentsmith.pid@:>@])],
 	[if test "x$withval" = xyes -o "x$withval" = xno; then
 	AC_MSG_FAILURE([--with-pid expects a path])
 	fi

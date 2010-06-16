@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Action script for adding/removing an iptables rule on linux if a break-in
-# attempt has been detected. The script expects a table named 'sshsentinel' to
+# attempt has been detected. The script expects a table named 'agentsmith' to
 # exist.
 #
 # This is an example of an action script that can be used with @PACKAGE@. It is
@@ -19,7 +19,7 @@
 # time. In the first case the value is 'new' in the second case 'remove'
 
 HOSTNAME=`hostname`
-TABLENAME=sshsentinel
+TABLENAME=agentsmith
 MAILTO=root
 
 # If a host appears at least 'action_threshold' times

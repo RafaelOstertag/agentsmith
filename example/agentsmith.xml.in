@@ -28,14 +28,14 @@ This is the SMF manifest for @PACKAGE@ for Solaris 10 or later.
 	    grouping='require_all'
 	    restart_on='none'
 	    type='path'>
-	    <service_fmri value='file://@sysconfdir@/sshsentinel.d/action.sh' />
+	    <service_fmri value='file://@sysconfdir@/agentsmith/action/action.sh' />
 	    <service_fmri value='file://@DEFAULT_CONFIGFILE@' />
 	</dependency>
 
 	<exec_method
 	    type='method'
 	    name='start'
-	    exec='@sbindir@/sshsentinel'
+	    exec='@sbindir@/agentsmith'
 	    timeout_seconds='15' />
 
 	<exec_method

@@ -42,7 +42,7 @@ purge_after=3600
 # <ip_address> <occurrences> <new|remove>
 #
 # Make sure it has the execution bit set, i.e. chmod +x <action_script>
-action=@sysconfdir@/sshsentinel.d/action.sh
+action=@sysconfdir@/agentsmith/action/action.sh
 
 # The (PERL) regular expression used to extract the ip addresses. Be aware, it
 # may only contain one catching '(...)' pattern. If you need to use alternation

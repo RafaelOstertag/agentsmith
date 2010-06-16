@@ -1,16 +1,16 @@
 # $Id$
 
-etc_DATA = sshsentinel.conf.example
-etcdir = $(sysconfdir)/sshsentinel
+etc_DATA = agentsmith.conf.example
+etcdir = $(sysconfdir)/agentsmith
 
-etcsshsentinel_DATA = action.sh.mail action.sh.iptables action.sh.pf
-etcsshsentineldir = $(sysconfdir)/sshsentinel/action
+etcagentsmith_DATA = action.sh.mail action.sh.iptables action.sh.pf
+etcagentsmithdir = $(sysconfdir)/agentsmith/action
 
-example_DATA = sshsentinel.xml sshsentinel
+example_DATA = agentsmith.xml agentsmith
 exampledir = $(pkgdatadir)/example
 
-CLEANFILES = $(example_DATA) $(etc_DATA) $(etcsshsentinel_DATA)
-EXTRA_DIST = sshsentinel.conf.in sshsentinel.xml.in sshsentinel.in	\
+CLEANFILES = $(example_DATA) $(etc_DATA) $(etcagentsmith_DATA)
+EXTRA_DIST = agentsmith.conf.in agentsmith.xml.in agentsmith.in	\
 action.sh.mail.in action.sh.pf.in action.sh.iptables.in
 
 do_subst = $(SED) -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
@@ -20,14 +20,14 @@ do_subst = $(SED) -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
 	-e 's,[@]mandir[@],$(mandir),g' \
 	-e 's,[@]sbindir[@],$(sbindir),g'
 
-sshsentinel.conf.example: sshsentinel.conf.in Makefile
-	$(do_subst) < $(srcdir)/sshsentinel.conf.in > $@
+agentsmith.conf.example: agentsmith.conf.in Makefile
+	$(do_subst) < $(srcdir)/agentsmith.conf.in > $@
 
-sshsentinel.xml: sshsentinel.xml.in Makefile
-	$(do_subst) < $(srcdir)/sshsentinel.xml.in > $@
+agentsmith.xml: agentsmith.xml.in Makefile
+	$(do_subst) < $(srcdir)/agentsmith.xml.in > $@
 
-sshsentinel: sshsentinel.in Makefile
-	$(do_subst) < $(srcdir)/sshsentinel.in > $@
+agentsmith: agentsmith.in Makefile
+	$(do_subst) < $(srcdir)/agentsmith.in > $@
 
 action.sh.mail: action.sh.mail.in Makefile
 	$(do_subst) < $(srcdir)/action.sh.mail.in > $@

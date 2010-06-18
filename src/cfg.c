@@ -150,7 +150,7 @@ _set_config_option(const char* token, const char* value) {
     if (!known_option) {
 	out_err("'%s' is not a known option", token);
     }
-	
+
 }
 
 /**
@@ -265,7 +265,7 @@ config_read(const char* file) {
     out_dbg("action_threshold=%i",CONFIG.action_threshold);
     out_dbg("time_interval=%i",CONFIG.time_interval);
     out_dbg("purge_after=%i",CONFIG.purge_after);
-    
+
     config_initialized = 1;
     return &CONFIG;
 }

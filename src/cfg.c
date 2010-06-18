@@ -51,16 +51,26 @@
 config CONFIG;
 
 static int config_initialized = 0;
+/*
+ * Default values if no values are specified
+ */
 static const char DEFAULT_REGEX[] = "Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})";
 static const char DEFAULT_LOGFILE[] = "/var/log/authlog";
 static const char DEFAULT_ACTION[] = "/bin/true";
 
+/**
+ * The type of the values read from the files. Used by struct _cfgcfg
+ */
 enum cfgvaltype {
     CFG_VAL_STR = 0,
     CFG_VAL_PATH = 1,
     CFG_VAL_INT = 2
 };
 
+/**
+ * This struct will be used to specify the known options, value type, access
+ * mode if applicable and the pointer where the value is stored.
+ */
 struct _cfgcfg {
 	char *name;
 	enum cfgvaltype type;
@@ -71,9 +81,17 @@ struct _cfgcfg {
 	 * of type CFG_VAL_PATH.
 	 */
 	int amode;
+	/**
+	 * This points to the address where the value read from the config file
+	 * will be stored. It must be of the proper type for 'type'
+	 */
 	void *ptr;
 };
 
+/**
+ * The configuration options currently known. Please make sure the last entry
+ * has *name set to NULL.
+ *
 struct _cfgcfg cfgcfg[] = {
     /* The pid file may not exists at the time of reading the configuration
        file, thus we specify -1 for amode. */
@@ -98,6 +116,9 @@ _init_config() {
     CONFIG.purge_after = 3600;
 }
 
+/**
+ * Places copy the given value to the location as specified in cfgcfg.
+ */
 static void
 _set_config_option(const char* token, const char* value) {
     struct _cfgcfg *ptr;
@@ -132,14 +153,18 @@ _set_config_option(const char* token, const char* value) {
 	
 }
 
+/**
+ * Error message if we cannot access a file.
+ */
 static void
 _file_access_error(int err, const char* filepath) {
     out_syserr(err, "Error accessing '%s'", filepath);
     exit(1);
 }
 
-/*
- * Checks all configuration options of the type CFG_TYPE_PATH.
+/**
+ * Checks all configuration options of the type CFG_TYPE_PATH for proper
+ * access.
  */
 static void
 _check_paths_in_config() {
@@ -158,6 +183,9 @@ _check_paths_in_config() {
     }
 }
 
+/**
+ * Read the config file. Returns a pointer to the CONFIG struct.
+ */
 config*
 config_read(const char* file) {
     int retval;

@@ -91,7 +91,7 @@ struct _cfgcfg {
 /**
  * The configuration options currently known. Please make sure the last entry
  * has *name set to NULL.
- *
+ */
 struct _cfgcfg cfgcfg[] = {
     /* The pid file may not exists at the time of reading the configuration
        file, thus we specify -1 for amode. */

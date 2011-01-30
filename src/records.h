@@ -21,7 +21,7 @@
 #ifndef RECORDS_H
 #define RECORDS_H
 
-#ifdef HAVE_CONFI_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 

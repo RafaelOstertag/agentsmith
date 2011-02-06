@@ -134,12 +134,13 @@ syslog.conf(@FILE_SECTION@) or your System Manual.
 .\" SIGNALS
 .\"=========================================================
 .SH SIGNALS
-\fB@PACKAGE@\fR recognizes following signals (see also to kill(1)).
+\fB@PACKAGE@\fR recognizes following signals (see also kill(1)).
 .IP \fIUSR1\fR
 Request the list of the hosts that have attempted to break\-in will be printed
 to the system log (see also LOGGING).
 .IP \fIUSR2\fR
-Request that the known hosts are purged from the memory.
+Request that the known hosts are purged from the memory. This will also call
+the action script with the 'remove' option.
 .IP \fITERM\fR
 Terminate \fB@PACKAGE@\fR gracefully.
 .\"=========================================================
@@ -167,7 +168,7 @@ If started as root, \fB@PACKAGE@\fR does not drop root privileges.
 specified log file, else \fB@PACKAGE@\fR is unable to read the log file and
 cannot start.
 .IP *
-Support for IPv6 addresses is intended but not tested.
+Support for IPv6 addresses is implemented but not tested.
 .IP *
 If the log file is removed during the operation of \fB@PACKAGE@\fR, it
 will repeatedly suspend for 30 seconds until the file reappears.
@@ -175,7 +176,7 @@ will repeatedly suspend for 30 seconds until the file reappears.
 .\" SEE ALSO
 .\"=========================================================
 .SH SEE ALSO
-@PACKAGE@.conf(@FILE_SECTION@)
+@PACKAGE@.conf(@FILE_SECTION@), agentsmith_exclude(@FILE_SECTION@)
 .\"=========================================================
 .\" AUTHOR
 .\"=========================================================

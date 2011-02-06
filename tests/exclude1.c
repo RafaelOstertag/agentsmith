@@ -21,14 +21,14 @@
 #define BUFFSIZE 256
 
 int main(int wdc1, char** wdc2) {
-    int retval;
+    int retval, a, b;
     char buff[BUFFSIZE];
     
     exclude_init();
 
     /* This is mainly used for checking for leaks using dbx */
-    for (int a=1; a<10; a++)
-	for (int b=1; b<10; b++) {
+    for (a=1; a<10; a++)
+	for (b=1; b<10; b++) {
 	    snprintf(buff,BUFFSIZE,"%d.%d.0.0/24", a, b);
 	    retval = exclude_add(buff);
 	    if (retval != 0)
@@ -40,8 +40,8 @@ int main(int wdc1, char** wdc2) {
 	exit (1);
 
     /* Make sure the list has been cleared */
-    for (int a=1; a<10; a++)
-	for (int b=1; b<10; b++) {
+    for (a=1; a<10; a++)
+	for (b=1; b<10; b++) {
 	    snprintf(buff,BUFFSIZE,"%d.%d.1.1", a, b);
 	    retval = exclude_isexcluded(buff);
 	    if (retval == 0)

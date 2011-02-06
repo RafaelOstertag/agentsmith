@@ -46,6 +46,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -283,7 +287,7 @@ _exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
  */
 static int
 _exclude_prefix_to_ipv6_mask(unsigned int prefix, in6_addr_t *mask) {
-    int n,m;
+    int n,m,i;
 
     assert(mask != NULL);
     assert(prefix >= 0 && prefix <= 128);
@@ -291,7 +295,7 @@ _exclude_prefix_to_ipv6_mask(unsigned int prefix, in6_addr_t *mask) {
     memset(mask, 0, sizeof(*mask) );
 
     n = prefix / 8;
-    for (int i=0; i < n ; i++) {
+    for (i=0; i < n ; i++) {
 #ifdef HAVE_SOLARIS_IN6_ADDR
 	mask->_S6_un._S6_u8[i]=0xff;
 #elif HAVE_BSD_IN6_ADDR
@@ -332,10 +336,11 @@ inline static int
 _exclude_ipv6_in_net(const in6_addr_t *net,
 		     const in6_addr_t *mask,
 		     const in6_addr_t *ip) {
+    int i;
 
     assert(net != NULL && mask != NULL && ip != NULL);
 
-    for (int i=0; i<16; i++) {
+    for (i=0; i<16; i++) {
 	if (
 #ifdef HAVE_SOLARIS_IN6_ADDR
 	    (net->_S6_un._S6_u8[i] & mask->_S6_un._S6_u8[i]) !=
@@ -529,7 +534,7 @@ exclude_destroy () {
 
 int
 exclude_clear() {
-    int retval;
+    int retval,i;
     excluderecord_t **ptr;
 
     if (!initialized)
@@ -543,7 +548,7 @@ exclude_clear() {
 
 
     ptr = exclude_vector;
-    for (int i = 0; i < er_vector_size; i++) {
+    for (i = 0; i < er_vector_size; i++) {
 	if ( ptr[i] != NULL ) {
 	    free(ptr[i]);
 	}
@@ -598,9 +603,9 @@ exclude_add(const char *ipaddr) {
     /*
      * We need exclusive access to the vector, since we're going to modify it
      */
-    retval = pthread_mutex_unlock(&exclude_mutex);
+    retval = pthread_mutex_lock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(errno, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 

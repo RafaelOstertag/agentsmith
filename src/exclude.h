@@ -25,16 +25,21 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
 
-#ifdef HAVE_NETINET6_IN6_H
-#include <netinet6/in6>
-#endif
-
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
+#endif
+
+#if defined(HAVE_STRUCT_IN6_ADDR) && !defined(HAVE_IN6_ADDR_T)
+typedef struct in6_addr in6_addr_t;
+#define HAVE_IN6_ADDR_T 1
 #endif
 
 struct _excluderecord {

@@ -90,6 +90,9 @@ readtoeof (FILE *file) {
 	if ( c == '\n' ) {
 	    BUFF[buffpos] = '\0';
 	    buffpos=0;
+	    /*
+	     * This will check if we have a regex match
+	     */
 	    regex_do(BUFF);
 	}
     }

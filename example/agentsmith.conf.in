@@ -2,7 +2,7 @@
 #
 # Comments start with '#'. Comments are only allowed at the start of the line.
 # Configuration options ARE CASE-SENSITIVE.  Spaces between the configuration
-# option  and the equal sign ('=') are not allowed. E.g.:
+# option and the equal sign ('=') are not allowed. E.g.:
 #
 # foo = bar
 # foo= bar
@@ -32,10 +32,16 @@ time_interval=60
 # greater than time_interval)
 purge_after=3600
 
+# This file contains the IP Addresses and ranges to be excluded. All addresses
+# listed will be ignored, and the action script will not be called.
+#exclude=@sysconfdir@/agentsmith/exclude
+
 # The action script. It will be called if 
 #
 # a) action_threshold is reached exceeded in time_interval seconds.
+#
 # b) the host record is removed due to purging
+#
 #
 # The action is invoked with the following options
 #

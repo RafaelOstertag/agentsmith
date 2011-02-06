@@ -1,0 +1,20 @@
+# Enter the IP Addresses and/or IP Ranges to be ignored by @PACKAGE@.
+#
+# Comments start with '#'. Comments are only allowed at the start of the line. 
+#
+# The syntax is as follows:
+#
+# <ipaddress>
+#
+# <ipaddress>/<prefix>
+#
+# IPv4 and IPv6 addresses are allowed.
+#
+# E.g.:
+#
+# 192.168.1.1
+# 192.168.1.0/24
+# 2001:1:2:8::/61
+#
+# If the prefix is omitted the default of 32 is used for IPv4 and 128 is used
+# for IPv6.

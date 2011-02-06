@@ -1,6 +1,6 @@
 # $Id$
 
-etc_DATA = agentsmith.conf.example
+etc_DATA = agentsmith.conf.example exclude.example
 etcdir = $(sysconfdir)/agentsmith
 
 etcagentsmith_DATA = action.sh.mail action.sh.iptables action.sh.pf
@@ -10,8 +10,8 @@ example_DATA = agentsmith.xml agentsmith
 exampledir = $(pkgdatadir)/example
 
 CLEANFILES = $(example_DATA) $(etc_DATA) $(etcagentsmith_DATA)
-EXTRA_DIST = agentsmith.conf.in agentsmith.xml.in agentsmith.in	\
-action.sh.mail.in action.sh.pf.in action.sh.iptables.in
+EXTRA_DIST = agentsmith.conf.in agentsmith.xml.in agentsmith.in			\
+action.sh.mail.in action.sh.pf.in action.sh.iptables.in exclude.example.in
 
 do_subst = $(SED) -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
 	-e 's,[@]DEFAULT_PIDFILE[@],$(DEFAULT_PIDFILE),g' \
@@ -22,6 +22,9 @@ do_subst = $(SED) -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
 
 agentsmith.conf.example: agentsmith.conf.in Makefile
 	$(do_subst) < $(srcdir)/agentsmith.conf.in > $@
+
+exclude.example: exclude.example.in Makefile
+	$(do_subst) < $(srcdir)/exclude.example.in > $@
 
 agentsmith.xml: agentsmith.xml.in Makefile
 	$(do_subst) < $(srcdir)/agentsmith.xml.in > $@

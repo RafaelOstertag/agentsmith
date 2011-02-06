@@ -67,7 +67,7 @@ unsigned long records_dbg_get_vector_size() { return hr_vector_size; }
 unsigned long records_dbg_get_vector_chunksize() { return hr_vector_chunksize; }
 unsigned long records_dbg_get_vector_fill() { return hr_vector_fill; }
 
-/*
+/**
  * @return
  * The index of the first free slot in the newly allocated vector.
  */

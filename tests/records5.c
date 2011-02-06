@@ -58,7 +58,7 @@ int main (int wdc1, char** wdc2) {
 	}
     }
 
-    retval = records_enumerate(callback1);
+    retval = records_enumerate(callback1, SYNC);
     if (retval != 0) {
 	out_err("records_enumerate() returned value %i", retval);
 	exit(1);
@@ -85,7 +85,7 @@ int main (int wdc1, char** wdc2) {
 	}
     }
 
-    retval = records_enumerate(callback2);
+    retval = records_enumerate(callback2, SYNC);
     if (retval != 0) {
 	out_err("records_enumerate() returned value %i", retval);
 	exit(1);

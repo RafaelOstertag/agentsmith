@@ -45,6 +45,16 @@ enum {
     IPADDR_SIZE = 46
 };
 
+/**
+ * The modes available for enumerating records. Currently synchronous and
+ * asynchronous mode is supported.
+ */
+enum enum_mode {
+    SYNC,
+    ASYNC
+} ;
+typedef enum enum_mode enum_mode_t;
+
 struct _hostrecord {
 	char ipaddr[IPADDR_SIZE];
 	time_t firstseen;
@@ -81,7 +91,7 @@ extern void records_destroy(records_remove_callback cb);
 extern int records_maintenance(records_remove_callback cb);
 extern int records_add(const char *ipaddr);
 extern int records_remove(const char *ipaddr);
-extern int records_enumerate(records_enum_callback cb);
+extern int records_enumerate(records_enum_callback cb, enum_mode_t mode);
 extern hostrecord_t *records_get(const char *ipaddr);
 
 extern unsigned long records_dbg_get_vector_size();

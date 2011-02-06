@@ -167,7 +167,7 @@ static void*
 action_thread(void *wdc) {
     int retval;
     for (;;) {
-	retval = records_enumerate(_records_callback_action_new);
+	retval = records_enumerate(_records_callback_action_new, SYNC);
 	if (retval != 0)
 	    out_err("records_enumerate() gave an error. Continuing...");
 

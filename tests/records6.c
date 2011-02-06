@@ -86,7 +86,7 @@ thread_enumerate(void* wdc) {
     int retval;
 
     for (;;) {
-	retval = records_enumerate(callback);
+	retval = records_enumerate(callback, SYNC);
 	if (retval != 0) {
 	    out_err("records_enumerate() returned value %i", retval);
 	    exit(1);

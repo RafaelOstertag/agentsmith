@@ -68,6 +68,62 @@ unsigned long records_dbg_get_vector_chunksize() { return hr_vector_chunksize; }
 unsigned long records_dbg_get_vector_fill() { return hr_vector_fill; }
 
 /**
+ * This is function doing the actual listing of records.
+ */
+static int
+_records_enumerate(records_enum_callback cb) {
+    hostrecord_t **ptr;
+    int retval;
+    unsigned long i;
+
+    assert(cb != NULL);
+
+    retval = pthread_mutex_lock(&vector_mutex);
+    if ( retval != 0 ) {
+	out_syserr(errno, "Unable to lock vector_mutex");
+	return RETVAL_ERR;
+    }
+
+    ptr = hr_vector;
+    for (i = 0; i < hr_vector_fill; i++ ) {
+	if ( ptr[i] != NULL ) {
+	    retval = cb(ptr[i]);
+	    if (retval != 0)
+		break;
+	}
+    }
+
+    retval = pthread_mutex_unlock(&vector_mutex);
+    if ( retval != 0 ) {
+	out_syserr(errno, "Unable to unlock vector_mutex");
+	return RETVAL_ERR;
+    }
+
+    return RETVAL_OK;
+}
+
+/**
+ * This is thread function for doing the record enumeration asynchronously.
+ *
+ * @param args a pointer to the call back function.
+ *
+ */
+static void*
+_records_enumerate_thread(void* args) {
+    int retval;
+    records_enum_callback cb;
+
+    cb = (records_enum_callback)args;
+
+    retval = _records_enumerate(cb);
+    if (retval != RETVAL_OK)
+	out_err("Error enumerating records asynchronously");
+
+
+    pthread_exit(NULL);
+}
+
+/**
  * @return
  * The index of the first free slot in the newly allocated vector.
  */
@@ -170,7 +226,7 @@ records_destroy (records_remove_callback cb) {
     ptr = hr_vector;
     for (i = 0; i < hr_vector_size; i++) {
 	if ( ptr[i] != NULL ) {
-	    if ( cb != NULL ) 
+	    if ( cb != NULL )
 		cb(ptr[i]);
 	    free(ptr[i]);
 	}
@@ -402,11 +458,21 @@ records_remove(const char *ipaddr) {
     return RETVAL_ERR;
 }
 
+/**
+ * Enumerates the records and calls a function for each record. Depending on
+ * the return value of the call-back function, the enumeration may stop.
+ *
+ * The actual enumeration is done in a separate detached thread to avoid race
+ * conditions when called from a signal handler.
+ *
+ * @param cb the address of the function to call.
+ *
+ * @return 0 on success, -1 otherwise.
+ */
 int
-records_enumerate(records_enum_callback cb) {
+records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     int retval;
-    hostrecord_t **ptr;
-    unsigned long i;
+    pthread_attr_t tattr;
 
     if (cb == NULL)
 	return RETVAL_ERR;
@@ -414,37 +480,29 @@ records_enumerate(records_enum_callback cb) {
     if (!initialized)
 	return RETVAL_ERR;
 
-    retval = pthread_mutex_lock(&vector_mutex);
-    if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
-	return RETVAL_ERR;
-    }
-
-    ptr = hr_vector;
-    for (i = 0; i < hr_vector_fill; i++ ) {
-	if ( ptr[i] != NULL ) {
-	    retval = cb(ptr[i]);
-	    if (retval != 0)
-		break;
+    if (mode == ASYNC) {
+	retval = pthread_attr_init(&tattr);
+	if (retval != 0) {
+	    out_syserr(errno, "Error initializing thread attributes for record enumeration thread");
+	    return RETVAL_ERR;
 	}
+	
+	retval = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
+	if (retval != 0) {
+	    out_syserr(errno, "Error setting detach state for record enumeration thread");
+	    return RETVAL_ERR;
+	}
+	
+	retval = pthread_create(NULL, &tattr, _records_enumerate_thread, (void*)cb);
+	if (retval != 0) {
+	    out_syserr(errno, "Error lauching record enumeration thread");
+	    return RETVAL_ERR;
+	}
+	
+	return RETVAL_OK;
+    } else {
+	return _records_enumerate(cb);
     }
-
-    goto END_OK;
-
- END_OK:
-    retval = pthread_mutex_unlock(&vector_mutex);
-    if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
-	return RETVAL_ERR;
-    }
-    return RETVAL_OK;
- /* END_ERR: */
- /*    retval = pthread_mutex_unlock(&vector_mutex); */
- /*    if ( retval != 0 ) { */
- /* 	out_syserr(errno, "Unable to unlock vector_mutex"); */
- /* 	return RETVAL_ERR; */
- /*    } */
- /*    return RETVAL_ERR; */
 }
 
 hostrecord_t

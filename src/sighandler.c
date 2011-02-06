@@ -127,7 +127,7 @@ signalhandler_usr1(int no) {
 
     sav_errno = errno;
     out_msg("Received signal USR1. Output of host records follows...");
-    retval = records_enumerate(_records_callback_output);
+    retval = records_enumerate(_records_callback_output, ASYNC);
     if (retval != 0)
 	out_err("Error enumerating records for output");
 
@@ -142,7 +142,7 @@ signalhandler_usr2(int no) {
 
     sav_errno = errno;
     out_msg("Received signal USR2. Host records will be purged upon the next run of the maintenance thread");
-    retval = records_enumerate(_records_callback_remove_all);
+    retval = records_enumerate(_records_callback_remove_all, ASYNC);
     if (retval != 0)
 	out_err("Error enumerating records for purging");
 

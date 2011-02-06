@@ -58,6 +58,7 @@
 #include "regex.h"
 #include "records.h"
 #include "threads.h"
+#include "exclude.h"
 
 #define HELPSTR "Usage:\n"				\
     PACKAGE_NAME " [-d] [-t] [-c <file>] [-p <file>]\n"	\
@@ -200,6 +201,12 @@ main(int argc, char** argv) {
     /* Initialize record vector */
     records_init();
 
+    /* Initialize exclude vector */
+    exclude_init();
+
+    /* Read exclude file */
+    exclude_readfile(cfg->exclude);
+
     /* Set up the signal handlers */
     signalhandler_setup();
 
@@ -214,6 +221,8 @@ main(int argc, char** argv) {
     threads_stop();
 
     records_destroy(threads_records_callback_action_removal);
+
+    exclude_destroy();
 
     if ( daemonmode ) {
 	int retval;

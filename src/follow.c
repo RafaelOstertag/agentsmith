@@ -81,6 +81,9 @@ readtoeof (FILE *file) {
 	if (buffpos == BUFFSIZE-1) {
 	    BUFF[buffpos] = '\0';
 	    buffpos=0;
+	    /*
+	     * This will check if we have a regex match
+	     */
 	    regex_do(BUFF);
 	    continue;
 	}
@@ -124,8 +127,8 @@ follow (const char* fname) {
 	if (retval == -1) {
 	    /* The file is gone... */
 
-	    /* This check is neccessary because we might up several times here
-	       before the file reappears */
+	    /* This check is neccessary because we might end up several times
+	       here before the file reappears */
 	    if ( file != NULL ) {
 		fclose ( file );
 		file = NULL;

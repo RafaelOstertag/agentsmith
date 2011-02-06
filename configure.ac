@@ -3,8 +3,7 @@ AC_PREREQ([2.65])
 AC_INIT([agentsmith],[0.2],[rafi@guengel.ch])
 AC_REVISION([$Rev$])
 AC_CONFIG_SRCDIR([configure.ac])
-AM_INIT_AUTOMAKE([dist-bzip2 silent-rules])
-AM_SILENT_RULES
+AM_INIT_AUTOMAKE([silent-rules dist-bzip2 check-news])
 
 # Checks for programs.
 AC_PROG_INSTALL
@@ -31,7 +30,7 @@ AX_PTHREAD([
 # Checks for header files.
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([stdio.h syslog.h unistd.h errno.h assert.h signal.h sys/types.h sys/stat.h pthread.h netinet6/in6.h arpa/inet.h arpa/inet.h inttypes.h netinet/in.h math.h])
+AC_CHECK_HEADERS([stdio.h syslog.h unistd.h errno.h assert.h signal.h sys/types.h sys/stat.h pthread.h arpa/inet.h sys/socket.h inttypes.h netinet/in.h math.h])
 AC_CHECK_HEADER([pcre.h],
 	AC_DEFINE([HAVE_PCRE_H],
 	[1],
@@ -47,29 +46,24 @@ AC_CHECK_HEADER([pcre.h],
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
-AC_CHECK_TYPES([pthread_mutex_t],,
-	[AC_MSG_ERROR([Crucial data type pthread_mutex_t was not found])],
+AC_CHECK_TYPES([pthread_mutex_t, in_addr_t],,
+	[AC_MSG_ERROR([Crucial data type not found])],
 	[AC_INCLUDES_DEFAULT
 	 #ifdef HAVE_PTHREAD_H
 	 #include <pthread.h>
+	 #endif
+	 #ifdef HAVE_NETINET_IN_H
+	 #include <netinet/in.h>
 	 #endif]
 )
-AC_CHECK_TYPES([in_addr_t],,
-	[AC_MSG_ERROR([Crucial data type in_addr_t was not found])],
+
+AC_CHECK_TYPES([struct in6_addr, in6_addr_t],,,
 	[AC_INCLUDES_DEFAULT
 	#ifdef HAVE_NETINET_IN_H
 	#include <netinet/in.h>
 	#endif]
 )
-AC_CHECK_TYPES([in6_addr_t],,,
-	[AC_INCLUDES_DEFAULT
-	#ifdef HAVE_NETINET_IN_H
-	#include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETINET6_IN6_H
-	#include <netinet6/in6.h>
-	#endif]
-)
+
 # Solaris
 AC_CHECK_MEMBER([struct in6_addr._S6_un._S6_u8],
 	[AC_DEFINE([HAVE_SOLARIS_IN6_ADDR],
@@ -78,9 +72,6 @@ AC_CHECK_MEMBER([struct in6_addr._S6_un._S6_u8],
 	[AC_INCLUDES_DEFAULT
 	#ifdef HAVE_NETINET_IN_H
 	#include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETINET6_IN6_H
-	#include <netinet6/in6.h>
 	#endif]
 )
 # *BSD
@@ -91,9 +82,6 @@ AC_CHECK_MEMBER([struct in6_addr.__u6_addr.__u6_addr8],
 	[AC_INCLUDES_DEFAULT
 	#ifdef HAVE_NETINET_IN_H
 	#include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETINET6_IN6_H
-	#include <netinet6/in6.h>
 	#endif]
 )
 # LX
@@ -104,9 +92,6 @@ AC_CHECK_MEMBER([struct in6_addr.__in6_u.__u6_addr8],
 	[AC_INCLUDES_DEFAULT
 	#ifdef HAVE_NETINET_IN_H
 	#include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETINET6_IN6_H
-	#include <netinet6/in6.h>
 	#endif]
 )
 

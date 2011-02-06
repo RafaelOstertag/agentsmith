@@ -43,6 +43,8 @@
 #include "follow.h"
 #include "sighandler.h"
 #include "records.h"
+#include "cfg.h"
+#include "exclude.h"
 
 /* We keep the previous signal set, just in case */
 static sigset_t old_sigset;
@@ -121,6 +123,8 @@ static void
 signalhandler_usr1(int no) {
     int retval, sav_errno;
 
+    assert(no == SIGUSR1);
+
     sav_errno = errno;
     out_msg("Received signal USR1. Output of host records follows...");
     retval = records_enumerate(_records_callback_output);
@@ -134,11 +138,36 @@ static void
 signalhandler_usr2(int no) {
     int retval, sav_errno;
 
+    assert(no == SIGUSR2);
+
     sav_errno = errno;
     out_msg("Received signal USR2. Host records will be purged upon the next run of the maintenance thread");
     retval = records_enumerate(_records_callback_remove_all);
     if (retval != 0)
 	out_err("Error enumerating records for purging");
+
+    errno = sav_errno;
+}
+
+static void
+signalhandler_hup(int no) {
+    int retval, sav_errno;
+    config* cfg;
+
+    assert(no == SIGHUP);
+
+    sav_errno = errno;
+    out_msg("Received signal HUP. Re-read exclude file");
+
+    cfg = config_get();
+    if (cfg == NULL) {
+	out_err("Unable to get configuration for re-reading exclude file");
+	return;
+    }
+
+    retval = exclude_readfile(cfg->exclude);
+    if (retval != 0)
+	out_syserr(errno, "Error re-reading exclude file %s", cfg->exclude);
 
     errno = sav_errno;
 }
@@ -229,11 +258,6 @@ signalhandler_setup() {
 	abort();
     }
     retval = sigaction ( SIGWINCH, &sa, NULL);
-    if ( retval == -1 ) {
-	out_syserr(errno, "Error setting up signal handler");
-	abort();
-    }
-    retval = sigaction ( SIGHUP, &sa, NULL);
     if ( retval == -1 ) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
@@ -335,6 +359,15 @@ signalhandler_setup() {
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_usr2;
     retval = sigaction ( SIGUSR2, &sa, NULL);
+    if ( retval == -1 ) {
+	out_syserr(errno, "Error setting up signal handler");
+	abort();
+    }
+    /* Reread exclude list */
+    sigfillset(&(sa.sa_mask));
+    sa.sa_flags = 0;
+    sa.sa_handler = signalhandler_hup;
+    retval = sigaction ( SIGHUP, &sa, NULL);
     if ( retval == -1 ) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();

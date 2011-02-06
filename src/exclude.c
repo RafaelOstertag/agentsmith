@@ -120,6 +120,12 @@ _exclude_show_list() {
 }
 #endif
 
+/**
+ * This is the thread reading an IP exclude file.
+ *
+ * @param args a char pointer to the file path of the file holding the excluded
+ * ip addresses.
+ */
 static void*
 _exclude_readfile_thread(void* args) {
     FILE* exfile;
@@ -172,7 +178,7 @@ _exclude_readfile_thread(void* args) {
 	if (strlen(line) > 1 &&
 	    line[strlen(line)-1] == '\n')
 	    line[strlen(line)-1] = '\0';
-    
+
 
 	out_dbg("Read exclude line: %s", line);
 

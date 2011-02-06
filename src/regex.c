@@ -39,6 +39,7 @@
 #include "output.h"
 #include "records.h"
 #include "cfg.h"
+#include "exclude.h"
 
 static int regexp_compiled = 0;
 static pcre *compiled_regexp = NULL;
@@ -113,11 +114,19 @@ regex_do(const char* buff) {
 	memset(match, 0, BUFFSIZE);
 	strncpy(match, buff + ovector[2], match_len);
 	out_dbg("Found match '%s'", match);
-	retval = records_add(match);
-	if (retval != 0) {
-	    out_err("Got error adding '%s' to record vector (retval==%i)",
-		    match,
-		    retval);
+
+	/*
+	 * Check if this match is excluded.
+	 */
+	if (exclude_isexcluded(match) != 0) {
+	    retval = records_add(match);
+	    if (retval != 0) {
+		out_err("Got error adding '%s' to record vector (retval==%i)",
+			match,
+			retval);
+	    }
+	} else {
+	    out_msg("%s has been ignored due to entry in exclude file", match);
 	}
     }
 }

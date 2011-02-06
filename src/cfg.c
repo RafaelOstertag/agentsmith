@@ -57,6 +57,7 @@ static int config_initialized = 0;
 static const char DEFAULT_REGEX[] = "Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})";
 static const char DEFAULT_LOGFILE[] = "/var/log/authlog";
 static const char DEFAULT_ACTION[] = "/bin/true";
+static const char DEFAULT_EXCLUDE[] = "";
 
 /**
  * The type of the values read from the files. Used by struct _cfgcfg
@@ -98,6 +99,7 @@ struct _cfgcfg cfgcfg[] = {
     { "pidfile", CFG_VAL_PATH, -1 , (void*) &(CONFIG.pidfile) },
     { "syslogfile", CFG_VAL_PATH, R_OK | F_OK, (void*) &(CONFIG.syslogfile) },
     { "action", CFG_VAL_PATH, R_OK | F_OK | X_OK, (void*) &(CONFIG.action) },
+    { "exclude", CFG_VAL_PATH, R_OK | F_OK, (void*) &(CONFIG.exclude) },
     { "regex", CFG_VAL_STR, -1, (void*)&(CONFIG.regex) },
     { "action_threshold", CFG_VAL_INT, -1, (void*) &(CONFIG.action_threshold) },
     { "time_interval", CFG_VAL_INT, -1, (void*) &(CONFIG.time_interval) },
@@ -111,6 +113,7 @@ _init_config() {
     strncpy(CONFIG.regex, DEFAULT_REGEX, BUFFSIZE);
     strncpy(CONFIG.syslogfile, DEFAULT_LOGFILE, _MAX_PATH);
     strncpy(CONFIG.action, DEFAULT_ACTION, _MAX_PATH);
+    strncpy(CONFIG.action, DEFAULT_EXCLUDE, _MAX_PATH);
     CONFIG.action_threshold = 3;
     CONFIG.time_interval = 60;
     CONFIG.purge_after = 3600;
@@ -172,7 +175,9 @@ _check_paths_in_config() {
 
     ptr = cfgcfg;
     while ( ptr->name != NULL ) {
-	if ( ptr->type == CFG_VAL_PATH && ptr->amode != -1 ) {
+	if ( ptr->type == CFG_VAL_PATH &&
+	     ptr->amode != -1 &&
+	     strlen(ptr->ptr) > 0) {
 	    int retval;
 	    retval = access ((char*)ptr->ptr, ptr->amode);
 	    if ( retval == -1 ) {
@@ -261,6 +266,7 @@ config_read(const char* file) {
     out_dbg("pidfile=%s",CONFIG.pidfile);
     out_dbg("syslogfile=%s",CONFIG.syslogfile);
     out_dbg("action=%s",CONFIG.action);
+    out_dbg("exclude=%s",CONFIG.exclude);
     out_dbg("regex=%s",CONFIG.regex);
     out_dbg("action_threshold=%i",CONFIG.action_threshold);
     out_dbg("time_interval=%i",CONFIG.time_interval);

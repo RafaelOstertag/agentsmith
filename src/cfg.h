@@ -27,6 +27,7 @@ struct _config {
 	char pidfile[_MAX_PATH];
 	char syslogfile[_MAX_PATH];
 	char action[_MAX_PATH];
+	char exclude[_MAX_PATH];
 	char regex[BUFFSIZE];
 	int action_threshold;
 	int time_interval;

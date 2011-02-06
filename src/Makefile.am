@@ -10,4 +10,4 @@ endif
 
 agentsmith_SOURCES = globals.h main.c cfg.h cfg.c output.h output.c		\
 sighandler.h sighandler.c regex.h regex.c follow.h follow.c records.h records.c	\
-threads.h threads.c
+threads.h threads.c exclude.c exclude.h

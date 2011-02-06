@@ -94,9 +94,9 @@ _do_action(const hostrecord_t *ptr, const config *cfg, ac_type_t t) {
 	type_str = strdup(AC_TYPE_REMOVE_STR);
 	break;
     default:
-	assert(0); /* In debug mode we want to abort */
 	type_str = strdup(AC_TYPE_UNKNOWN_STR);
 	out_err("Action type %i is unknown.", t);
+	assert(0); /* In debug mode we want to abort */
 	break;
     }
 

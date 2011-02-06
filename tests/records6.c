@@ -100,7 +100,7 @@ int main (int wdc1, char** wdc2) {
     hostrecord_t *ptr;
     char str[BUFFSIZE];
     unsigned long i,k;
-    pthread_t pth_add, pth_remove, pth_enumerate; 
+    pthread_t pth_add, pth_remove, pth_enumerate;
 
     out_msg("This test will take at least %i seconds.\n", SLEEP_TIME);
 
@@ -122,7 +122,7 @@ int main (int wdc1, char** wdc2) {
 	exit (1);
     }
 
-    out_msg("Waiting for %i seconds", SLEEP_TIME);
+    out_msg("Waiting %i seconds", SLEEP_TIME);
     sleep(SLEEP_TIME);
 
     out_msg("Cancelling thread thread_add()");
@@ -163,7 +163,7 @@ int main (int wdc1, char** wdc2) {
 	exit (1);
     }
     out_msg("Joined thread thread_enumerate()");
-    
+
 
     records_destroy(NULL);
     exit (0);

@@ -1,6 +1,6 @@
 \" -*- nroff -*-
 .\" $Id$
-.TH @PACKAGE@ @ADM_SECTION@ 2010
+.TH @PACKAGE@ @ADM_SECTION@ 2011
 .\"=========================================================
 .\" NAME
 .\"=========================================================
@@ -17,13 +17,13 @@
 .\" DESCRIPTION
 .\"=========================================================
 .SH DESCRIPTION
-\fB@PACKAGE@\fR is a daemon that continuously monitors a log file for break\-in
-attempts by remote hosts. Upon detection of a break\-in attempt, it launches a
-user defined script or application.
+\fB@PACKAGE@\fR is a daemon that continuously monitors a log file for
+break\-in attempts by remote hosts. Upon detection of a break\-in
+attempt, it launches a user defined script or application.
 .P
-The criteria what is considered a break-in attempt can be configured by means
-of a regular expression. See @PACKAGE@.conf(@FILE_SECTION@) for further
-information about this regular expression.
+The criteria what is considered a break-in attempt can be configured
+by means of a regular expression. See @PACKAGE@.conf(@FILE_SECTION@)
+for further information about this regular expression.
 .\"=========================================================
 .\" OPTIONS
 .\"=========================================================
@@ -31,14 +31,15 @@ information about this regular expression.
 The following options are supported.
 .\"
 .IP "\fB\-c \fIconfigfile\fR"
-File path of the configuration file to use. If not specified, the default
-@DEFAULT_CONFIGFILE@ is used. See also @PACKAGE@.conf(@FILE_SECTION@).
+File path of the configuration file to use. If not specified, the
+default @DEFAULT_CONFIGFILE@ is used. See also
+@PACKAGE@.conf(@FILE_SECTION@).
 .IP "\fB\-p \fIpidfile\fR"
-File path of the file where the pid of the daemon will be written to. If not
-specified, the default @DEFAULT_PIDFILE@ is used.
+File path of the file where the pid of the daemon will be written
+to. If not specified, the default @DEFAULT_PIDFILE@ is used.
 .IP "\fB\-d\fR"
-Do not fork to the background but stay in the foreground. Most useful for
-debugging.
+Do not fork to the background but stay in the foreground. Most useful
+for debugging.
 .IP "\fB\-h\fR"
 Show a brief help for the supported options.
 .IP "\fB\-t\fR"
@@ -51,63 +52,69 @@ Show the version and exit.
 .\" USAGE
 .\"=========================================================
 .SH USAGE
-\fB@PACKAGE@\fR reads the configuration at the default location (see FILES) or
-at the location provided with the \fB-c\fR option when started. It is
-recommended to launch \fB@PACKAGE@\fR with the \fB-t\fR option specified after
-the configuration has been altered in order to identify possible configuration
-errors.
+\fB@PACKAGE@\fR reads the configuration at the default location (see
+FILES) or at the location provided with the \fB-c\fR option when
+started. It is recommended to launch \fB@PACKAGE@\fR with the \fB-t\fR
+option specified after the configuration has been altered in order to
+identify possible configuration errors.
 .P
-After successful start \fB@PACKAGE@\fR will fork to background (unless the
-\fB-d\fR option is provided) and monitor the log file specified in the
-configuration. It will only read new messages added to the log file. Lines
-present in the log file prior starting \fB@PACKAGE@\fR will be ignored.
+After successful start \fB@PACKAGE@\fR will fork to background (unless
+the \fB-d\fR option is provided) and monitor the log file specified in
+the configuration. It will only read new messages added to the log
+file. Lines present in the log file prior starting \fB@PACKAGE@\fR
+will be ignored.
 .P
-Each new line added to the log file will be matched against the regular
-expression specified in the configuration file. If a line matches,
-\fB@PACKAGE@\fR will read the value from the catching expression which has to
-be a host IP address. This IP address will then be stored. If the host IP
-address exceeds the configured threshold of occurrences within the specified
-time span, the action script will be called.
+Each new line added to the log file will be matched against the
+regular expression specified in the configuration file. If a line
+matches, \fB@PACKAGE@\fR will read the value from the catching
+expression which has to be a host IP address. This IP address will
+then be stored. If the host IP address exceeds the configured
+threshold of occurrences within the specified time span, the action
+script will be called.
 .P
-The action script is only called once for each host that meets the above
-mentioned criteria.
+The action script is only called once for each host that meets the
+above mentioned criteria.
 .P
-If a IP address stored by \fB@PACKAGE@\fR is not seen for a specified amount of
-time, the action script will be called again and the IP address will be purged
-from memory.
+If a IP address stored by \fB@PACKAGE@\fR is not seen for a specified
+amount of time, the action script will be called again and the IP
+address will be purged from memory.
 .P
-\fB@PACKAGE@\fR uses no persistent storage for holding the host IP addresses,
-thus the information is only kept during the run time of the process.
+\fB@PACKAGE@\fR uses no persistent storage for holding the host IP
+addresses, thus the information is only kept during the run time of
+the process.
 .\"
 .SS The Action Script
 The action script is called  two cases:
 .IP 1)
-A host has triggered the action script as explained above. The script will be
-invoked by \fB@PACKAGE@\fR with the following arguments:
+A host has triggered the action script as explained above. The script
+will be invoked by \fB@PACKAGE@\fR with the following arguments:
 .nf
 
 <\fIipaddress\fR> <\fIoccurrences\fR> new
 .fi
 
-<\fIipaddress\fR> is the IP address of the offending host, <\fIoccurrences\fR>
-is the umber of occurrences. The literal word 'new' is used to indicate that
-the call of the action script is for a new host.
+<\fIipaddress\fR> is the IP address of the offending host,
+<\fIoccurrences\fR> is the umber of occurrences. The literal
+word 'new' is used to indicate that the call of the action script is
+for a new host.
 .IP 2)
-A host entry will be purged from memory, due to user request or because it has
-expired. In that case, the script will be invoked with the following arguments:
+A host entry will be purged from memory, due to user request or
+because it has expired. In that case, the script will be invoked with
+the following arguments:
 .nf
 
 <\fIipaddress\fR> <\fIoccurrences\fR> remove
 .fi
 
-<\fIipaddress\fR> and <\fIoccurrences\fR> are the same as in case 1) however
-<\fIoccurrences\fR> may be higher (depending on the action that was taken,
-i.e. the host has not been blocked by the action script). The literal
-word 'remove' is used to indicate that the host will be purged from memory. 
+<\fIipaddress\fR> and <\fIoccurrences\fR> are the same as in case 1)
+however <\fIoccurrences\fR> may be higher (depending on the action
+that was taken, i.e. the host has not been blocked by the action
+script). The literal word 'remove' is used to indicate that the host
+will be purged from memory.
 .P
-The action script is the corner stone of \fB@PACKAGE@\fR. You are completely
-free to put whatever you suit in this file, e.g. commands for updating firewall
-rules, commands for sending mails, and so on.
+The action script is the corner stone of \fB@PACKAGE@\fR. You are
+completely free to put whatever you suit in this file, e.g. commands
+for updating firewall rules, commands for sending mails, and so on.
 .P
 It is important that the execution bit is set (see also chmod(1)) and
 \fB@PACKAGE@\fR has read and execution access to the file.
@@ -115,58 +122,64 @@ It is important that the execution bit is set (see also chmod(1)) and
 .\" CONFIGURATION
 .\"=========================================================
 .SH CONFIGURATION
-\fB@PACKAGE@\fR relies on a configuration file for proper operation. The
-default location of the configuration file is @DEFAULT_CONFIGFILE@. Please see
-@PACKAGE@.conf(@FILE_SECTION@) for further information about how to configure \fB@PACKAGE@\fR.
+\fB@PACKAGE@\fR relies on a configuration file for proper
+operation. The default location of the configuration file is
+@DEFAULT_CONFIGFILE@. Please see @PACKAGE@.conf(@FILE_SECTION@) for
+further information about how to configure \fB@PACKAGE@\fR.
 .\"=========================================================
 .\" LOGGING
 .\"=========================================================
 .SH LOGGING
-The logging facility used by \fB@PACKAGE@\fR is \fBdaemon\fR. Regular messages
-are sent to \fBdaemon.info\fR. Error messages are sent to
-\fBdaemon.error\fR. If \fB@PACKAGE@\fR is compiled with debug code, debug
-messages are sent to \fBdaemon.debug\fR.
+The logging facility used by \fB@PACKAGE@\fR is \fBdaemon\fR. Regular
+messages are sent to \fBdaemon.info\fR. Error messages are sent to
+\fBdaemon.error\fR. If \fB@PACKAGE@\fR is compiled with debug code,
+debug messages are sent to \fBdaemon.debug\fR.
 .P
-You may need to adjust the configuration of the system logger in order to
-catch all messages from \fB@PACKAGE@\fR. Please refer to
+You may need to adjust the configuration of the system logger in order
+to catch all messages from \fB@PACKAGE@\fR. Please refer to
 syslog.conf(@FILE_SECTION@) or your System Manual.
 .\"=========================================================
 .\" SIGNALS
 .\"=========================================================
 .SH SIGNALS
 \fB@PACKAGE@\fR recognizes following signals (see also kill(1)).
-.IP \fIUSR1\fR
-Request the list of the hosts that have attempted to break\-in will be printed
-to the system log (see also LOGGING).
-.IP \fIUSR2\fR
-Request that the known hosts are purged from the memory. This will also call
-the action script with the 'remove' option.
-.IP \fITERM\fR
+.IP \fISIGHUP\fR
+If an exclude file has been specified (see also
+agentsmith_exclude(@FILE_SECTION@)), its content will be re-read.
+.IP \fISIGUSR1\fR
+Request the list of the hosts that have attempted to break\-in will be
+printed to the system log (see also LOGGING).
+.IP \fISIGUSR2\fR
+Request that the known hosts are purged from the memory. This will
+also call the action script with the 'remove' option.
+.IP \fISIGTERM\fR
 Terminate \fB@PACKAGE@\fR gracefully.
 .\"=========================================================
 .\" FILES
 .\"=========================================================
 .SH FILES
 .IP \fI@DEFAULT_PIDFILE@\fR
-The default file path of the pid file. Can be overridden with the \fB-p\fR option.
+The default file path of the pid file. Can be overridden with the
+\fB-p\fR option.
 .IP \fI@DEFAULT_CONFIGFILE@\fR
-The default location of the configuration file. Can be override with the
-\fB-c\fR option.
+The default location of the configuration file. Can be override with
+the \fB-c\fR option.
 .\"=========================================================
 .\" CAVEATS
 .\"=========================================================
 .SH CAVEATS
 .IP *
-Although calling \fB@PACKAGE@\fR with the \fB-t\fR option shows no error, it is
-possible that \fB@PACKAGE@\fR does not start because it cannot write the pid
-file. Please make sure you check the system log after starting
-\fB@PACKAGE@\fR as daemon to make sure it started successfully.
+Although calling \fB@PACKAGE@\fR with the \fB-t\fR option shows no
+error, it is possible that \fB@PACKAGE@\fR does not start because it
+cannot write the pid file. Please make sure you check the system log
+after starting \fB@PACKAGE@\fR as daemon to make sure it started
+successfully.
 .IP *
 If started as root, \fB@PACKAGE@\fR does not drop root privileges.
 .IP *
-\fB@PACKAGE@\fR has to be started from an user account with read access to the
-specified log file, else \fB@PACKAGE@\fR is unable to read the log file and
-cannot start.
+\fB@PACKAGE@\fR has to be started from an user account with read
+access to the specified log file, else \fB@PACKAGE@\fR is unable to
+read the log file and cannot start.
 .IP *
 Support for IPv6 addresses is implemented but not tested.
 .IP *

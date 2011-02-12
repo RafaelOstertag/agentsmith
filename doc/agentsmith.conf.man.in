@@ -1,6 +1,6 @@
 .\" -*- nroff -*-
 .\" $Id$
-.TH @PACKAGE@.conf @FILE_SECTION@ 2010
+.TH @PACKAGE@.conf @FILE_SECTION@ 2011
 .\"=========================================================
 .\" NAME
 .\"=========================================================
@@ -19,10 +19,10 @@
 .\" DESCRIPTION
 .\"=========================================================
 .SH DESCRIPTION
-The syntax of the file is very strict. Options must be placed at the very
-beginning of the line. It is not allowed to have leading spaces in front of the
-option. It is also not allowed to have the equal sign surrounded by trailing
-or leading spaces, e.g.:
+The syntax of the file is very strict. Options must be placed at the
+very beginning of the line. It is not allowed to have leading spaces
+in front of the option. It is also not allowed to have the equal sign
+surrounded by trailing or leading spaces, e.g.:
 .nf
 
 foo = bar
@@ -49,29 +49,34 @@ The following options are recognized:
 The location of the pid file. That is where \fB@PACKAGE@\fR writes the process
 id when run in daemon mode.
 \br
+
 Default: @DEFAULT_PIDFILE@
 .IP \fIsyslogfile\fR
 The location of the file to be monitored, i.e. this file will be continuously
 monitored for new lines which are matched against the regular expression (see
-\fIregex\fR further down.
+\fIregex\fR further down).
 \br
+
 Default: /var/log/authlog
 .IP \fIaction_threshold\fR
 The number of occurrences of a host until the action script will be called (see
 also \fItime_interval\fR). In this context, the term occurrence refers to the
 matching of the regular expression to  a line in \fIlogfile\fR.
 \br
+
 Default: 3
 .IP \fItime_interval\fR
 The action script will be called a host has \fIaction_threshold\fR occurrences
 within this time span in seconds.
 \br
+
 Default: 60
 .IP \fIpurge_after\fR
 If a host has no occurrence in the log file for \fIpurge_after\fR seconds, it
 will be purged from memory. For each host that is purged, the action script
 will be called (see also @PACKAGE@(@ADM_SECTION@)).
 \br
+
 Default: 3600
 .IP \fIaction\fR
 The file path to the action script. It will be called if a)
@@ -79,20 +84,29 @@ The file path to the action script. It will be called if a)
 seconds b) the host record is removed due to purging.
 \br
 The action script is called with the following options
-\br
 .nf
+
  <\fIip_address\fR> <\fIoccurrences\fR> \fInew\fR|\fIremove\fR
 .fi
-\br
+
 The literal \fInew\fR is passed when a host meets the action threshold and time
 interval criteria. The literal \fIremove\fR is passed when a host is purged
 from memory.
 \br
+
 Default: /bin/true
+.IP \fIexclude\fR
+File that contains IP addresses to be ignored by \fB@PACKAGE@\fR. The
+specified file will be re-read upon \fISIGHUP\fR. See also
+agentsmith_exclude(@FILE_SECTION@).
+\br
+
+Default: none
 .IP \fIregex\fR
 The regular expression used to identify the IP address of offending hosts. See
 REGULAR EXPRESSION.
 \br
+
 Default: Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
 .\"=========================================================
 .\" REGULAR EXPRESSION
@@ -102,11 +116,11 @@ Default: Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\
 \fB@PACKAGE@\fR may only contain one catching pattern \'(...)\' which has to
 catch the IP address of the offending host. If you need to use alternations
 \'(...|...)\' write them like this
-\br
 .nf
+
 (?:a|b)
 .fi
-\br
+
 Invoking \fB@PACKAGE@\fR with the \fB-t\fR option set will test the regular
 expression for correctness as required by \fB@PACKAGE@\fR.
 .\"=========================================================
@@ -114,8 +128,8 @@ expression for correctness as required by \fB@PACKAGE@\fR.
 .\"=========================================================
 .SH EXAMPLE
 This is an example configuration with default values filled in
-\br
 .nf
+
 pidfile=@DEFAULT_PIDFILE@
 syslogfile=/var/log/authlog
 action_threshold=3
@@ -124,11 +138,13 @@ purge_after=3600
 action=/bin/true
 regex=Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
 .fi
+
 .\"=========================================================
 .\" SEE ALSO
 .\"=========================================================
 .SH SEE ALSO
-@PACKAGE@(@ADM_SECTION@), PCRE \- Perl Compatible Regular Expressions (http://www.pcre.org)
+@PACKAGE@(@ADM_SECTION@), agentsmith_exclude(@FILE_SECTION@), PCRE \-
+Perl Compatible Regular Expressions (http://www.pcre.org)
 .\"=========================================================
 .\" AUTHOR
 .\"=========================================================

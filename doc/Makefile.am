@@ -32,4 +32,4 @@ agentsmith.conf.man: agentsmith.conf.man.in Makefile
 	$(do_subst) < $(srcdir)/agentsmith.conf.man.in > $@
 
 agentsmith_exclude.man: agentsmith_exclude.man.in Makefile
-	$(do_subst) < $(srcdir)/agentsmith.conf.man.in > $@
+	$(do_subst) < $(srcdir)/agentsmith_exclude.man.in > $@

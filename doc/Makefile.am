@@ -4,13 +4,13 @@ EXTRA_DIST = agentsmith.man.in agentsmith.conf.man.in
 
 if SUNOS
 man1_MANS = agentsmith.man
-man4_MANS = agentsmith.conf.man
+man4_MANS = agentsmith.conf.man agentsmith_exclude.man
 CLEANFILES = $(man1_MANS) $(man4_MANS)
 ADM_SECTION = 1
 FILE_SECTION = 4
 else
 man8_MANS = agentsmith.man
-man5_MANS = agentsmith.conf.man
+man5_MANS = agentsmith.conf.man agentsmith_exclude.man
 CLEANFILES = $(man8_MANS) $(man5_MANS)
 ADM_SECTION = 8
 FILE_SECTION = 5
@@ -29,4 +29,7 @@ agentsmith.man: agentsmith.man.in Makefile
 	$(do_subst) < $(srcdir)/agentsmith.man.in > $@
 
 agentsmith.conf.man: agentsmith.conf.man.in Makefile
+	$(do_subst) < $(srcdir)/agentsmith.conf.man.in > $@
+
+agentsmith_exclude.man: agentsmith_exclude.man.in Makefile
 	$(do_subst) < $(srcdir)/agentsmith.conf.man.in > $@

@@ -23,18 +23,106 @@ pidfile=@DEFAULT_PIDFILE@
 syslogfile=/var/log/authlog
 
 # How many occurrences before the action kicks in
+#
+# Default: 3
 action_threshold=3
 
 # Maximum time between subsequent matches in seconds
+#
+# Default: 60
 time_interval=60
 
 # Remove host records after this many seconds (this should obviously be a value
 # greater than time_interval)
+#
+# Default: 3600
 purge_after=3600
 
 # This file contains the IP Addresses and ranges to be excluded. All addresses
 # listed will be ignored, and the action script will not be called.
+#
+# Default: empty
 #exclude=@sysconfdir@/agentsmith/exclude
+
+# Enable the server mode. In server mode, agentsmith allows other agentsmith
+# daemons to update the local deny list.
+#
+# 0 - disable the listening
+# 1 - enable listening
+#
+# Default: 0
+server=0
+
+# The maximum concurrent connections allowed from other agentsmith daemons.
+#
+# Maximum value: 256
+#
+# Default: 5
+maxinconnections=5
+
+# Time out waiting for data from remote agentsmith clients
+#
+# Default: 5
+server_timeout=5
+
+# This tells agentsmith on which interfaces to listen. You can use IPv4/IPv6
+# Adresses or host names. If using IPv6 addresses, make sure to enclose them in
+# square brackets, e.g.
+#
+# [fe80::e2cb:4eff:feb7:2af5]
+#
+# There can be at maximum 256 listen directives, each separated by space.
+#
+# Syntax
+#
+# listen=<ipv4|hostname>[:port]|[<ipv6][:port] ...
+#
+# Example:
+# listen=127.0.0.1:48621 [::1]:48621 host.example.com:48650
+#
+# Default: 0.0.0.0:48621
+#listen=0.0.0.0:48621
+
+# Specify whether or not the local agentsmith daemon informs other agentsmith
+# daemons about ip addresses that reached above defined thresholds.
+#
+# 0 - do not inform
+# 1 - do inform
+#
+# Default: 0
+inform=0
+
+# Controls whether remote agentsmith informations are authoritative,
+# i.e. circumvent ip exclude checks.
+#
+# 0 - non-authoritative
+# 1 - authoritative
+#
+# Default: 0
+remote_authoritative=0
+
+# Specify which agents to inform. The syntax is identical to the listen
+# directive above.
+#
+# Default: none
+#inform_agent=
+
+# How many times should agentsmith retry informing other agentsmith' when they
+# are unavailable.
+#
+# Default: 30
+inform_retry=30
+
+# The number seconds to wait before retry informing agentsmith.
+#
+# After 'inform_retry * inform_retry_wait' seconds data not sent to remote
+# agentsmith's will be discarded.
+#
+# Default 3
+inform_retry_wait=3
+
+# The CA Trust Store
+ssl_ca_trust=
 
 # The action script. It will be called if 
 #
@@ -45,7 +133,7 @@ purge_after=3600
 #
 # The action is invoked with the following options
 #
-# <ip_address> <occurrences> <new|remove>
+# <ip_address> <occurrences> <new|remove> <origin>
 #
 # Make sure it has the execution bit set, i.e. chmod +x <action_script>
 action=@sysconfdir@/agentsmith/action/action.sh

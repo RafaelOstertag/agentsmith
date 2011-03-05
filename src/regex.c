@@ -35,10 +35,10 @@
 #endif
 
 #include "globals.h"
+#include "cfg.h"
 #include "regex.h"
 #include "output.h"
 #include "records.h"
-#include "cfg.h"
 #include "exclude.h"
 
 static int regexp_compiled = 0;
@@ -50,18 +50,11 @@ static int pcre_erroffset = 0;
 void
 regex_prepare() {
     int retval, capturecount;
-    config *cfg;
 
-    cfg = config_get();
-    if ( cfg == NULL ) {
-	out_err("<NULL> config received in regex_prepare()");
-	exit (2);
-    }
-
-    compiled_regexp = pcre_compile(cfg->regex, 0, (const char**)&pcre_errptr, &pcre_erroffset, NULL);
+    compiled_regexp = pcre_compile(CONFIG.regex, 0, (const char**)&pcre_errptr, &pcre_erroffset, NULL);
     if ( compiled_regexp == NULL ) {
 	out_err("Unable to compile '%s': %s (Position: %i)",
-		cfg->regex,
+		CONFIG.regex,
 		pcre_errptr,
 		pcre_erroffset);
 	exit (2);
@@ -69,7 +62,7 @@ regex_prepare() {
     compiled_regexp_extra = pcre_study(compiled_regexp, 0, (const char**)&pcre_errptr);
     if ( pcre_errptr != NULL ) {
 	out_err("Unable to study '%s': %s",
-		cfg->regex,
+		CONFIG.regex,
 		pcre_errptr);
 	exit (2);
     }
@@ -119,7 +112,7 @@ regex_do(const char* buff) {
 	 * Check if this match is excluded.
 	 */
 	if (exclude_isexcluded(match) != 0) {
-	    retval = records_add(match);
+	    retval = records_add_ip(match);
 	    if (retval != 0) {
 		out_err("Got error adding '%s' to record vector (retval==%i)",
 			match,

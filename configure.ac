@@ -1,6 +1,6 @@
 # $Id$
 AC_PREREQ([2.65])
-AC_INIT([agentsmith],[0.2],[rafi@guengel.ch])
+AC_INIT([agentsmith],[0.2pre1],[rafi@guengel.ch])
 AC_REVISION([$Rev$])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([silent-rules dist-bzip2 check-news])
@@ -30,7 +30,7 @@ AX_PTHREAD([
 # Checks for header files.
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([stdio.h syslog.h unistd.h errno.h assert.h signal.h sys/types.h sys/stat.h pthread.h arpa/inet.h sys/socket.h inttypes.h netinet/in.h math.h])
+AC_CHECK_HEADERS([stdio.h syslog.h unistd.h errno.h assert.h signal.h sys/types.h sys/stat.h pthread.h arpa/inet.h sys/socket.h inttypes.h netinet/in.h math.h netdb.h sys/select semaphore.h openssl/ssl.h openssl/err.h openssl/bio.h])
 AC_CHECK_HEADER([pcre.h],
 	AC_DEFINE([HAVE_PCRE_H],
 	[1],
@@ -46,7 +46,17 @@ AC_CHECK_HEADER([pcre.h],
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
-AC_CHECK_TYPES([pthread_mutex_t, in_addr_t],,
+AC_TYPE_INT8_T
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_UINT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_LONG_LONG_INT
+
+AC_CHECK_TYPES([pthread_mutex_t, in_addr_t, struct addrinfo],,
 	[AC_MSG_ERROR([Crucial data type not found])],
 	[AC_INCLUDES_DEFAULT
 	 #ifdef HAVE_PTHREAD_H
@@ -54,6 +64,9 @@ AC_CHECK_TYPES([pthread_mutex_t, in_addr_t],,
 	 #endif
 	 #ifdef HAVE_NETINET_IN_H
 	 #include <netinet/in.h>
+	 #endif
+	 #ifdef HAVE_NETDB_H
+	 #include <netdb.h>
 	 #endif]
 )
 
@@ -96,10 +109,11 @@ AC_CHECK_MEMBER([struct in6_addr.__in6_u.__u6_addr8],
 )
 
 # Checks for library functions.
-AC_FUNC_STRERROR_R
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_FUNC_FORK
+AC_CHECK_LIB([nsl],[gethostbyname])
+AC_CHECK_LIB([socket],[connect])
+AC_CHECK_LIB([rt],[sem_init])
+AC_CHECK_LIB([ssl],[SSL_library_init])
+AC_CHECK_LIB([crypto],[ERR_load_crypto_strings])
 AC_CHECK_LIB([pcre],[pcre_compile],,[
 	AC_MSG_ERROR([libpcre was not found.])
 ])
@@ -109,10 +123,18 @@ AC_SEARCH_LIBS([inet_pton],[c nsl],,[
 AC_SEARCH_LIBS([inet_ntop],[c nsl],,[
         AC_MSG_ERROR([inet_ntop() not found.])
 ])
+
+AC_FUNC_STRERROR_R
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_FORK
+
 AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
 	AC_MSG_ERROR([libpcre lacks crucial function(s)])])
-AC_CHECK_FUNCS([atoi strerror vsnprintf strsep strchr strncpy usleep strdup memset htonl inet_pton inet_ntop sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime])
 
+AC_CHECK_FUNCS([atoi strerror vsnprintf strsep strchr strncpy usleep strdup memset htonl inet_pton inet_ntop sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime getaddrinfo freeaddrinfo gai_strerror socket connect accept bind select ntohl sem_destroy sem_init sem_trywait sem_post])
+
+AC_C_BIGENDIAN
 # Enable
 AC_SUBST([ENABLE_DEBUG],[no],[Whether or not debug code should be built])
 AC_ARG_ENABLE(debug,
@@ -144,14 +166,39 @@ AC_ARG_WITH([pid],
 	 ]
 )
 
-# AM Conditionals
+# Get kernel name
 myOS=`uname -s 2>/dev/null`
+case x$myOS in
+     xSunOS)
+     AC_DEFINE([KERNEL_SUNOS],[1],[Set to 1 if compiling on SunOS])
+     ;;
+     xFreeBSD)
+     AC_DEFINE([KERNEL_FREEBSD],[1],[Set to 1 if compiling on FreeBSD])
+     ;;
+     xOpenBSD)
+     AC_DEFINE([KERNEL_OPENBSD],[1],[Set to 1 if compiling on OpenBSD])
+     ;;
+     xNetBSD)
+     AC_DEFINE([KERNEL_NETBSD],[1],[Set to 1 if compiling on NetBSD])
+     ;;
+     xLinux)
+     AC_DEFINE([KERNEL_LINUX],[1],[Set to 1 if compiling on Linux])
+     ;;
+     *)
+     AC_DEFINE([KERNEL_UNKNOWN],[1],[Set to 1 if compiling on Unknown Kernel])
+     ;;
+esac
+
+# AM Conditionals
 AM_CONDITIONAL([SUNOS],[test x$myOS = xSunOS])
 AM_CONDITIONAL([DEBUG], [test x$ENABLE_DEBUG = xyes])
 
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	src/network/Makefile
+	src/network/srv/Makefile
+	src/network/cli/Makefile
 	example/Makefile
 	tests/Makefile
 	doc/Makefile

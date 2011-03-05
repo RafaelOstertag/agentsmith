@@ -43,14 +43,10 @@
 #include <math.h>
 #endif
 
+#include "globals.h"
+#include "cfg.h"
 #include "output.h"
 #include "records.h"
-#include "cfg.h"
-
-enum {
-    RETVAL_OK = 0,
-    RETVAL_ERR = -1
-};
 
 static hostrecord_t **hr_vector = NULL;
 /* The chunk size we pre-allocate */
@@ -80,7 +76,7 @@ _records_enumerate(records_enum_callback cb) {
 
     retval = pthread_mutex_lock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
+	out_syserr(retval, "Unable to lock vector_mutex");
 	return RETVAL_ERR;
     }
 
@@ -95,7 +91,7 @@ _records_enumerate(records_enum_callback cb) {
 
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
 
@@ -112,6 +108,8 @@ static void*
 _records_enumerate_thread(void* args) {
     int retval;
     records_enum_callback cb;
+
+    assert ( args != NULL );
 
     cb = (records_enum_callback)args;
 
@@ -198,7 +196,7 @@ records_init() {
     if (initialized)
 	return;
 
-    hr_vector = (hostrecord_t**)malloc( sizeof(hostrecord_t*) * hr_vector_size);
+    hr_vector = (hostrecord_t**)calloc( sizeof(hostrecord_t*), hr_vector_size);
     if ( hr_vector == NULL ) {
 	out_err("Unable to locate memory for the host record vector. Dying now");
 	exit (3);
@@ -207,7 +205,7 @@ records_init() {
 
     retval = pthread_mutex_init(&vector_mutex, NULL);
     if ( retval != 0 ) {
-	out_syserr(errno, "Error initializing vector_mutex");
+	out_syserr(retval, "Error initializing vector_mutex");
 	exit (3);
     }
 
@@ -220,6 +218,7 @@ records_destroy (records_remove_callback cb) {
     hostrecord_t **ptr;
     int retval;
 
+    assert(initialized);
     if (!initialized)
 	return;
 
@@ -235,7 +234,7 @@ records_destroy (records_remove_callback cb) {
 
     retval = pthread_mutex_destroy ( &vector_mutex );
     if ( retval != 0 )
-	out_syserr(errno, "Error destroying vector_mutex" );
+	out_syserr(retval, "Error destroying vector_mutex" );
 }
 
 /*
@@ -247,12 +246,13 @@ records_maintenance(records_remove_callback cb) {
     hostrecord_t **ptr;
     unsigned long i, last_used, new_size;
 
+    assert(initialized);
     if (!initialized)
 	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
+	out_syserr(retval, "Unable to lock vector_mutex");
 	return RETVAL_ERR;
     }
 
@@ -317,26 +317,20 @@ records_maintenance(records_remove_callback cb) {
  END_OK:
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_OK;
- /* END_ERR: */
- /*    retval = pthread_mutex_unlock(&vector_mutex); */
- /*    if ( retval != 0 ) { */
- /* 	out_syserr(errno, "Unable to unlock vector_mutex"); */
- /* 	return RETVAL_ERR; */
- /*    } */
- /*    return RETVAL_ERR; */
 }
 
 int
-records_add(const char* ipaddr) {
+records_add_ip(const char* ipaddr) {
     int retval;
     unsigned long pos_newrec;
     hostrecord_t *ptr;
-    config *cfg;
 
+    assert (initialized);
+    assert (ipaddr != NULL);
     if (ipaddr == NULL)
 	return RETVAL_ERR;
 
@@ -345,32 +339,21 @@ records_add(const char* ipaddr) {
 
     retval = pthread_mutex_lock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
+	out_syserr(retval, "Unable to lock vector_mutex");
 	return RETVAL_ERR;
     }
 
     ptr = _records_find(ipaddr, NULL);
     if ( ptr != NULL ) {
-	cfg = config_get();
-	if ( cfg == NULL ) {
-	    /* If we run with make check, the code below must not be executed */
-#ifndef CHECK
-	    out_err("<NULL> configuration received while adding record!.");
-	    goto END_ERR;
-#else
-#warning "CHECK is enabled"
-#endif
-	}
-
 	ptr->lastseen = time (NULL);
 
 	/* Bump the occurrence only if within configured time interval */
 	/* If we run with make check, the code below must not be executed */
 #ifndef CHECK
-	if ( ptr->lastseen - ptr->firstseen <= cfg->time_interval )
+	if ( ptr->lastseen - ptr->firstseen <= ptr->time_interval )
 	    ptr->occurrences++;
 #else
-#warning "CHECK is enabled"
+#warning "++++ CHECK is enabled ++++"
 #endif
 
 	goto END_OK;
@@ -388,9 +371,24 @@ records_add(const char* ipaddr) {
 	out_err("Unable to allocate space for hostrecord");
 	goto END_ERR;
     }
+
+    /* If this record is sent to another agentsmith, the sender has to make
+       sure the origin is updated properly */
+    strncpy(hr_vector[pos_newrec]->origin, LOCALHOST, IPADDR_SIZE);
+    hr_vector[pos_newrec]->origin[IPADDR_SIZE-1] = '\0';
+
     strncpy(hr_vector[pos_newrec]->ipaddr, ipaddr, IPADDR_SIZE);
+    hr_vector[pos_newrec]->ipaddr[IPADDR_SIZE-1] = '\0';
+
     hr_vector[pos_newrec]->firstseen = time(NULL);
     hr_vector[pos_newrec]->lastseen = 0;
+#ifndef CHECK
+    hr_vector[pos_newrec]->time_interval = CONFIG.time_interval;
+    hr_vector[pos_newrec]->purge_after = CONFIG.purge_after;
+    hr_vector[pos_newrec]->action_threshold = CONFIG.action_threshold;
+#else
+#warning "++++ CHECK is enabled ++++"
+#endif
     hr_vector[pos_newrec]->occurrences = 1;
     hr_vector[pos_newrec]->remove = 0;
     hr_vector[pos_newrec]->processed = 0;
@@ -403,14 +401,95 @@ records_add(const char* ipaddr) {
  END_OK:
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_OK;
  END_ERR:
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
+	return RETVAL_ERR;
+    }
+    return RETVAL_ERR;
+}
+
+/**
+ * This function adds an hostrecord verbatim to the vector.
+ */
+int
+records_add_record(const hostrecord_t* hr) {
+    int retval;
+    unsigned long pos_newrec;
+    hostrecord_t *ptr;
+
+    assert ( hr != NULL );
+    assert ( initialized );
+    if (hr == NULL)
+	return RETVAL_ERR;
+
+    if (!initialized)
+	return RETVAL_ERR;
+
+    retval = pthread_mutex_lock(&vector_mutex);
+    if ( retval != 0 ) {
+	out_syserr(retval, "Unable to lock vector_mutex");
+	return RETVAL_ERR;
+    }
+
+    /* Check if we already have a record of this ip */
+    ptr = _records_find(hr->ipaddr, NULL);
+    if ( ptr != NULL ) {
+	uint32_t processed, occurrences;
+	/* Save the processed member of the existing record */
+	processed = ptr->processed;
+	/* Save the occurrences member of the existing record */
+	occurrences = ptr->occurrences;
+	/* Now copy the record over */
+	memcpy(ptr, hr, sizeof(hostrecord_t));
+	/* Adjust the processed and occurrences member */
+	ptr->processed = processed;
+	ptr->occurrences+=occurrences;
+
+	ptr->lastseen = time (NULL);
+
+	if ( ptr->lastseen - ptr->firstseen <= ptr->time_interval )
+	    ptr->occurrences++;
+
+	goto END_OK;
+    }
+
+    /*
+     * Add the new record
+     */
+    pos_newrec = _records_find_free(&retval);
+    if ( pos_newrec == 0 && retval != RETVAL_OK ) {
+	pos_newrec = _records_vector_grow();
+    }
+    hr_vector[pos_newrec] = (hostrecord_t*) malloc ( sizeof(hostrecord_t) );
+    if (hr_vector[pos_newrec] == NULL) {
+	out_err("Unable to allocate space for hostrecord");
+	goto END_ERR;
+    }
+
+    memcpy(hr_vector[pos_newrec], hr, sizeof(hostrecord_t));
+
+    /* update the fill value of the vector */
+    hr_vector_fill =  (pos_newrec+1) > hr_vector_fill ? (pos_newrec+1) : hr_vector_fill;
+
+    goto END_OK;
+
+ END_OK:
+    retval = pthread_mutex_unlock(&vector_mutex);
+    if ( retval != 0 ) {
+	out_syserr(retval, "Unable to unlock vector_mutex");
+	return RETVAL_ERR;
+    }
+    return RETVAL_OK;
+ END_ERR:
+    retval = pthread_mutex_unlock(&vector_mutex);
+    if ( retval != 0 ) {
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_ERR;
@@ -422,6 +501,9 @@ records_remove(const char *ipaddr) {
     unsigned long pos;
     hostrecord_t *ptr;
 
+    assert ( ipaddr != NULL );
+    assert ( initialized );
+
     if (ipaddr == NULL)
 	return RETVAL_ERR;
 
@@ -430,7 +512,7 @@ records_remove(const char *ipaddr) {
 
     retval = pthread_mutex_lock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
+	out_syserr(retval, "Unable to lock vector_mutex");
 	return RETVAL_ERR;
     }
 
@@ -444,7 +526,7 @@ records_remove(const char *ipaddr) {
 
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_OK;
@@ -452,7 +534,7 @@ records_remove(const char *ipaddr) {
  END_ERR:
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_ERR;
@@ -473,6 +555,10 @@ int
 records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     int retval;
     pthread_attr_t tattr;
+    pthread_t wdc;
+
+    assert ( cb != NULL );
+    assert ( initialized );
 
     if (cb == NULL)
 	return RETVAL_ERR;
@@ -483,19 +569,19 @@ records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     if (mode == ASYNC) {
 	retval = pthread_attr_init(&tattr);
 	if (retval != 0) {
-	    out_syserr(errno, "Error initializing thread attributes for record enumeration thread");
+	    out_syserr(retval, "Error initializing thread attributes for record enumeration thread");
 	    return RETVAL_ERR;
 	}
 	
 	retval = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
 	if (retval != 0) {
-	    out_syserr(errno, "Error setting detach state for record enumeration thread");
+	    out_syserr(retval, "Error setting detach state for record enumeration thread");
 	    return RETVAL_ERR;
 	}
 	
-	retval = pthread_create(NULL, &tattr, _records_enumerate_thread, (void*)cb);
+	retval = pthread_create(&wdc, &tattr, _records_enumerate_thread, (void*)cb);
 	if (retval != 0) {
-	    out_syserr(errno, "Error lauching record enumeration thread");
+	    out_syserr(retval, "Error lauching record enumeration thread");
 	    return RETVAL_ERR;
 	}
 	
@@ -510,6 +596,9 @@ hostrecord_t
     int retval;
     hostrecord_t *ptr;
 
+    assert ( ipaddr != NULL );
+    assert ( initialized );
+
     if (ipaddr == NULL)
 	return NULL;
 
@@ -518,7 +607,7 @@ hostrecord_t
 
     retval = pthread_mutex_lock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock vector_mutex");
+	out_syserr(retval, "Unable to lock vector_mutex");
 	return NULL;
     }
 
@@ -529,15 +618,8 @@ hostrecord_t
  END_OK:
     retval = pthread_mutex_unlock(&vector_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock vector_mutex");
+	out_syserr(retval, "Unable to unlock vector_mutex");
 	return NULL;
     }
     return ptr;
- /* END_ERR: */
- /*    retval = pthread_mutex_unlock(&vector_mutex); */
- /*    if ( retval != 0 ) { */
- /* 	out_syserr(errno, "Unable to unlock vector_mutex"); */
- /* 	return NULL; */
- /*    } */
- /*    return NULL; */
 }

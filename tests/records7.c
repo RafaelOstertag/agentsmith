@@ -32,21 +32,21 @@ int main (int wdc1, char** wdc2) {
 
     records_init();
 
-    retval = records_add("192.168.100.1");
+    retval = records_add_ip("192.168.100.1");
     if (retval != 0) {
-	fprintf(stderr, "records_add() returned %i\n", retval);
+	fprintf(stderr, "records_add_ip() returned %i\n", retval);
 	exit(1);
     }
 
-    retval = records_add("192.168.100.2");
+    retval = records_add_ip("192.168.100.2");
     if (retval != 0) {
-	fprintf(stderr, "records_add() returned %i\n", retval);
+	fprintf(stderr, "records_add_ip() returned %i\n", retval);
 	exit(1);
     }
 
-    retval = records_add("192.168.100.3");
+    retval = records_add_ip("192.168.100.3");
     if (retval != 0) {
-	fprintf(stderr, "records_add() returned %i\n", retval);
+	fprintf(stderr, "records_add_ip() returned %i\n", retval);
 	exit(1);
     }
 
@@ -56,9 +56,9 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    retval = records_add("192.168.100.2");
+    retval = records_add_ip("192.168.100.2");
     if (retval != 0) {
-	fprintf(stderr, "records_add() returned %i\n", retval);
+	fprintf(stderr, "records_add_ip() returned %i\n", retval);
 	exit(1);
     }
 

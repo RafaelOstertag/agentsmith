@@ -39,28 +39,30 @@
 #include <errno.h>
 #endif
 
+#include "globals.h"
+#include "cfg.h"
 #include "output.h"
 #include "follow.h"
 #include "sighandler.h"
 #include "records.h"
-#include "cfg.h"
 #include "exclude.h"
+
 
 /* We keep the previous signal set, just in case */
 static sigset_t old_sigset;
 
 static int
 _records_callback_output(hostrecord_t *ptr) {
-    char *format = "IP Addr %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
+    char *format = "IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
 #ifdef HAVE_CTIME_R
 #ifdef DEBUG
-#warning "Using ctime_r()"
+#warning "++++ Using ctime_r() ++++"
 #endif
 #define TIMEBUFSIZE 128
     char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
 #else
 #ifdef DEBUG
-#warning "Using ctime()"
+#warning "++++ Using ctime() ++++"
 #endif
 #endif
     assert( ptr != NULL );
@@ -72,12 +74,13 @@ _records_callback_output(hostrecord_t *ptr) {
     timebuff1[strlen(timebuff1)-1]='\0';
     timebuff2[strlen(timebuff2)-1]='\0';
     out_msg(format,
-	   ptr->ipaddr,
-	   timebuff1,
-	   timebuff2,
-	   ptr->occurrences,
-	   ptr->remove,
-	   ptr->processed);
+	    ptr->ipaddr,
+	    ptr->origin,
+	    timebuff1,
+	    timebuff2,
+	    ptr->occurrences,
+	    ptr->remove,
+	    ptr->processed);
 #else
     out_msg(format,
 	   ptr->ipaddr,
@@ -152,22 +155,15 @@ signalhandler_usr2(int no) {
 static void
 signalhandler_hup(int no) {
     int retval, sav_errno;
-    config* cfg;
 
     assert(no == SIGHUP);
 
     sav_errno = errno;
     out_msg("Received signal HUP. Re-read exclude file");
 
-    cfg = config_get();
-    if (cfg == NULL) {
-	out_err("Unable to get configuration for re-reading exclude file");
-	return;
-    }
-
-    retval = exclude_readfile(cfg->exclude);
+    retval = exclude_readfile(CONFIG.exclude);
     if (retval != 0)
-	out_syserr(errno, "Error re-reading exclude file %s", cfg->exclude);
+	out_syserr(errno, "Error re-reading exclude file %s", CONFIG.exclude);
 
     errno = sav_errno;
 }

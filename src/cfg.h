@@ -21,22 +21,66 @@
 #ifndef CFG_H
 #define CFG_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+
 #include "globals.h"
+
+enum {
+    /* Maximum number of listening sockets */
+    MAX_LISTEN = 256,
+    /* Maximum number of inbound connections (threads) */
+    MAX_INCONN = 256,
+};
+
+struct _addrinfo_list {
+	struct addrinfo *addr;
+	struct _addrinfo_list *next;
+};
+typedef struct _addrinfo_list addrinfo_list_t;
 
 struct _config {
 	char pidfile[_MAX_PATH];
 	char syslogfile[_MAX_PATH];
 	char action[_MAX_PATH];
 	char exclude[_MAX_PATH];
+	char ssl_ca_trust[_MAX_PATH];
 	char regex[BUFFSIZE];
-	int action_threshold;
-	int time_interval;
-	int purge_after;
+	int32_t action_threshold;
+	int64_t time_interval;
+	int64_t purge_after;
+	int32_t server;	
+	int32_t server_timeout;
+	int32_t server_backlog;
+	int32_t maxinconnections;
+	int32_t inform;
+	int32_t inform_retry;
+	int32_t inform_retry_wait;
+	int32_t remote_authoritative;
+	addrinfo_list_t *listen;
+	/* 
+	 * This is the start point for the linked lists of daemons to inform
+	 */
+	addrinfo_list_t* inform_agents;
 };
+typedef struct _config config_t;
 
-typedef struct _config config;
+extern config_t CONFIG;
 
-extern config* config_read(const char* file);
-extern config* config_get();
+extern int config_read(const char* file);
+extern int config_free();
 
 #endif

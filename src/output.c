@@ -46,7 +46,7 @@ enum {
     BUFFSIZE = 1024
 };
 
-static OUTTYPE OTYPE = CONSOLE;
+static outtype_t OTYPE = CONSOLE;
 static int SYSLOG_INIT = 0;
 
 void
@@ -58,7 +58,7 @@ out_done() {
 }
 
 void
-out_settype(OUTTYPE type) {
+out_settype(outtype_t type) {
     switch (type) {
     case SYSLOG:
 	if ( !SYSLOG_INIT ) {
@@ -76,7 +76,7 @@ out_settype(OUTTYPE type) {
     OTYPE = type;
 }
 
-OUTTYPE
+outtype_t
 out_gettype() {
     return OTYPE;
 }
@@ -108,13 +108,19 @@ out_syserr(int no, const char *format, ...) {
 
 #ifdef HAVE_STRERROR_R
 #ifdef DEBUG
-#warning "Using strerror_r()"
+#warning "++++ Using strerror_r() ++++"
 #endif
+#ifdef STRERROR_R_CHAR_P
+    char buff3[BUFFSIZE];
+    char *strerr;
+    strerr = strerror_r(no, buff3, BUFFSIZE);
+#else
     char strerr[BUFFSIZE];
     strerror_r(no, strerr, BUFFSIZE);
+#endif
 #elif HAVE_STRERROR
 #ifdef DEBUG
-#warning "Using strerror()"
+#warning "++++ Using strerror() ++++"
 #endif
     char *strerr;
     strerr = strerror(no);
@@ -126,7 +132,7 @@ out_syserr(int no, const char *format, ...) {
     vsnprintf(buff, BUFFSIZE, format, ap);
     va_end(ap);
 
-    snprintf(buff2, BUFFSIZE, "%s (%s)", buff, strerr);
+    snprintf(buff2, BUFFSIZE, "%s (errval %i: %s)", buff, no, strerr);
 
     switch (OTYPE) {
     case CONSOLE:

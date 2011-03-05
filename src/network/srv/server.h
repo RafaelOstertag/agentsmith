@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 Rafael Ostertag 
+/* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
  *
@@ -18,27 +18,19 @@
 
 /* $Id$ */
 
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#ifndef NETWORK_SERVER_H
+#define NETWORK_SERVER_H
 
-#define LOCALHOST "localhost"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-enum {
-    _MAX_PATH = 1024,
-    BUFFSIZE=1024,
-    RETVAL_OK=0,
-    RETVAL_ERR=-1,
-    /* Maximum size of a sockaddr struct len. This is just an arbitrary value
-       big enough to hold IPv4 and IPv6 structs. */
-    MYSOCKADDRLEN=64,
-    /* Should be sufficient even for IPv6 */
-    IPADDR_SIZE = 46,
-    /* This is the size of the command send over the wire. It is computed by
-       taken the size of hostrecord_t plus 4 bytes for command */
-    REMOTE_COMMAND_SIZE = 144
-};
+#ifdef HAVE_SEMAPHORE_H
+#include <semaphore.h>
+#endif
 
-/* The global config struct holding the configuration we read */
+sem_t worker_semaphore;
 
+extern int network_start_server();
 
 #endif

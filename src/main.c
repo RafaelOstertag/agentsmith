@@ -59,6 +59,8 @@
 #include "records.h"
 #include "threads.h"
 #include "exclude.h"
+#include "client.h"
+#include "netssl.h"
 
 #define HELPSTR "Usage:\n"				\
     PACKAGE_NAME " [-d] [-t] [-c <file>] [-p <file>]\n"	\
@@ -70,7 +72,7 @@
     "-L           print license and exit\n"		\
     "-V           print version and exit\n"
 
-#define LICENSESTR  "Copyright (C) 2010 Rafael Ostertag\n"		\
+#define LICENSESTR  "Copyright (C) 2010, 2011 Rafael Ostertag\n"		\
     "\n"								\
     PACKAGE_NAME " is free software: you can redistribute it and/or modify it under\n" \
     "the terms of the GNU General Public License as published by the Free\n" \
@@ -85,7 +87,7 @@
     "You should have received a copy of the GNU General Public License along with\n" \
     "agentsmith.  If not, see <http://www.gnu.org/licenses/>.\n"
 
-#define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010 Rafael Ostertag\n" 
+#define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010, 2011 Rafael Ostertag\n" 
 
 static void
 print_help() {
@@ -106,9 +108,8 @@ int
 main(int argc, char** argv) {
     FILE *pfile;
     pid_t pid;
-    int c, testonly=0, daemonmode = 1, pidfile_from_cmdline = 0;
+    int c, testonly=0, daemonmode = 1, pidfile_from_cmdline = 0, retval;
     char *cfgfile = NULL, optstr[] = "c:p:dthLV", *cmdline_pidfile = NULL;
-    config *cfg;
     extern char *optarg;
     extern int optind, optopt, opterr;
 
@@ -171,17 +172,17 @@ main(int argc, char** argv) {
 	cfgfile = strdup(DEFAULT_CONFIGFILE);
 
     /* Read the configuration file */
-    cfg = config_read(cfgfile);
+    config_read(cfgfile);
 
     if ( pidfile_from_cmdline ) {
 	assert ( cmdline_pidfile != NULL );
-	strncpy(cfg->pidfile, cmdline_pidfile, _MAX_PATH);
+	strncpy(CONFIG.pidfile, cmdline_pidfile, _MAX_PATH);
     }
 
     if ( daemonmode ) {
-	pfile = fopen(cfg->pidfile, "w");
+	pfile = fopen(CONFIG.pidfile, "w");
 	if ( pfile == NULL ) {
-	    out_syserr(errno, "Error creating pid file '%s'", cfg->pidfile);
+	    out_syserr(errno, "Error creating pid file '%s'", CONFIG.pidfile);
 	    out_err("Exiting now.");
 	    exit(1);
 	}
@@ -201,11 +202,15 @@ main(int argc, char** argv) {
     /* Initialize record vector */
     records_init();
 
+    /* Since SSL_library_init() is not reentrant, we call it here if necessary */
+    if (CONFIG.inform == 1 || CONFIG.server == 1)
+	netssl_initialize();
+
     /* Initialize exclude vector */
     exclude_init();
 
     /* Read exclude file */
-    exclude_readfile(cfg->exclude);
+    exclude_readfile(CONFIG.exclude);
 
     /* Set up the signal handlers */
     signalhandler_setup();
@@ -213,10 +218,26 @@ main(int argc, char** argv) {
     /* Start threads */
     threads_start();
 
+    if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
+	retval = client_start(CONFIG.inform_agents);
+	if (retval != RETVAL_OK) {
+	    out_err("Error starting client. Aborting");
+	    exit(1);
+	}
+    }
+	
+    
+
     out_msg("%s Version %s successfully started", argv[0], PACKAGE_VERSION);
 
     /* This will only return upon exit or error */
-    follow(cfg->syslogfile);
+    follow(CONFIG.syslogfile);
+
+    if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
+	retval = client_stop();
+	if (retval != RETVAL_OK)
+	    out_err("Error stoping client.");
+    }
 
     threads_stop();
 
@@ -226,9 +247,9 @@ main(int argc, char** argv) {
 
     if ( daemonmode ) {
 	int retval;
-	retval = unlink(cfg->pidfile);
+	retval = unlink(CONFIG.pidfile);
 	if ( retval != 0 ) {
-	    out_syserr(errno, "Unable to unlink pid file '%s'", cfg->pidfile);
+	    out_syserr(errno, "Unable to unlink pid file '%s'", CONFIG.pidfile);
 	}
     }
 
@@ -236,6 +257,8 @@ main(int argc, char** argv) {
     
     /* Cleanup output to syslog */
     out_done();
+
+    config_free();
 
     exit (0);
 }

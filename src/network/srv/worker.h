@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 Rafael Ostertag 
+/* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
  *
@@ -18,27 +18,16 @@
 
 /* $Id$ */
 
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#ifndef NETWORK_WORKER_H
+#define NETWORK_WORKER_H
 
-#define LOCALHOST "localhost"
-
-enum {
-    _MAX_PATH = 1024,
-    BUFFSIZE=1024,
-    RETVAL_OK=0,
-    RETVAL_ERR=-1,
-    /* Maximum size of a sockaddr struct len. This is just an arbitrary value
-       big enough to hold IPv4 and IPv6 structs. */
-    MYSOCKADDRLEN=64,
-    /* Should be sufficient even for IPv6 */
-    IPADDR_SIZE = 46,
-    /* This is the size of the command send over the wire. It is computed by
-       taken the size of hostrecord_t plus 4 bytes for command */
-    REMOTE_COMMAND_SIZE = 144
+struct _worker_thread_args {
+	int connfd;
+	socklen_t addrlen;
+	void* addr;
 };
+typedef struct _worker_thread_args worker_thread_args_t;
 
-/* The global config struct holding the configuration we read */
-
+extern void* network_server_worker(void *args);
 
 #endif

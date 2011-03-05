@@ -54,8 +54,15 @@
 #include <unistd.h>
 #endif
 
+#include "globals.h"
 #include "exclude.h"
 #include "output.h"
+
+
+enum {
+    /* The max length of a line in the exclude file */
+    MAX_EXCLUDE_LINE_LENGTH = 100
+};
 
 static excluderecord_t **exclude_vector = NULL;
 /* The chunk size we pre-allocate */
@@ -63,17 +70,10 @@ static unsigned long er_vector_chunksize = 100;
 /* This will be dynamically expanded as needed */
 static unsigned long er_vector_size = 100;
 static unsigned long er_vector_fill = 0;
-/* The max length of a line in the exclude file */
-static const unsigned int max_exclude_line_length = 100;
 
 static pthread_mutex_t exclude_mutex;
 
 static int initialized = 0;
-
-enum {
-    RETVAL_OK = 0,
-    RETVAL_ERR = -1
-};
 
 unsigned long exclude_dbg_get_vector_size() { return er_vector_size; }
 unsigned long exclude_dbg_get_vector_chunksize() { return er_vector_chunksize; }
@@ -82,18 +82,18 @@ unsigned long exclude_dbg_get_vector_fill() { return er_vector_fill; }
 #ifdef DEBUG
 static void
 _exclude_show_list() {
-    int retval;
+    int retval, i;
     excluderecord_t **ptr;
     char ip[46], mask[46];
 
     retval = pthread_mutex_lock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock exclude_mutex");
+	out_syserr(retval, "Unable to lock exclude_mutex");
 	return;
     }
 
     ptr = exclude_vector;
-    for (int i = 0; i < er_vector_fill; i++ ) {
+    for (i = 0; i < er_vector_fill; i++ ) {
 	if ( ptr[i] != NULL ) {
 	    if ( ptr[i]->af == AF_INET ) {
 		if ( inet_ntop(ptr[i]->af, &(ptr[i]->address.net), ip, 46) == NULL ) {
@@ -118,7 +118,7 @@ _exclude_show_list() {
 
     retval = pthread_mutex_unlock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock exclude_mutex");
+	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return;
     }
 }
@@ -135,7 +135,7 @@ _exclude_readfile_thread(void* args) {
     FILE* exfile;
     int retval, lineno=0;
     char *fp;
-    char line[max_exclude_line_length];
+    char line[MAX_EXCLUDE_LINE_LENGTH];
 
     fp=(char*) args;
 
@@ -173,7 +173,7 @@ _exclude_readfile_thread(void* args) {
     }
     out_dbg("Exclude list clear ok");
 
-    while (fgets(line, max_exclude_line_length, exfile) != NULL) {
+    while (fgets(line, MAX_EXCLUDE_LINE_LENGTH, exfile) != NULL) {
 	lineno++;
 
 	if (*line == '#') continue;
@@ -214,16 +214,15 @@ _exclude_readfile_thread(void* args) {
 static int
 _exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
     char* prefixptr;
-    char *tmpstr;
 
 
-    if ( ip == NULL ||
-	 prefix == NULL ||
-	 af == NULL ||
-	 str == NULL ) return RETVAL_ERR;
+    assert( ip != NULL );
+    assert( prefix != NULL );
+    assert( af != NULL );
+    assert( str != NULL );
 
     /* Check if str might be a valid ip address depending on its length */
-    if (strlen(str) < 7) {
+    if (strlen(str) < 3) {
 	out_err("%s is not a valid IP Address", str);
 	return RETVAL_ERR;
     }
@@ -399,7 +398,8 @@ _records_find(const char* ipaddr, unsigned long *pos) {
     retval = _exclude_parse_ip(ipaddr, &iponly, &prefix, &af);
     if ( retval == RETVAL_ERR ) {
 	out_err("Error parsing '%s' into components", ipaddr);
-	*pos = 0;
+	if ( pos != NULL )
+	    *pos = 0;
 	return NULL;
     }
 
@@ -494,7 +494,7 @@ exclude_init() {
     if (initialized)
 	return;
 
-    exclude_vector = (excluderecord_t**)malloc( sizeof(excluderecord_t*) * er_vector_size);
+    exclude_vector = (excluderecord_t**) calloc( sizeof(excluderecord_t*), er_vector_size);
     if ( exclude_vector == NULL ) {
 	out_err("Unable to locate memory for the exclude record vector. Dying now");
 	exit (3);
@@ -503,7 +503,7 @@ exclude_init() {
 
     retval = pthread_mutex_init(&exclude_mutex, NULL);
     if ( retval != 0 ) {
-	out_syserr(errno, "Error initializing exclude_mutex");
+	out_syserr(retval, "Error initializing exclude_mutex");
 	exit (3);
     }
 
@@ -529,7 +529,7 @@ exclude_destroy () {
 
     retval = pthread_mutex_destroy ( &exclude_mutex );
     if ( retval != 0 )
-	out_syserr(errno, "Error destroying exclude_mutex" );
+	out_syserr(retval, "Error destroying exclude_mutex" );
 }
 
 int
@@ -537,12 +537,13 @@ exclude_clear() {
     int retval,i;
     excluderecord_t **ptr;
 
+    assert(initialized);
     if (!initialized)
 	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock exclude_mutex");
+	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 
@@ -558,7 +559,7 @@ exclude_clear() {
     er_vector_size = 100;
     er_vector_fill = 0;
 
-    exclude_vector = (excluderecord_t**)malloc( sizeof(excluderecord_t*) * er_vector_size);
+    exclude_vector = (excluderecord_t**)calloc( sizeof(excluderecord_t*), er_vector_size);
     if ( exclude_vector == NULL ) {
 	out_err("Unable to locate memory for the exclude record vector. Dying now");
 	exit (3);
@@ -567,7 +568,7 @@ exclude_clear() {
 
     retval = pthread_mutex_unlock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock exclude_mutex");
+	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
     return RETVAL_OK;
@@ -589,7 +590,6 @@ int
 exclude_add(const char *ipaddr) {
     int retval;
     unsigned long pos_newexclude;
-    excluderecord_t *ptr;
     int af;
     unsigned int prefix;
     char *iponly = NULL;
@@ -598,6 +598,7 @@ exclude_add(const char *ipaddr) {
     in6_addr_t ipv6;
 #endif
 
+    assert ( ipaddr != NULL );
     if (ipaddr == NULL) return RETVAL_ERR;
 
     /*
@@ -605,7 +606,7 @@ exclude_add(const char *ipaddr) {
      */
     retval = pthread_mutex_lock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock exclude_mutex");
+	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 
@@ -646,7 +647,7 @@ exclude_add(const char *ipaddr) {
     exclude_vector[pos_newexclude]->af = af;
     if ( af == AF_INET ) {
 	exclude_vector[pos_newexclude]->address.net = ipv4;
-	mask = 0xffffffff << 32-prefix;
+	mask = 0xffffffff << (32-prefix);
 	exclude_vector[pos_newexclude]->netmask.mask = htonl(mask);
     } else {
 #ifdef HAVE_IN6_ADDR_T
@@ -665,10 +666,9 @@ exclude_add(const char *ipaddr) {
 
     er_vector_fill =  (pos_newexclude+1) > er_vector_fill ? (pos_newexclude+1) : er_vector_fill;
 
- END_OK:
     retval = pthread_mutex_unlock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock exclude_mutex");
+	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
     if ( iponly != NULL )
@@ -677,7 +677,7 @@ exclude_add(const char *ipaddr) {
  END_ERR:
     retval = pthread_mutex_unlock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock exclude_mutex");
+	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
     if ( iponly != NULL )
@@ -693,7 +693,7 @@ exclude_isexcluded(const char* ipaddr) {
 
     retval = pthread_mutex_lock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to lock exclude_mutex");
+	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 
@@ -701,7 +701,7 @@ exclude_isexcluded(const char* ipaddr) {
 
     retval = pthread_mutex_unlock(&exclude_mutex);
     if ( retval != 0 ) {
-	out_syserr(errno, "Unable to unlock exclude_mutex");
+	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
     return found;
@@ -722,23 +722,26 @@ int
 exclude_readfile(const char* fpath) {
     int retval;
     pthread_attr_t tattr;
+    /* Needed to make some phtread implementations happy, i.e. not letting them
+       seg faulting when creating the ghread */
+    pthread_t wdc;
 
 
     retval = pthread_attr_init(&tattr);
     if (retval != 0) {
-	out_syserr(errno, "Error initializing thread attributes for exclude file read thread");
+	out_syserr(retval, "Error initializing thread attributes for exclude file read thread");
 	return RETVAL_ERR;
     }
 
     retval = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
     if (retval != 0) {
-	out_syserr(errno, "Error setting detach state for exclude file read thread");
+	out_syserr(retval, "Error setting detach state for exclude file read thread");
 	return RETVAL_ERR;
     }
 
-    retval = pthread_create(NULL, &tattr, _exclude_readfile_thread, (void*)fpath);
+    retval = pthread_create(&wdc, &tattr, _exclude_readfile_thread, (void*)fpath);
     if (retval != 0) {
-	out_syserr(errno, "Error lauching exclude file read thread");
+	out_syserr(retval, "Error lauching exclude file read thread");
 	return RETVAL_ERR;
     }
 

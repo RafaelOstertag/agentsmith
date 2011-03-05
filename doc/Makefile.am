@@ -1,6 +1,6 @@
 # $Id$
 
-EXTRA_DIST = agentsmith.man.in agentsmith.conf.man.in
+EXTRA_DIST = agentsmith.man.in agentsmith.conf.man.in agentsmith_exclude.man.in
 
 if SUNOS
 man1_MANS = agentsmith.man

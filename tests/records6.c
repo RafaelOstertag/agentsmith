@@ -28,6 +28,7 @@
 #include <unistd.h>
 #endif
 
+#include "globals.h"
 #include "records.h"
 #include "output.h"
 
@@ -40,7 +41,7 @@ unsigned long num_entries = 0;
 int
 callback(hostrecord_t *ptr) {
     num_entries++;
-    return 0;
+    return RETVAL_OK;
 }
 
 void*
@@ -53,9 +54,9 @@ thread_add(void* wdc) {
 	for (i=0; i<ITERATIONS; i++) {
 	    for (k=0; k<ITERATIONS; k++) {
 		snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
-		retval = records_add(str);
+		retval = records_add_ip(str);
 		if (retval != 0) {
-		    fprintf(stderr, "records_add() returned %i\n", retval);
+		    fprintf(stderr, "records_add_ip() returned %i\n", retval);
 		    exit(1);
 		}
 	    }

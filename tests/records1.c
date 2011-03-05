@@ -31,7 +31,7 @@ int main (int wdc1, char** wdc2) {
     for (i=0; i<ITERATIONS; i++) {
 	for (k=0; k<ITERATIONS; k++) {
 	    snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
-	    retval = records_add(str);
+	    retval = records_add_ip(str);
 	    if (retval != 0) {
 		fprintf(stderr, "records_add() returned %i\n", retval);
 		exit(1);

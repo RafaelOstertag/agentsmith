@@ -21,18 +21,18 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
-enum _OUTTYPE {
+enum _outtype {
     SYSLOG = 0,
     CONSOLE = 1
 };
 
-typedef enum _OUTTYPE OUTTYPE;
+typedef enum _outtype outtype_t;
 
 /* Call this function upon exit of the program. It will cleanup stuff is SYSLOG
    is used, or does nothing if CONSOLE is used. */
 extern void out_done();
-extern void out_settype(OUTTYPE type);
-extern OUTTYPE out_gettype();
+extern void out_settype(outtype_t type);
+extern outtype_t out_gettype();
 extern void out_err(const char *format, ...);
 extern void out_syserr(int no, const char *format, ...);
 extern void out_msg(const char *format, ...);

@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -87,7 +88,7 @@
     "You should have received a copy of the GNU General Public License along with\n" \
     "agentsmith.  If not, see <http://www.gnu.org/licenses/>.\n"
 
-#define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010, 2011 Rafael Ostertag\n" 
+#define VERSIONSTR PACKAGE_STRING " Copyright (C) 2010, 2011 Rafael Ostertag\n"
 
 static void
 print_help() {
@@ -105,58 +106,60 @@ print_version() {
 }
 
 int
-main(int argc, char** argv) {
-    FILE *pfile;
-    pid_t pid;
-    int c, testonly=0, daemonmode = 1, pidfile_from_cmdline = 0, retval;
-    char *cfgfile = NULL, optstr[] = "c:p:dthLV", *cmdline_pidfile = NULL;
+main(int argc, char **argv) {
+    FILE     *pfile;
+    pid_t     pid;
+    int       c, testonly = 0, daemonmode = 1, pidfile_from_cmdline =
+	0, retval;
+    char     *cfgfile = NULL, optstr[] = "c:p:dthLV", *cmdline_pidfile = NULL;
     extern char *optarg;
     extern int optind, optopt, opterr;
 
-    while ( (c = getopt(argc, argv, optstr) ) != -1) {
-    	switch (c) {
-    	case 'c':
-    	    cfgfile = strdup(optarg);
-    	    break;
+    while ((c = getopt(argc, argv, optstr)) != -1) {
+	switch (c) {
+	case 'c':
+	    cfgfile = strdup(optarg);
+	    break;
 	case 'p':
-	    /* pid file specified on cmd line takes precedence */
+	    /*
+	     * pid file specified on cmd line takes precedence 
+	     */
 	    cmdline_pidfile = strdup(optarg);
 	    pidfile_from_cmdline = 1;
 	    break;
-    	case 'd':
+	case 'd':
 	    daemonmode = 0;
-    	    break;
-    	case 'h':
-    	    print_help();
-    	    exit (0);
-    	    break;
+	    break;
+	case 'h':
+	    print_help();
+	    exit(0);
+	    break;
 	case 't':
 	    testonly = 1;
 	    daemonmode = 0;
 	    break;
-    	case 'L':
-    	    print_license();
-    	    exit (0);
-    	    break;
-    	case 'V':
-    	    print_version();
-    	    exit(0);
-    	    break;
-    	case '?':
-    	    fprintf(stderr, "Unknown argument %c\n", optopt);
-    	    print_help();
-    	    exit(1);
-    	    break;
-    	}
+	case 'L':
+	    print_license();
+	    exit(0);
+	    break;
+	case 'V':
+	    print_version();
+	    exit(0);
+	    break;
+	case '?':
+	    fprintf(stderr, "Unknown argument %c\n", optopt);
+	    print_help();
+	    exit(1);
+	    break;
+	}
     }
 
-    if ( daemonmode ) {
+    if (daemonmode) {
 	out_settype(SYSLOG);
-	if ( (pid = fork() ) < 0)
-	    return(-1);
-	else
-	    if (pid != 0 )
-		exit(0);/* Parent goes bye-bye */
+	if ((pid = fork()) < 0)
+	    return (-1);
+	else if (pid != 0)
+	    exit(0);		/* Parent goes bye-bye */
 
 	setsid();
 	chdir("/");
@@ -168,20 +171,22 @@ main(int argc, char** argv) {
 	out_settype(CONSOLE);
     }
 
-    if ( cfgfile == NULL )
+    if (cfgfile == NULL)
 	cfgfile = strdup(DEFAULT_CONFIGFILE);
 
-    /* Read the configuration file */
+    /*
+     * Read the configuration file 
+     */
     config_read(cfgfile);
 
-    if ( pidfile_from_cmdline ) {
-	assert ( cmdline_pidfile != NULL );
+    if (pidfile_from_cmdline) {
+	assert(cmdline_pidfile != NULL);
 	strncpy(CONFIG.pidfile, cmdline_pidfile, _MAX_PATH);
     }
 
-    if ( daemonmode ) {
+    if (daemonmode) {
 	pfile = fopen(CONFIG.pidfile, "w");
-	if ( pfile == NULL ) {
+	if (pfile == NULL) {
 	    out_syserr(errno, "Error creating pid file '%s'", CONFIG.pidfile);
 	    out_err("Exiting now.");
 	    exit(1);
@@ -190,32 +195,46 @@ main(int argc, char** argv) {
 	fclose(pfile);
     }
 
-    /* Compile the regexp */
-    if ( testonly ) {
+    /*
+     * Compile the regexp 
+     */
+    if (testonly) {
 	out_msg("Testing configuration and exit...");
 	regex_prepare();
 	out_msg("Configuration appears to be fine.");
-	exit (0);
+	exit(0);
     }
     regex_prepare();
 
-    /* Initialize record vector */
+    /*
+     * Initialize record vector 
+     */
     records_init();
 
-    /* Since SSL_library_init() is not reentrant, we call it here if necessary */
+    /*
+     * Since SSL_library_init() is not reentrant, we call it here if necessary 
+     */
     if (CONFIG.inform == 1 || CONFIG.server == 1)
 	netssl_initialize();
 
-    /* Initialize exclude vector */
+    /*
+     * Initialize exclude vector 
+     */
     exclude_init();
 
-    /* Read exclude file */
+    /*
+     * Read exclude file 
+     */
     exclude_readfile(CONFIG.exclude);
 
-    /* Set up the signal handlers */
+    /*
+     * Set up the signal handlers 
+     */
     signalhandler_setup();
 
-    /* Start threads */
+    /*
+     * Start threads 
+     */
     threads_start();
 
     if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
@@ -225,12 +244,12 @@ main(int argc, char** argv) {
 	    exit(1);
 	}
     }
-	
-    
 
     out_msg("%s Version %s successfully started", argv[0], PACKAGE_VERSION);
 
-    /* This will only return upon exit or error */
+    /*
+     * This will only return upon exit or error 
+     */
     follow(CONFIG.syslogfile);
 
     if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
@@ -245,20 +264,23 @@ main(int argc, char** argv) {
 
     exclude_destroy();
 
-    if ( daemonmode ) {
-	int retval;
+    if (daemonmode) {
+	int       retval;
 	retval = unlink(CONFIG.pidfile);
-	if ( retval != 0 ) {
-	    out_syserr(errno, "Unable to unlink pid file '%s'", CONFIG.pidfile);
+	if (retval != 0) {
+	    out_syserr(errno, "Unable to unlink pid file '%s'",
+		       CONFIG.pidfile);
 	}
     }
 
     out_msg("Exiting now.");
-    
-    /* Cleanup output to syslog */
+
+    /*
+     * Cleanup output to syslog 
+     */
     out_done();
 
     config_free();
 
-    exit (0);
+    exit(0);
 }

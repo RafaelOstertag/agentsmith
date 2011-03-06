@@ -25,20 +25,23 @@
 
 enum {
     _MAX_PATH = 1024,
-    BUFFSIZE=1024,
-    RETVAL_OK=0,
-    RETVAL_ERR=-1,
-    /* Maximum size of a sockaddr struct len. This is just an arbitrary value
-       big enough to hold IPv4 and IPv6 structs. */
-    MYSOCKADDRLEN=64,
-    /* Should be sufficient even for IPv6 */
+    BUFFSIZE = 1024,
+    RETVAL_OK = 0,
+    RETVAL_ERR = -1,
+    /*
+     * Maximum size of a sockaddr struct len. This is just an arbitrary value
+     * big enough to hold IPv4 and IPv6 structs. 
+     */
+    MYSOCKADDRLEN = 64,
+    /*
+     * Should be sufficient even for IPv6 
+     */
     IPADDR_SIZE = 46,
-    /* This is the size of the command send over the wire. It is computed by
-       taken the size of hostrecord_t plus 4 bytes for command */
+    /*
+     * This is the size of the command send over the wire. It is computed by
+     * taken the size of hostrecord_t plus 4 bytes for command 
+     */
     REMOTE_COMMAND_SIZE = 144
 };
-
-/* The global config struct holding the configuration we read */
-
 
 #endif

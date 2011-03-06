@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -17,7 +18,6 @@
  */
 
 /* $Id$ */
-
 
 /**
  * Here is stuff that is shared between server and client.
@@ -42,14 +42,16 @@
 
 enum {
     ADD,
-    REMOVE, /* Not implemented */
-    INFORMATION /* Not implemented */
+    REMOVE,			/* Not implemented */
+    INFORMATION			/* Not implemented */
 } RemoteAgentSmithCommands;
 
-extern size_t net_command_to_buff(uint32_t command, const hostrecord_t* rec, char* buff, size_t buffsize);
-extern size_t net_buff_to_command(const char* buff, uint32_t *command, hostrecord_t* rec);
-extern ssize_t net_read(int fildes, void* buf, size_t nbyte, int* err);
-extern ssize_t net_write(int fildes, const void* buf, size_t nbyte, int* err);
+extern size_t net_command_to_buff(uint32_t command, const hostrecord_t *rec,
+				  char *buff, size_t buffsize);
+extern size_t net_buff_to_command(const char *buff, uint32_t * command,
+				  hostrecord_t *rec);
+extern ssize_t net_read(int fildes, void *buf, size_t nbyte, int *err);
+extern ssize_t net_write(int fildes, const void *buf, size_t nbyte, int *err);
 
 #ifdef WORDS_BIGENDIAN
 #define htonll(x) (x)

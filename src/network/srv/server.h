@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -29,7 +30,7 @@
 #include <semaphore.h>
 #endif
 
-sem_t worker_semaphore;
+sem_t     worker_semaphore;
 
 extern int network_start_server();
 

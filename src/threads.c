@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -75,12 +76,12 @@ typedef enum ac_type ac_type_t;
 
 static void
 _do_action(const hostrecord_t *ptr, ac_type_t t) {
-    char action[BUFFSIZE];
-    char *type_str;
-    int retval;
+    char      action[BUFFSIZE];
+    char     *type_str;
+    int       retval;
 
-    retval = access (CONFIG.action, R_OK | X_OK | F_OK);
-    if ( retval == -1 ) {
+    retval = access(CONFIG.action, R_OK | X_OK | F_OK);
+    if (retval == -1) {
 	out_syserr(errno, "Unable to launch '%s'.", CONFIG.action);
 	return;
     }
@@ -92,14 +93,18 @@ _do_action(const hostrecord_t *ptr, ac_type_t t) {
     case NEW:
 	type_str = strdup(AC_TYPE_NEW_STR);
 	if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
-	    if ( strcmp(ptr->origin, LOCALHOST) != 0 ) { 
-		/* Record from remote host, so we don't want to relay it
-		   further */
-	    	break;
+	    if (strcmp(ptr->origin, LOCALHOST) != 0) {
+		/*
+		 * Record from remote host, so we don't want to relay it
+		 * further 
+		 */
+		break;
 	    }
 
-	    /* Add it the client queue, for distribution to other
-	       agentsmiths */
+	    /*
+	     * Add it the client queue, for distribution to other
+	     * agentsmiths 
+	     */
 	    retval = client_queue_record(ptr);
 	    if (retval != RETVAL_OK)
 		out_err("Error queueing client host record to be sent.");
@@ -111,26 +116,23 @@ _do_action(const hostrecord_t *ptr, ac_type_t t) {
     default:
 	type_str = strdup(AC_TYPE_UNKNOWN_STR);
 	out_err("Action type %i is unknown.", t);
-	assert(0); /* In debug mode we want to abort */
+	assert(0);		/* In debug mode we want to abort */
 	break;
     }
 
     snprintf(action, BUFFSIZE, "%s %s %i %s %s",
 	     CONFIG.action,
-	     ptr->ipaddr,
-	     ptr->occurrences,
-	     type_str,
-	     ptr->origin);
+	     ptr->ipaddr, ptr->occurrences, type_str, ptr->origin);
     free(type_str);
 
     out_dbg("Executing: %s", action);
     retval = system(action);
     out_dbg("'%s' returned %i", action, retval);
-    if ( retval == -1 ) {
+    if (retval == -1) {
 	out_err("'%s' failed with exit code %i", action, errno);
 	return;
     }
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_err("'%s' returned %i", action, retval);
     }
 }
@@ -148,24 +150,27 @@ _do_action(const hostrecord_t *ptr, ac_type_t t) {
 static int
 _records_callback_action_new(hostrecord_t *ptr) {
 
-    assert( ptr != NULL);
+    assert(ptr != NULL);
 
-    if ( ptr->occurrences >= ptr->action_threshold &&
-	 ptr->processed == 0) {
+    if (ptr->occurrences >= ptr->action_threshold && ptr->processed == 0) {
 	_do_action(ptr, NEW);
 	ptr->processed = 1;
 	return 0;
     }
 
-    /* Is this record a one time record? */
-    if ( ptr->lastseen == 0 ) {
-	if ( (time(NULL) - ptr->firstseen) > ptr->purge_after ) {
+    /*
+     * Is this record a one time record? 
+     */
+    if (ptr->lastseen == 0) {
+	if ((time(NULL) - ptr->firstseen) > ptr->purge_after) {
 	    ptr->remove = 1;
 	    return 0;
 	}
     } else {
-	/* Remove stale records */
-	if ( time(NULL) - ptr->lastseen  > ptr->purge_after ) {
+	/*
+	 * Remove stale records 
+	 */
+	if (time(NULL) - ptr->lastseen > ptr->purge_after) {
 	    ptr->remove = 1;
 	    return 0;
 	}
@@ -173,16 +178,18 @@ _records_callback_action_new(hostrecord_t *ptr) {
     return 0;
 }
 
-static void*
+static void *
 action_thread(void *wdc) {
-    int retval;
+    int       retval;
 
     for (;;) {
 	retval = records_enumerate(_records_callback_action_new, SYNC);
 	if (retval != 0)
 	    out_err("records_enumerate() gave an error. Continuing...");
 
-	/* Flush the client host records, to make sure there is no unsent host record left */
+	/*
+	 * Flush the client host records, to make sure there is no unsent host record left 
+	 */
 	if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
 	    retval = client_queue_flush();
 	    if (retval != RETVAL_OK)
@@ -195,9 +202,9 @@ action_thread(void *wdc) {
     return NULL;
 }
 
-static void*
+static void *
 maintenance_thread(void *wdc) {
-    int retval;
+    int       retval;
 
     for (;;) {
 
@@ -211,12 +218,12 @@ maintenance_thread(void *wdc) {
     return NULL;
 }
 
-static void*
+static void *
 server_thread(void *wdc) {
-    int retval;
+    int       retval;
 
     retval = network_start_server();
-    if ( retval == RETVAL_ERR ) 
+    if (retval == RETVAL_ERR)
 	out_err("Unable to launch server thread");
 
     pthread_exit(NULL);
@@ -224,40 +231,35 @@ server_thread(void *wdc) {
 
 void
 threads_start() {
-    int retval;
-    
+    int       retval;
+
     retval = pthread_create(&action_thread_id, NULL, action_thread, NULL);
     if (retval != 0) {
 	out_syserr(retval, "Error creating action thread.");
-	exit (1);
+	exit(1);
     }
 
     retval = pthread_create(&maintenance_thread_id,
-			    NULL,
-			    maintenance_thread,
-			    NULL);
+			    NULL, maintenance_thread, NULL);
     if (retval != 0) {
 	out_syserr(retval, "Error creating maintenance thread.");
-	exit (1);
+	exit(1);
     }
 
-    if (CONFIG.server != 0 ) {
-	retval = pthread_create(&server_thread_id,
-				NULL,
-				server_thread,
-				NULL);
+    if (CONFIG.server != 0) {
+	retval = pthread_create(&server_thread_id, NULL, server_thread, NULL);
 	if (retval != 0) {
 	    out_syserr(retval, "Error creating server thread.");
-	    exit (1);
+	    exit(1);
 	}
     }
 }
 
 void
 threads_stop() {
-    int retval;
+    int       retval;
 
-    if ( CONFIG.server != 0 ) {
+    if (CONFIG.server != 0) {
 	out_msg("Cancelling server thread");
 	retval = pthread_cancel(server_thread_id);
 	if (retval != 0) {
@@ -296,9 +298,11 @@ threads_stop() {
 void
 threads_records_callback_action_removal(hostrecord_t *ptr) {
 
-    assert (ptr != 0);
+    assert(ptr != 0);
 
-    /* Only call the remove action if the record was processed */
-    if ( ptr->processed != 0 )
+    /*
+     * Only call the remove action if the record was processed 
+     */
+    if (ptr->processed != 0)
 	_do_action(ptr, REMOVE);
 }

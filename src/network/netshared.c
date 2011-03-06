@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -57,7 +58,7 @@
 
 #ifndef WORDS_BIGENDIAN
 struct ___tmp_conv_struct {
-	char __byte__[8];
+    char      __byte__[8];
 };
 #endif
 
@@ -76,56 +77,57 @@ struct ___tmp_conv_struct {
  * REMOTE_COMMAND_SIZE bytes
  */
 size_t
-net_command_to_buff(uint32_t command, const hostrecord_t* rec, char* buff, size_t buffsize) {
-    int pos = 0;
-    uint64_t val64;
-    uint32_t val32;
+net_command_to_buff(uint32_t command, const hostrecord_t *rec, char *buff,
+		    size_t buffsize) {
+    int       pos = 0;
+    uint64_t  val64;
+    uint32_t  val32;
 
     assert(rec != NULL);
     assert(buff != NULL);
     assert(buffsize == REMOTE_COMMAND_SIZE);
-    
+
     val32 = htonl(command);
-    memcpy(buff+pos, &val32, sizeof(uint32_t));
-    pos+=sizeof(uint32_t);
+    memcpy(buff + pos, &val32, sizeof (uint32_t));
+    pos += sizeof (uint32_t);
 
-    memcpy(buff+pos, rec->origin, IPADDR_SIZE);
-    pos+=IPADDR_SIZE;
+    memcpy(buff + pos, rec->origin, IPADDR_SIZE);
+    pos += IPADDR_SIZE;
 
-    memcpy(buff+pos, rec->ipaddr, IPADDR_SIZE);
-    pos+=IPADDR_SIZE;
+    memcpy(buff + pos, rec->ipaddr, IPADDR_SIZE);
+    pos += IPADDR_SIZE;
 
     val64 = htonll(rec->firstseen);
-    memcpy(buff+pos, &val64, sizeof(int64_t));
-    pos+=sizeof(int64_t);
+    memcpy(buff + pos, &val64, sizeof (int64_t));
+    pos += sizeof (int64_t);
 
     val64 = htonll(rec->lastseen);
-    memcpy(buff+pos, &val64, sizeof(int64_t));
-    pos+=sizeof(int64_t);
+    memcpy(buff + pos, &val64, sizeof (int64_t));
+    pos += sizeof (int64_t);
 
     val64 = htonll(rec->purge_after);
-    memcpy(buff+pos, &val64, sizeof(int64_t));
-    pos+=sizeof(int64_t);
+    memcpy(buff + pos, &val64, sizeof (int64_t));
+    pos += sizeof (int64_t);
 
     val64 = htonll(rec->time_interval);
-    memcpy(buff+pos, &val64, sizeof(int64_t));
-    pos+=sizeof(int64_t);
+    memcpy(buff + pos, &val64, sizeof (int64_t));
+    pos += sizeof (int64_t);
 
     val32 = htonl(rec->occurrences);
-    memcpy(buff+pos, &val32, sizeof(int32_t));
-    pos+=sizeof(int32_t);
+    memcpy(buff + pos, &val32, sizeof (int32_t));
+    pos += sizeof (int32_t);
 
     val32 = htonl(rec->action_threshold);
-    memcpy(buff+pos, &val32, sizeof(int32_t));
-    pos+=sizeof(int32_t);
+    memcpy(buff + pos, &val32, sizeof (int32_t));
+    pos += sizeof (int32_t);
 
     val32 = htonl(rec->remove);
-    memcpy(buff+pos, &val32, sizeof(int32_t));
-    pos+=sizeof(int32_t);
+    memcpy(buff + pos, &val32, sizeof (int32_t));
+    pos += sizeof (int32_t);
 
     val32 = htonl(rec->processed);
-    memcpy(buff+pos, &val32, sizeof(int32_t));
-    pos+=sizeof(int32_t);
+    memcpy(buff + pos, &val32, sizeof (int32_t));
+    pos += sizeof (int32_t);
 
     assert(pos == buffsize);
     assert(pos == REMOTE_COMMAND_SIZE);
@@ -148,57 +150,56 @@ net_command_to_buff(uint32_t command, const hostrecord_t* rec, char* buff, size_
  * REMOTE_COMMAND_SIZE bytes
  */
 size_t
-net_buff_to_command(const char* buff, uint32_t *command, hostrecord_t* rec) {
-    int pos = 0;
-    uint64_t val64;
-    uint32_t val32;
+net_buff_to_command(const char *buff, uint32_t * command, hostrecord_t *rec) {
+    int       pos = 0;
+    uint64_t  val64;
+    uint32_t  val32;
 
     assert(rec != NULL);
     assert(buff != NULL);
     assert(command != NULL);
-    
 
-    memcpy(&val32, buff+pos, sizeof(uint32_t));
+    memcpy(&val32, buff + pos, sizeof (uint32_t));
     *command = ntohl(val32);
-    pos+=sizeof(uint32_t);
+    pos += sizeof (uint32_t);
 
-    memcpy(rec->origin, buff+pos, IPADDR_SIZE);
-    pos+=IPADDR_SIZE;
+    memcpy(rec->origin, buff + pos, IPADDR_SIZE);
+    pos += IPADDR_SIZE;
 
-    memcpy(rec->ipaddr, buff+pos, IPADDR_SIZE);
-    pos+=IPADDR_SIZE;
+    memcpy(rec->ipaddr, buff + pos, IPADDR_SIZE);
+    pos += IPADDR_SIZE;
 
-    memcpy(&val64, buff+pos, sizeof(int64_t));
+    memcpy(&val64, buff + pos, sizeof (int64_t));
     rec->firstseen = ntohll(val64);
-    pos+=sizeof(int64_t);
+    pos += sizeof (int64_t);
 
-    memcpy(&val64, buff+pos, sizeof(int64_t));
+    memcpy(&val64, buff + pos, sizeof (int64_t));
     rec->lastseen = ntohll(val64);
-    pos+=sizeof(int64_t);
+    pos += sizeof (int64_t);
 
-    memcpy(&val64, buff+pos, sizeof(int64_t));
+    memcpy(&val64, buff + pos, sizeof (int64_t));
     rec->purge_after = ntohll(val64);
-    pos+=sizeof(int64_t);
+    pos += sizeof (int64_t);
 
-    memcpy(&val64, buff+pos, sizeof(int64_t));
+    memcpy(&val64, buff + pos, sizeof (int64_t));
     rec->time_interval = ntohll(val64);
-    pos+=sizeof(int64_t);
+    pos += sizeof (int64_t);
 
-    memcpy(&val32, buff+pos, sizeof(int32_t));
+    memcpy(&val32, buff + pos, sizeof (int32_t));
     rec->occurrences = ntohl(val32);
-    pos+=sizeof(int32_t);
+    pos += sizeof (int32_t);
 
-    memcpy(&val32, buff+pos, sizeof(int32_t));
+    memcpy(&val32, buff + pos, sizeof (int32_t));
     rec->action_threshold = ntohl(val32);
-    pos+=sizeof(int32_t);
+    pos += sizeof (int32_t);
 
-    memcpy(&val32, buff+pos, sizeof(int32_t));
+    memcpy(&val32, buff + pos, sizeof (int32_t));
     rec->remove = ntohl(val32);
-    pos+=sizeof(int32_t);
+    pos += sizeof (int32_t);
 
-    memcpy(&val32, buff+pos, sizeof(int32_t));
+    memcpy(&val32, buff + pos, sizeof (int32_t));
     rec->processed = ntohl(val32);
-    pos+=sizeof(int32_t);
+    pos += sizeof (int32_t);
 
     assert(pos == REMOTE_COMMAND_SIZE);
 
@@ -206,28 +207,28 @@ net_buff_to_command(const char* buff, uint32_t *command, hostrecord_t* rec) {
 }
 
 ssize_t
-net_read(int fildes, void* buf, size_t nbyte, int* err) {
-    size_t nleft;
-    ssize_t nread;
-    char* ptr;
-    int _err = 0;
+net_read(int fildes, void *buf, size_t nbyte, int *err) {
+    size_t    nleft;
+    ssize_t   nread;
+    char     *ptr;
+    int       _err = 0;
 
-    assert ( buf != NULL );
+    assert(buf != NULL);
 
     if (err == NULL)
-	err = &_err; /* To avoid NULL ptr deref */
+	err = &_err;		/* To avoid NULL ptr deref */
 
     ptr = buf;
     nleft = nbyte;
-    while ( nleft > 0 ) {
-	if ( (nread = read(fildes, ptr, nleft)) < 0 ) {
+    while (nleft > 0) {
+	if ((nread = read(fildes, ptr, nleft)) < 0) {
 	    *err = errno;
-	    if ( *err == EINTR )
+	    if (*err == EINTR)
 		nread = 0;
 	    else
 		return RETVAL_ERR;
-	} else if ( nread == 0 )
-	    break; /* EOF */
+	} else if (nread == 0)
+	    break;		/* EOF */
 
 	nleft -= nread;
 	ptr += nread;
@@ -235,23 +236,24 @@ net_read(int fildes, void* buf, size_t nbyte, int* err) {
     return nbyte - nleft;
 }
 
-ssize_t net_write(int fildes, const void* buf, size_t nbyte, int* err) {
-    size_t nleft;
-    ssize_t nwritten;
-    const char* ptr;
-    int _err = 0;
+ssize_t
+net_write(int fildes, const void *buf, size_t nbyte, int *err) {
+    size_t    nleft;
+    ssize_t   nwritten;
+    const char *ptr;
+    int       _err = 0;
 
-    assert ( buf != NULL );
+    assert(buf != NULL);
 
     if (err == NULL)
-	err = &_err; /* To avoid NULL ptr deref */
+	err = &_err;		/* To avoid NULL ptr deref */
 
     ptr = buf;
     nleft = nbyte;
-    while ( nleft > 0 ) {
-	if ( (nwritten = write(fildes, ptr, nleft)) <= 0) {
+    while (nleft > 0) {
+	if ((nwritten = write(fildes, ptr, nleft)) <= 0) {
 	    *err = errno;
-	    if ( *err == EINTR )
+	    if (*err == EINTR)
 		nwritten = 0;
 	    else
 		return RETVAL_ERR;
@@ -269,13 +271,13 @@ uint64_t
 htonll(uint64_t a) {
     struct ___tmp_conv_struct *sa;
     struct ___tmp_conv_struct *sb;
-    uint64_t b;
+    uint64_t  b;
     register int i;
 
-    sa = (struct ___tmp_conv_struct*) &a;
-    sb = (struct ___tmp_conv_struct*) &b;
-    for(i=0; i<8; i++)
-	sb->__byte__[i] = sa->__byte__[7-i];
+    sa = (struct ___tmp_conv_struct *) &a;
+    sb = (struct ___tmp_conv_struct *) &b;
+    for (i = 0; i < 8; i++)
+	sb->__byte__[i] = sa->__byte__[7 - i];
 
     return b;
 }
@@ -287,46 +289,44 @@ ntohll(uint64_t a) {
 #endif
 
 #ifdef DEBUG
-void __dbg_dump_host_record(hostrecord_t *ptr) {
-    char *format = "IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
+void
+__dbg_dump_host_record(hostrecord_t *ptr) {
+    char     *format =
+	"IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
 #ifdef HAVE_CTIME_R
 #ifdef DEBUG
 #warning "++++ Using ctime_r() ++++"
 #endif
 #define TIMEBUFSIZE 128
-    char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
+    char      timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
 #else
 #ifdef DEBUG
 #warning "++++ Using ctime() ++++"
 #endif
 #endif
-    if ( ptr == NULL ) {
+    if (ptr == NULL) {
 	out_dbg("__dbg_dump_host_record(): NULL pointer");
 	return;
     }
-
 #ifdef HAVE_CTIME_R
     ctime_r(&(ptr->firstseen), timebuff1);
     ctime_r(&(ptr->lastseen), timebuff2);
-    /* Get rid of the newlines */
-    timebuff1[strlen(timebuff1)-1]='\0';
-    timebuff2[strlen(timebuff2)-1]='\0';
+    /*
+     * Get rid of the newlines 
+     */
+    timebuff1[strlen(timebuff1) - 1] = '\0';
+    timebuff2[strlen(timebuff2) - 1] = '\0';
     out_dbg(format,
 	    ptr->ipaddr,
 	    ptr->origin,
 	    timebuff1,
-	    timebuff2,
-	    ptr->occurrences,
-	    ptr->remove,
-	    ptr->processed);
+	    timebuff2, ptr->occurrences, ptr->remove, ptr->processed);
 #else
     out_msg(format,
-	   ptr->ipaddr,
-	   ctime(ptr->firstseen),
-	   ctime(ptr->lastseen),
-	   ptr->occurrences,
-	   ptr->remove,
-	   ptr->processed);
+	    ptr->ipaddr,
+	    ctime(ptr->firstseen),
+	    ctime(ptr->lastseen),
+	    ptr->occurrences, ptr->remove, ptr->processed);
 #endif
 }
 #endif

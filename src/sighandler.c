@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -47,63 +48,60 @@
 #include "records.h"
 #include "exclude.h"
 
-
 /* We keep the previous signal set, just in case */
 static sigset_t old_sigset;
 
 static int
 _records_callback_output(hostrecord_t *ptr) {
-    char *format = "IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
+    char     *format =
+	"IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
 #ifdef HAVE_CTIME_R
 #ifdef DEBUG
 #warning "++++ Using ctime_r() ++++"
 #endif
 #define TIMEBUFSIZE 128
-    char timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
+    char      timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
 #else
 #ifdef DEBUG
 #warning "++++ Using ctime() ++++"
 #endif
 #endif
-    assert( ptr != NULL );
+    assert(ptr != NULL);
 
 #ifdef HAVE_CTIME_R
     ctime_r(&(ptr->firstseen), timebuff1);
     ctime_r(&(ptr->lastseen), timebuff2);
-    /* Get rid of the newlines */
-    timebuff1[strlen(timebuff1)-1]='\0';
-    timebuff2[strlen(timebuff2)-1]='\0';
+    /*
+     * Get rid of the newlines 
+     */
+    timebuff1[strlen(timebuff1) - 1] = '\0';
+    timebuff2[strlen(timebuff2) - 1] = '\0';
     out_msg(format,
 	    ptr->ipaddr,
 	    ptr->origin,
 	    timebuff1,
-	    timebuff2,
-	    ptr->occurrences,
-	    ptr->remove,
-	    ptr->processed);
+	    timebuff2, ptr->occurrences, ptr->remove, ptr->processed);
 #else
     out_msg(format,
-	   ptr->ipaddr,
-	   ctime(ptr->firstseen),
-	   ctime(ptr->lastseen),
-	   ptr->occurrences,
-	   ptr->remove,
-	   ptr->processed);
+	    ptr->ipaddr,
+	    ctime(ptr->firstseen),
+	    ctime(ptr->lastseen),
+	    ptr->occurrences, ptr->remove, ptr->processed);
 #endif
     return 0;
 }
 
 static int
 _records_callback_remove_all(hostrecord_t *ptr) {
-    assert (ptr!=NULL);
+    assert(ptr != NULL);
     ptr->remove = 1;
     return 0;
 }
 
 static void
 sighandler_unhandled(int no) {
-    int sav_errno;
-    
+    int       sav_errno;
+
     sav_errno = errno;
     out_msg("Received unhandled signal %i. Ignoring", no);
 
@@ -124,7 +122,7 @@ signalhandler_termination(int no) {
 
 static void
 signalhandler_usr1(int no) {
-    int retval, sav_errno;
+    int       retval, sav_errno;
 
     assert(no == SIGUSR1);
 
@@ -134,17 +132,18 @@ signalhandler_usr1(int no) {
     if (retval != 0)
 	out_err("Error enumerating records for output");
 
-    errno=sav_errno;
+    errno = sav_errno;
 }
 
 static void
 signalhandler_usr2(int no) {
-    int retval, sav_errno;
+    int       retval, sav_errno;
 
     assert(no == SIGUSR2);
 
     sav_errno = errno;
-    out_msg("Received signal USR2. Host records will be purged upon the next run of the maintenance thread");
+    out_msg
+	("Received signal USR2. Host records will be purged upon the next run of the maintenance thread");
     retval = records_enumerate(_records_callback_remove_all, ASYNC);
     if (retval != 0)
 	out_err("Error enumerating records for purging");
@@ -154,7 +153,7 @@ signalhandler_usr2(int no) {
 
 static void
 signalhandler_hup(int no) {
-    int retval, sav_errno;
+    int       retval, sav_errno;
 
     assert(no == SIGHUP);
 
@@ -170,18 +169,20 @@ signalhandler_hup(int no) {
 
 void
 signalhandler_setup() {
-    sigset_t our_set;
+    sigset_t  our_set;
     struct sigaction sa;
-    int retval;
+    int       retval;
 
     sigemptyset(&our_set);
     retval = sigprocmask(SIG_SETMASK, &our_set, &old_sigset);
-    if ( retval == -1 ){
+    if (retval == -1) {
 	out_syserr(errno, "Error settting sigprocmask()");
 	abort();
     }
 
-    /* The ignored signals */
+    /*
+     * The ignored signals 
+     */
     sigfillset(&(sa.sa_mask));
 #ifdef SA_RESTART
     sa.sa_flags = SA_RESTART;
@@ -189,182 +190,192 @@ signalhandler_setup() {
     sa.sa_flags = 0;
 #endif
     sa.sa_handler = sighandler_unhandled;
-    retval = sigaction ( SIGALRM, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGALRM, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGCONT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGCONT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGTSTP, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGTSTP, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #ifdef SIGINFO
-    retval = sigaction ( SIGINFO, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGINFO, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #endif
-    retval = sigaction ( SIGIO, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGIO, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGPIPE, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGPIPE, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #ifdef SIGPOLL
-    retval = sigaction ( SIGPOLL, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGPOLL, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #endif
-    retval = sigaction ( SIGPROF, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGPROF, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGTTIN, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGTTIN, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGTTOU, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGTTOU, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGURG, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGURG, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGVTALRM, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGVTALRM, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGWINCH, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGWINCH, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 
-    /* The fatal signals */
+    /*
+     * The fatal signals 
+     */
     sigfillset(&(sa.sa_mask));
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_fatal;
-    retval = sigaction ( SIGABRT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGABRT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGBUS, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGBUS, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #ifdef SIGEMT
-    retval = sigaction ( SIGEMT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGEMT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 #endif
-    retval = sigaction ( SIGFPE, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGFPE, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGILL, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGILL, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGIOT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGIOT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGSEGV, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGSEGV, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGSYS, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGSYS, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGTRAP, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGTRAP, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGXCPU, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGXCPU, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGXFSZ, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGXFSZ, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 
-    /* Termination signals  */
+    /*
+     * Termination signals  
+     */
     sigfillset(&(sa.sa_mask));
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_termination;
-    retval = sigaction ( SIGQUIT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGQUIT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGTERM, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGTERM, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    retval = sigaction ( SIGINT, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGINT, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
 
-    /* Dump records */
+    /*
+     * Dump records 
+     */
     sigfillset(&(sa.sa_mask));
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_usr1;
-    retval = sigaction ( SIGUSR1, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGUSR1, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    /* Remove all records */
+    /*
+     * Remove all records 
+     */
     sigfillset(&(sa.sa_mask));
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_usr2;
-    retval = sigaction ( SIGUSR2, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGUSR2, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }
-    /* Reread exclude list */
+    /*
+     * Reread exclude list 
+     */
     sigfillset(&(sa.sa_mask));
     sa.sa_flags = 0;
     sa.sa_handler = signalhandler_hup;
-    retval = sigaction ( SIGHUP, &sa, NULL);
-    if ( retval == -1 ) {
+    retval = sigaction(SIGHUP, &sa, NULL);
+    if (retval == -1) {
 	out_syserr(errno, "Error setting up signal handler");
 	abort();
     }

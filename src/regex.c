@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -49,60 +50,56 @@ static int pcre_erroffset = 0;
 
 void
 regex_prepare() {
-    int retval, capturecount;
+    int       retval, capturecount;
 
-    compiled_regexp = pcre_compile(CONFIG.regex, 0, (const char**)&pcre_errptr, &pcre_erroffset, NULL);
-    if ( compiled_regexp == NULL ) {
+    compiled_regexp =
+	pcre_compile(CONFIG.regex, 0, (const char **) &pcre_errptr,
+		     &pcre_erroffset, NULL);
+    if (compiled_regexp == NULL) {
 	out_err("Unable to compile '%s': %s (Position: %i)",
-		CONFIG.regex,
-		pcre_errptr,
-		pcre_erroffset);
-	exit (2);
+		CONFIG.regex, pcre_errptr, pcre_erroffset);
+	exit(2);
     }
-    compiled_regexp_extra = pcre_study(compiled_regexp, 0, (const char**)&pcre_errptr);
-    if ( pcre_errptr != NULL ) {
-	out_err("Unable to study '%s': %s",
-		CONFIG.regex,
-		pcre_errptr);
-	exit (2);
+    compiled_regexp_extra =
+	pcre_study(compiled_regexp, 0, (const char **) &pcre_errptr);
+    if (pcre_errptr != NULL) {
+	out_err("Unable to study '%s': %s", CONFIG.regex, pcre_errptr);
+	exit(2);
     }
 
-    retval = pcre_fullinfo ( compiled_regexp,
-			     compiled_regexp_extra,
-			     PCRE_INFO_CAPTURECOUNT,
-			     &capturecount );
-    if ( retval != 0 ) {
-	out_err("Error obtaining information on compiled regular expression. The return code was: %i", retval);
-	exit (2);
+    retval = pcre_fullinfo(compiled_regexp,
+			   compiled_regexp_extra,
+			   PCRE_INFO_CAPTURECOUNT, &capturecount);
+    if (retval != 0) {
+	out_err
+	    ("Error obtaining information on compiled regular expression. The return code was: %i",
+	     retval);
+	exit(2);
     }
 
-    if ( capturecount != 1 ) {
-	out_err("You must exactly use 1 ('one') capture pattern in the regular expression");
-	exit (2);
+    if (capturecount != 1) {
+	out_err
+	    ("You must exactly use 1 ('one') capture pattern in the regular expression");
+	exit(2);
     }
 
     regexp_compiled = 1;
 }
 
 void
-regex_do(const char* buff) {
-    char match[BUFFSIZE];
-    int retval;
-    int ovector[30];
+regex_do(const char *buff) {
+    char      match[BUFFSIZE];
+    int       retval;
+    int       ovector[30];
 
-    if ( !regexp_compiled )
+    if (!regexp_compiled)
 	regex_prepare();
 
     retval = pcre_exec(compiled_regexp,
 		       compiled_regexp_extra,
-		       buff,
-		       strlen(buff),
-		       0,
-		       0,
-		       ovector,
-		       30);
-    if ( retval == 2 ) {
-	int match_len;
+		       buff, strlen(buff), 0, 0, ovector, 30);
+    if (retval == 2) {
+	int       match_len;
 	match_len = ovector[3] - ovector[2];
 	memset(match, 0, BUFFSIZE);
 	strncpy(match, buff + ovector[2], match_len);
@@ -115,11 +112,11 @@ regex_do(const char* buff) {
 	    retval = records_add_ip(match);
 	    if (retval != 0) {
 		out_err("Got error adding '%s' to record vector (retval==%i)",
-			match,
-			retval);
+			match, retval);
 	    }
 	} else {
-	    out_msg("%s has been ignored due to entry in exclude file", match);
+	    out_msg("%s has been ignored due to entry in exclude file",
+		    match);
 	}
     }
 }

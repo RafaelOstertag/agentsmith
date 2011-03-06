@@ -1,3 +1,4 @@
+
 /* $Id$
  *
  * Tests the records functions multi threaded.
@@ -44,15 +45,15 @@ callback(hostrecord_t *ptr) {
     return RETVAL_OK;
 }
 
-void*
-thread_add(void* wdc) {
-    char str[BUFFSIZE];
+void     *
+thread_add(void *wdc) {
+    char      str[BUFFSIZE];
     unsigned long i, k;
-    int retval;
+    int       retval;
 
     for (;;) {
-	for (i=0; i<ITERATIONS; i++) {
-	    for (k=0; k<ITERATIONS; k++) {
+	for (i = 0; i < ITERATIONS; i++) {
+	    for (k = 0; k < ITERATIONS; k++) {
 		snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 		retval = records_add_ip(str);
 		if (retval != 0) {
@@ -65,15 +66,15 @@ thread_add(void* wdc) {
     }
 }
 
-void*
-thread_remove(void* wdc) {
-    char str[BUFFSIZE];
+void     *
+thread_remove(void *wdc) {
+    char      str[BUFFSIZE];
     unsigned long i, k;
-    int retval;
+    int       retval;
 
     for (;;) {
-	for (i=0; i<ITERATIONS; i++) {
-	    for (k=0; k<ITERATIONS; k++) {
+	for (i = 0; i < ITERATIONS; i++) {
+	    for (k = 0; k < ITERATIONS; k++) {
 		snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 		retval = records_remove(str);
 	    }
@@ -82,9 +83,9 @@ thread_remove(void* wdc) {
     }
 }
 
-void*
-thread_enumerate(void* wdc) {
-    int retval;
+void     *
+thread_enumerate(void *wdc) {
+    int       retval;
 
     for (;;) {
 	retval = records_enumerate(callback, SYNC);
@@ -96,11 +97,12 @@ thread_enumerate(void* wdc) {
     }
 }
 
-int main (int wdc1, char** wdc2) {
-    int retval;
+int
+main(int wdc1, char **wdc2) {
+    int       retval;
     hostrecord_t *ptr;
-    char str[BUFFSIZE];
-    unsigned long i,k;
+    char      str[BUFFSIZE];
+    unsigned long i, k;
     pthread_t pth_add, pth_remove, pth_enumerate;
 
     out_msg("This test will take at least %i seconds.\n", SLEEP_TIME);
@@ -110,17 +112,17 @@ int main (int wdc1, char** wdc2) {
     retval = pthread_create(&pth_add, NULL, thread_add, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error creating thread thread_add()");
-	exit (1);
+	exit(1);
     }
     retval = pthread_create(&pth_remove, NULL, thread_remove, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error creating thread thread_add()");
-	exit (1);
+	exit(1);
     }
     retval = pthread_create(&pth_enumerate, NULL, thread_enumerate, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error creating thread thread_add()");
-	exit (1);
+	exit(1);
     }
 
     out_msg("Waiting %i seconds", SLEEP_TIME);
@@ -130,12 +132,12 @@ int main (int wdc1, char** wdc2) {
     retval = pthread_cancel(pth_add);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_add()");
-	exit (1);
+	exit(1);
     }
     retval = pthread_join(pth_add, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_add()");
-	exit (1);
+	exit(1);
     }
     out_msg("Joined thread thread_add()");
 
@@ -143,12 +145,12 @@ int main (int wdc1, char** wdc2) {
     retval = pthread_cancel(pth_remove);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_remove()");
-	exit (1);
+	exit(1);
     }
     retval = pthread_join(pth_remove, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_remove()");
-	exit (1);
+	exit(1);
     }
     out_msg("Joined thread thread_remove()");
 
@@ -156,16 +158,15 @@ int main (int wdc1, char** wdc2) {
     retval = pthread_cancel(pth_enumerate);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_enumerate()");
-	exit (1);
+	exit(1);
     }
     retval = pthread_join(pth_enumerate, NULL);
     if (retval != 0) {
 	out_syserr(errno, "Error cancelling thread thread_enumerate()");
-	exit (1);
+	exit(1);
     }
     out_msg("Joined thread thread_enumerate()");
 
-
     records_destroy(NULL);
-    exit (0);
+    exit(0);
 }

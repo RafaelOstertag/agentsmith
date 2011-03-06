@@ -43,23 +43,23 @@ typedef struct in6_addr in6_addr_t;
 #endif
 
 struct _excluderecord {
-	int af;
-	union {
-		#ifdef HAVE_IN_ADDR_T
-		in_addr_t net;
-		#endif
-		#ifdef HAVE_IN6_ADDR_T
-		in6_addr_t net6;
-		#endif
-	} address;
-	union {
-		#ifdef HAVE_IN_ADDR_T
-		in_addr_t mask;
-		#endif
-		#ifdef HAVE_IN6_ADDR_T
-		in6_addr_t mask6;
-		#endif
-	} netmask;
+    int       af;
+    union {
+#ifdef HAVE_IN_ADDR_T
+	in_addr_t net;
+#endif
+#ifdef HAVE_IN6_ADDR_T
+	in6_addr_t net6;
+#endif
+    } address;
+    union {
+#ifdef HAVE_IN_ADDR_T
+	in_addr_t mask;
+#endif
+#ifdef HAVE_IN6_ADDR_T
+	in6_addr_t mask6;
+#endif
+    } netmask;
 };
 typedef struct _excluderecord excluderecord_t;
 
@@ -67,8 +67,8 @@ extern void exclude_init();
 extern void exclude_destroy();
 extern int exclude_clear();
 extern int exclude_add(const char *ipaddr);
-extern int exclude_isexcluded(const char* ipaddr);
-extern int exclude_readfile(const char* fpath);
+extern int exclude_isexcluded(const char *ipaddr);
+extern int exclude_readfile(const char *fpath);
 
 extern unsigned long exclude_dbg_get_vector_size();
 extern unsigned long exclude_dbg_get_vector_chunksize();

@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -58,15 +59,18 @@
 #include "exclude.h"
 #include "output.h"
 
-
 enum {
-    /* The max length of a line in the exclude file */
+    /*
+     * The max length of a line in the exclude file 
+     */
     MAX_EXCLUDE_LINE_LENGTH = 100
 };
 
 static excluderecord_t **exclude_vector = NULL;
+
 /* The chunk size we pre-allocate */
 static unsigned long er_vector_chunksize = 100;
+
 /* This will be dynamically expanded as needed */
 static unsigned long er_vector_size = 100;
 static unsigned long er_vector_fill = 0;
@@ -75,49 +79,65 @@ static pthread_mutex_t exclude_mutex;
 
 static int initialized = 0;
 
-unsigned long exclude_dbg_get_vector_size() { return er_vector_size; }
-unsigned long exclude_dbg_get_vector_chunksize() { return er_vector_chunksize; }
-unsigned long exclude_dbg_get_vector_fill() { return er_vector_fill; }
+unsigned long
+exclude_dbg_get_vector_size() {
+    return er_vector_size;
+}
+
+unsigned long
+exclude_dbg_get_vector_chunksize() {
+    return er_vector_chunksize;
+}
+
+unsigned long
+exclude_dbg_get_vector_fill() {
+    return er_vector_fill;
+}
 
 #ifdef DEBUG
 static void
 _exclude_show_list() {
-    int retval, i;
+    int       retval, i;
     excluderecord_t **ptr;
-    char ip[46], mask[46];
+    char      ip[46], mask[46];
 
     retval = pthread_mutex_lock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to lock exclude_mutex");
 	return;
     }
 
     ptr = exclude_vector;
-    for (i = 0; i < er_vector_fill; i++ ) {
-	if ( ptr[i] != NULL ) {
-	    if ( ptr[i]->af == AF_INET ) {
-		if ( inet_ntop(ptr[i]->af, &(ptr[i]->address.net), ip, 46) == NULL ) {
+    for (i = 0; i < er_vector_fill; i++) {
+	if (ptr[i] != NULL) {
+	    if (ptr[i]->af == AF_INET) {
+		if (inet_ntop(ptr[i]->af, &(ptr[i]->address.net), ip, 46) ==
+		    NULL) {
 		    out_dbg("Error converting ip address in record #%d", i);
 		}
-		if ( inet_ntop(ptr[i]->af, &(ptr[i]->netmask.mask), mask, 46) == NULL ) {
+		if (inet_ntop(ptr[i]->af, &(ptr[i]->netmask.mask), mask, 46)
+		    == NULL) {
 		    out_dbg("Error converting  netmask in record #%d", i);
 		}
 	    } else {
 #ifdef HAVE_IN6_ADDR_T
-		if ( inet_ntop(ptr[i]->af, &(ptr[i]->address.net6), ip, 46) == NULL ) {
+		if (inet_ntop(ptr[i]->af, &(ptr[i]->address.net6), ip, 46) ==
+		    NULL) {
 		    out_dbg("Error converting ip address in record #%d", i);
 		}
-		if ( inet_ntop(ptr[i]->af, &(ptr[i]->netmask.mask6), mask, 46) == NULL ) {
+		if (inet_ntop(ptr[i]->af, &(ptr[i]->netmask.mask6), mask, 46)
+		    == NULL) {
 		    out_dbg("Error converting  netmask in record #%d", i);
 		}
 #endif
 	    }
-	    out_dbg("Exclude entry #%d: af %d, net %s, mask %s", i,ptr[i]->af,ip,mask);
+	    out_dbg("Exclude entry #%d: af %d, net %s, mask %s", i,
+		    ptr[i]->af, ip, mask);
 	}
     }
 
     retval = pthread_mutex_unlock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return;
     }
@@ -130,14 +150,14 @@ _exclude_show_list() {
  * @param args a char pointer to the file path of the file holding the excluded
  * ip addresses.
  */
-static void*
-_exclude_readfile_thread(void* args) {
-    FILE* exfile;
-    int retval, lineno=0;
-    char *fp;
-    char line[MAX_EXCLUDE_LINE_LENGTH];
+static void *
+_exclude_readfile_thread(void *args) {
+    FILE     *exfile;
+    int       retval, lineno = 0;
+    char     *fp;
+    char      line[MAX_EXCLUDE_LINE_LENGTH];
 
-    fp=(char*) args;
+    fp = (char *) args;
 
     if (fp == NULL || strlen(fp) == 0) {
 	out_msg("No exclude file specified");
@@ -176,19 +196,21 @@ _exclude_readfile_thread(void* args) {
     while (fgets(line, MAX_EXCLUDE_LINE_LENGTH, exfile) != NULL) {
 	lineno++;
 
-	if (*line == '#') continue;
+	if (*line == '#')
+	    continue;
 
-	/* Get rid of newline */
-	if (strlen(line) > 1 &&
-	    line[strlen(line)-1] == '\n')
-	    line[strlen(line)-1] = '\0';
-
+	/*
+	 * Get rid of newline 
+	 */
+	if (strlen(line) > 1 && line[strlen(line) - 1] == '\n')
+	    line[strlen(line) - 1] = '\0';
 
 	out_dbg("Read exclude line: %s", line);
 
 	retval = exclude_add(line);
 	if (retval != RETVAL_OK) {
-	    out_err("Error processing line %d in %s. Ignoring this line", lineno, fp);
+	    out_err("Error processing line %d in %s. Ignoring this line",
+		    lineno, fp);
 	    continue;
 	}
     }
@@ -205,45 +227,49 @@ _exclude_readfile_thread(void* args) {
     pthread_exit(NULL);
 }
 
-
 /**
  * Returns the IP Address as string and the prefix as unsigned int.
  *
  * The returned IP Address string has to be free()'ed by the caller.
  */
 static int
-_exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
-    char* prefixptr;
+_exclude_parse_ip(const char *str, char **ip, unsigned int *prefix, int *af) {
+    char     *prefixptr;
 
+    assert(ip != NULL);
+    assert(prefix != NULL);
+    assert(af != NULL);
+    assert(str != NULL);
 
-    assert( ip != NULL );
-    assert( prefix != NULL );
-    assert( af != NULL );
-    assert( str != NULL );
-
-    /* Check if str might be a valid ip address depending on its length */
+    /*
+     * Check if str might be a valid ip address depending on its length 
+     */
     if (strlen(str) < 3) {
 	out_err("%s is not a valid IP Address", str);
 	return RETVAL_ERR;
     }
 
-    /* Find out whether we have a prefix */
-    prefixptr = strchr(str,'/');
+    /*
+     * Find out whether we have a prefix 
+     */
+    prefixptr = strchr(str, '/');
 
-    /* Find out whether it is an IPv4 or IPv6 address. We take that when ':'
-       occurs in the string, it is an IPv6 address. */
-    *af = strchr(str,':') != NULL ? AF_INET6 : AF_INET;
+    /*
+     * Find out whether it is an IPv4 or IPv6 address. We take that when ':'
+     * occurs in the string, it is an IPv6 address. 
+     */
+    *af = strchr(str, ':') != NULL ? AF_INET6 : AF_INET;
 
-    *ip = (char*) malloc ( strlen(str)+1 );
+    *ip = (char *) malloc(strlen(str) + 1);
     if (prefixptr) {
-	strncpy(*ip, str, prefixptr-str);
-	(*ip)[prefixptr-str]='\0';
-	*prefix=(unsigned int) atoi(prefixptr+1);
+	strncpy(*ip, str, prefixptr - str);
+	(*ip)[prefixptr - str] = '\0';
+	*prefix = (unsigned int) atoi(prefixptr + 1);
 
 	/*
 	 * Do the sanity checks we can do so far
 	 */
-	if ( *prefix > 32 && *af == AF_INET ) {
+	if (*prefix > 32 && *af == AF_INET) {
 	    out_err("%d is not valid prefix for %s", *prefix, *ip);
 	    free(*ip);
 	    *ip = NULL;
@@ -252,7 +278,7 @@ _exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
 	    return RETVAL_ERR;
 	}
 #ifdef HAVE_IN6_ADDR_T
-	if ( *prefix > 128 && *af == AF_INET6 ) {
+	if (*prefix > 128 && *af == AF_INET6) {
 	    out_err("%d is not valid prefix for %s", *prefix, *ip);
 	    free(*ip);
 	    *ip = NULL;
@@ -262,15 +288,19 @@ _exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
 	}
 #endif
     } else {
-	strncpy(*ip, str, strlen(str) );
+	strncpy(*ip, str, strlen(str));
 
-	/* get rid of newlines */
-	if ( (*ip)[strlen(str)-1] == '\n' )
-	    (*ip)[strlen(str)-1] = '\0' ;
+	/*
+	 * get rid of newlines 
+	 */
+	if ((*ip)[strlen(str) - 1] == '\n')
+	    (*ip)[strlen(str) - 1] = '\0';
 	else
-	    (*ip)[strlen(str)] = '\0' ;
+	    (*ip)[strlen(str)] = '\0';
 
-	/* No prefix means single ip address, ie. a host address */
+	/*
+	 * No prefix means single ip address, ie. a host address 
+	 */
 #ifdef HAVE_IN6_ADDR_T
 	*prefix = *af == AF_INET6 ? 128 : 32;
 #else
@@ -281,44 +311,45 @@ _exclude_parse_ip(const char* str, char** ip, unsigned int* prefix, int* af) {
 }
 
 #ifdef HAVE_IN6_ADDR_T
+
 /**
  *
  */
 static int
 _exclude_prefix_to_ipv6_mask(unsigned int prefix, in6_addr_t *mask) {
-    int n,m,i;
+    int       n, m, i;
 
     assert(mask != NULL);
     assert(prefix >= 0 && prefix <= 128);
 
-    memset(mask, 0, sizeof(*mask) );
+    memset(mask, 0, sizeof (*mask));
 
     n = prefix / 8;
-    for (i=0; i < n ; i++) {
+    for (i = 0; i < n; i++) {
 #ifdef HAVE_SOLARIS_IN6_ADDR
-	mask->_S6_un._S6_u8[i]=0xff;
+	mask->_S6_un._S6_u8[i] = 0xff;
 #elif HAVE_BSD_IN6_ADDR
-	mask->__u6_addr.__u6_addr8[i]=0xff;
+	mask->__u6_addr.__u6_addr8[i] = 0xff;
 #elif HAVE_LINUX_IN6_ADDR
-	mask->__in6_u.__u6_addr8[i]=0xff;
+	mask->__in6_u.__u6_addr8[i] = 0xff;
 #else
 #error "Your in6_addr_t is not supported"
 #endif
     }
 
     m = prefix % 8;
-    if ( m == 0 )
+    if (m == 0)
 	return RETVAL_OK;
 
 #ifdef HAVE_SOLARIS_IN6_ADDR
     mask->_S6_un._S6_u8[n] = 0xff;
-    mask->_S6_un._S6_u8[n] <<= 8-m;
+    mask->_S6_un._S6_u8[n] <<= 8 - m;
 #elif HAVE_BSD_IN6_ADDR
     mask->__u6_addr.__u6_addr8[n] = 0xff;
-    mask->__u6_addr.__u6_addr8[n] <<= 8-m;
+    mask->__u6_addr.__u6_addr8[n] <<= 8 - m;
 #elif HAVE_LINUX_IN6_ADDR
     mask->__in6_u.__u6_addr8[n] = 0xff;
-    mask->__in6_u.__u6_addr8[n] <<= 8-m;
+    mask->__in6_u.__u6_addr8[n] <<= 8 - m;
 #endif
 
     return RETVAL_OK;
@@ -327,29 +358,29 @@ _exclude_prefix_to_ipv6_mask(unsigned int prefix, in6_addr_t *mask) {
 
 inline static int
 _exclude_ipv4_in_net(in_addr_t net, in_addr_t mask, in_addr_t ip) {
-    return ( (net & mask) == (ip & mask)) ? RETVAL_OK : RETVAL_ERR;
+    return ((net & mask) == (ip & mask)) ? RETVAL_OK : RETVAL_ERR;
 }
 
 #ifdef HAVE_IN6_ADDR_T
 inline static int
 _exclude_ipv6_in_net(const in6_addr_t *net,
-		     const in6_addr_t *mask,
-		     const in6_addr_t *ip) {
-    int i;
+		     const in6_addr_t *mask, const in6_addr_t *ip) {
+    int       i;
 
     assert(net != NULL && mask != NULL && ip != NULL);
 
-    for (i=0; i<16; i++) {
+    for (i = 0; i < 16; i++) {
 	if (
 #ifdef HAVE_SOLARIS_IN6_ADDR
-	    (net->_S6_un._S6_u8[i] & mask->_S6_un._S6_u8[i]) !=
-	    (ip->_S6_un._S6_u8[i] & mask->_S6_un._S6_u8[i])
+	       (net->_S6_un._S6_u8[i] & mask->_S6_un._S6_u8[i]) !=
+	       (ip->_S6_un._S6_u8[i] & mask->_S6_un._S6_u8[i])
 #elif HAVE_BSD_IN6_ADDR
-	    (net->__u6_addr.__u6_addr8[i] & mask->__u6_addr.__u6_addr8[i]) !=
-	    (ip->__u6_addr.__u6_addr8[i] & mask->__u6_addr.__u6_addr8[i])
+	       (net->__u6_addr.__u6_addr8[i] & mask->__u6_addr.
+		__u6_addr8[i]) !=
+	       (ip->__u6_addr.__u6_addr8[i] & mask->__u6_addr.__u6_addr8[i])
 #elif HAVE_LINUX_IN6_ADDR
-	    (net->__in6_u.__u6_addr8[i] & mask->__in6_u.__u6_addr8[i]) !=
-	    (ip->__in6_u.__u6_addr8[i] & mask->__in6_u.__u6_addr8[i])
+	       (net->__in6_u.__u6_addr8[i] & mask->__in6_u.__u6_addr8[i]) !=
+	       (ip->__in6_u.__u6_addr8[i] & mask->__in6_u.__u6_addr8[i])
 #else
 #error "Your in6_addr_t is not supported"
 #endif
@@ -365,61 +396,63 @@ _exclude_ipv6_in_net(const in6_addr_t *net,
  * The index of the first free slot in the newly allocated vector.
  */
 static unsigned long
-_exclude_vector_grow () {
+_exclude_vector_grow() {
     unsigned long previous_size;
 
     previous_size = er_vector_size;
     er_vector_size += er_vector_chunksize;
 
-    exclude_vector = realloc((void*) exclude_vector,
-			sizeof(excluderecord_t**) * er_vector_size);
-    if ( exclude_vector == NULL ) {
+    exclude_vector = realloc((void *) exclude_vector,
+			     sizeof (excluderecord_t **) * er_vector_size);
+    if (exclude_vector == NULL) {
 	out_err("Unable to allocate more space for hr_vector. Fatal");
-	exit (3);
+	exit(3);
     }
-    memset (exclude_vector + previous_size, 0, sizeof(excluderecord_t**) * er_vector_chunksize);
+    memset(exclude_vector + previous_size, 0,
+	   sizeof (excluderecord_t **) * er_vector_chunksize);
 
     return previous_size;
 }
 
-static excluderecord_t*
-_records_find(const char* ipaddr, unsigned long *pos) {
+static excluderecord_t *
+_records_find(const char *ipaddr, unsigned long *pos) {
     excluderecord_t **ptr;
-    char *iponly = NULL;
+    char     *iponly = NULL;
     unsigned long i;
     unsigned int prefix;
-    int af, retval;
+    int       af, retval;
     in_addr_t ipv4;
 #ifdef HAVE_IN6_ADDR_T
     in6_addr_t ipv6;
 #endif
 
-    /* mainly used to get the address family */
+    /*
+     * mainly used to get the address family 
+     */
     retval = _exclude_parse_ip(ipaddr, &iponly, &prefix, &af);
-    if ( retval == RETVAL_ERR ) {
+    if (retval == RETVAL_ERR) {
 	out_err("Error parsing '%s' into components", ipaddr);
-	if ( pos != NULL )
+	if (pos != NULL)
 	    *pos = 0;
 	return NULL;
     }
-
 #ifdef HAVE_IN6_ADDR_T
-    assert( (af == AF_INET && prefix == 32) ||
-	    ( af == AF_INET6 && prefix == 128 ) );
+    assert((af == AF_INET && prefix == 32) ||
+	   (af == AF_INET6 && prefix == 128));
 #else
-    assert( af == AF_INET && prefix == 32 );
+    assert(af == AF_INET && prefix == 32);
 #endif
 
-    if ( af == AF_INET ) {
+    if (af == AF_INET) {
 	retval = inet_pton(af, iponly, &ipv4);
-	if ( retval != 1 ) {
+	if (retval != 1) {
 	    out_err("Error converting '%s' to numeric format", iponly);
 	    goto ERR_END;
 	}
     } else {
 #ifdef HAVE_IN6_ADDR_T
 	retval = inet_pton(af, iponly, &ipv6);
-	if ( retval != 1 ) {
+	if (retval != 1) {
 	    out_err("Error converting '%s' to numeric format", iponly);
 	    goto ERR_END;
 	}
@@ -427,34 +460,33 @@ _records_find(const char* ipaddr, unsigned long *pos) {
     }
 
     ptr = exclude_vector;
-    for (i = 0; i < er_vector_fill; i++ ) {
-	if ( ptr[i] != NULL && ptr[i]->af == af) {
-	    if ( ptr[i]->af == AF_INET ) {
-		if ( RETVAL_ERR == _exclude_ipv4_in_net( ptr[i]->address.net,
-							 ptr[i]->netmask.mask,
-							 ipv4) )
+    for (i = 0; i < er_vector_fill; i++) {
+	if (ptr[i] != NULL && ptr[i]->af == af) {
+	    if (ptr[i]->af == AF_INET) {
+		if (RETVAL_ERR == _exclude_ipv4_in_net(ptr[i]->address.net,
+						       ptr[i]->netmask.mask,
+						       ipv4))
 		    continue;
 	    } else {
 #ifdef HAVE_IN6_ADDR_T
-		if ( RETVAL_ERR ==
-		     _exclude_ipv6_in_net( &(ptr[i]->address.net6),
-					   &(ptr[i]->netmask.mask6),
-					   &ipv6) )
+		if (RETVAL_ERR ==
+		    _exclude_ipv6_in_net(&(ptr[i]->address.net6),
+					 &(ptr[i]->netmask.mask6), &ipv6))
 		    continue;
 #endif
 	    }
-	    if ( pos != NULL )
+	    if (pos != NULL)
 		*pos = i;
-	    if ( iponly != NULL )
+	    if (iponly != NULL)
 		free(iponly);
 	    return ptr[i];
 	}
     }
 
- ERR_END:
-    if ( iponly != NULL )
+  ERR_END:
+    if (iponly != NULL)
 	free(iponly);
-    if ( pos != NULL )
+    if (pos != NULL)
 	*pos = 0;
     return NULL;
 }
@@ -474,11 +506,11 @@ _exclude_find_free(int *nospace) {
     excluderecord_t **ptr;
     unsigned long i;
 
-    assert ( nospace != NULL );
+    assert(nospace != NULL);
 
     ptr = exclude_vector;
-    for (i = 0; i < er_vector_size; i++ ) {
-	if ( ptr[i] == NULL ) {
+    for (i = 0; i < er_vector_size; i++) {
+	if (ptr[i] == NULL) {
 	    *nospace = RETVAL_OK;
 	    return i;
 	}
@@ -489,52 +521,55 @@ _exclude_find_free(int *nospace) {
 
 void
 exclude_init() {
-    int retval;
+    int       retval;
 
     if (initialized)
 	return;
 
-    exclude_vector = (excluderecord_t**) calloc( sizeof(excluderecord_t*), er_vector_size);
-    if ( exclude_vector == NULL ) {
-	out_err("Unable to locate memory for the exclude record vector. Dying now");
-	exit (3);
+    exclude_vector =
+	(excluderecord_t **) calloc(sizeof (excluderecord_t *),
+				    er_vector_size);
+    if (exclude_vector == NULL) {
+	out_err
+	    ("Unable to locate memory for the exclude record vector. Dying now");
+	exit(3);
     }
-    memset ( exclude_vector, 0, sizeof(excluderecord_t*) * er_vector_size);
+    memset(exclude_vector, 0, sizeof (excluderecord_t *) * er_vector_size);
 
     retval = pthread_mutex_init(&exclude_mutex, NULL);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Error initializing exclude_mutex");
-	exit (3);
+	exit(3);
     }
 
     initialized = 1;
 }
 
 void
-exclude_destroy () {
+exclude_destroy() {
     unsigned long i;
     excluderecord_t **ptr;
-    int retval;
+    int       retval;
 
     if (!initialized)
 	return;
 
     ptr = exclude_vector;
     for (i = 0; i < er_vector_size; i++) {
-	if ( ptr[i] != NULL ) {
+	if (ptr[i] != NULL) {
 	    free(ptr[i]);
 	}
     }
     free(ptr);
 
-    retval = pthread_mutex_destroy ( &exclude_mutex );
-    if ( retval != 0 )
-	out_syserr(retval, "Error destroying exclude_mutex" );
+    retval = pthread_mutex_destroy(&exclude_mutex);
+    if (retval != 0)
+	out_syserr(retval, "Error destroying exclude_mutex");
 }
 
 int
 exclude_clear() {
-    int retval,i;
+    int       retval, i;
     excluderecord_t **ptr;
 
     assert(initialized);
@@ -542,15 +577,14 @@ exclude_clear() {
 	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 
-
     ptr = exclude_vector;
     for (i = 0; i < er_vector_size; i++) {
-	if ( ptr[i] != NULL ) {
+	if (ptr[i] != NULL) {
 	    free(ptr[i]);
 	}
     }
@@ -559,15 +593,18 @@ exclude_clear() {
     er_vector_size = 100;
     er_vector_fill = 0;
 
-    exclude_vector = (excluderecord_t**)calloc( sizeof(excluderecord_t*), er_vector_size);
-    if ( exclude_vector == NULL ) {
-	out_err("Unable to locate memory for the exclude record vector. Dying now");
-	exit (3);
+    exclude_vector =
+	(excluderecord_t **) calloc(sizeof (excluderecord_t *),
+				    er_vector_size);
+    if (exclude_vector == NULL) {
+	out_err
+	    ("Unable to locate memory for the exclude record vector. Dying now");
+	exit(3);
     }
-    memset ( exclude_vector, 0, sizeof(excluderecord_t*) * er_vector_size);
+    memset(exclude_vector, 0, sizeof (excluderecord_t *) * er_vector_size);
 
     retval = pthread_mutex_unlock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
@@ -588,111 +625,115 @@ exclude_clear() {
  */
 int
 exclude_add(const char *ipaddr) {
-    int retval;
+    int       retval;
     unsigned long pos_newexclude;
-    int af;
+    int       af;
     unsigned int prefix;
-    char *iponly = NULL;
+    char     *iponly = NULL;
     in_addr_t ipv4, mask;
 #ifdef HAVE_IN6_ADDR_T
     in6_addr_t ipv6;
 #endif
 
-    assert ( ipaddr != NULL );
-    if (ipaddr == NULL) return RETVAL_ERR;
+    assert(ipaddr != NULL);
+    if (ipaddr == NULL)
+	return RETVAL_ERR;
 
     /*
      * We need exclusive access to the vector, since we're going to modify it
      */
     retval = pthread_mutex_lock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
 
     retval = _exclude_parse_ip(ipaddr, &iponly, &prefix, &af);
-    if ( retval == RETVAL_ERR ) {
+    if (retval == RETVAL_ERR) {
 	out_err("Error parsing '%s' into components", ipaddr);
 	goto END_ERR;
     }
 
-    if ( af == AF_INET ) {
+    if (af == AF_INET) {
 	retval = inet_pton(af, iponly, &ipv4);
-	if ( retval != 1 ) {
-	    out_syserr(errno, "Error translating '%s' to numeric address", iponly);
+	if (retval != 1) {
+	    out_syserr(errno, "Error translating '%s' to numeric address",
+		       iponly);
 	    goto END_ERR;
 	}
     } else {
 #ifdef HAVE_IN6_ADDR_T
 	retval = inet_pton(af, iponly, &ipv6);
-	if ( retval != 1 ) {
-	    out_syserr(errno, "Error translating '%s' to numeric address", iponly);
+	if (retval != 1) {
+	    out_syserr(errno, "Error translating '%s' to numeric address",
+		       iponly);
 	    goto END_ERR;
 	}
 #endif
     }
 
     pos_newexclude = _exclude_find_free(&retval);
-    if ( pos_newexclude == 0 && retval != RETVAL_OK ) {
+    if (pos_newexclude == 0 && retval != RETVAL_OK) {
 	pos_newexclude = _exclude_vector_grow();
     }
 
     exclude_vector[pos_newexclude] =
-	(excluderecord_t*) malloc ( sizeof(excluderecord_t) );
+	(excluderecord_t *) malloc(sizeof (excluderecord_t));
     if (exclude_vector[pos_newexclude] == NULL) {
 	out_err("Unable to allocate space for exclude record");
 	goto END_ERR;
     }
 
     exclude_vector[pos_newexclude]->af = af;
-    if ( af == AF_INET ) {
+    if (af == AF_INET) {
 	exclude_vector[pos_newexclude]->address.net = ipv4;
-	mask = 0xffffffff << (32-prefix);
+	mask = 0xffffffff << (32 - prefix);
 	exclude_vector[pos_newexclude]->netmask.mask = htonl(mask);
     } else {
 #ifdef HAVE_IN6_ADDR_T
 	exclude_vector[pos_newexclude]->address.net6 = ipv6;
 	retval = _exclude_prefix_to_ipv6_mask
-	    (
-	     prefix,
-	     &(exclude_vector[pos_newexclude]->netmask.mask6)
-	     );
-	if ( retval == RETVAL_ERR ) {
+	    (prefix, &(exclude_vector[pos_newexclude]->netmask.mask6)
+	    );
+	if (retval == RETVAL_ERR) {
 	    out_err("Unable to calculate netmask for prefix /%d", prefix);
 	    goto END_ERR;
 	}
 #endif
     }
 
-    er_vector_fill =  (pos_newexclude+1) > er_vector_fill ? (pos_newexclude+1) : er_vector_fill;
+    er_vector_fill =
+	(pos_newexclude + 1) >
+	er_vector_fill ? (pos_newexclude + 1) : er_vector_fill;
 
     retval = pthread_mutex_unlock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
-    if ( iponly != NULL )
+    if (iponly != NULL)
 	free(iponly);
     return RETVAL_OK;
- END_ERR:
+  END_ERR:
     retval = pthread_mutex_unlock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
-    if ( iponly != NULL )
+    if (iponly != NULL)
 	free(iponly);
     return RETVAL_ERR;
 }
 
 int
-exclude_isexcluded(const char* ipaddr) {
-    int retval, found;
+exclude_isexcluded(const char *ipaddr) {
+    int       retval, found;
 
-    if (ipaddr == NULL ) return RETVAL_ERR;
+    if (ipaddr == NULL)
+	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to lock exclude_mutex");
 	return RETVAL_ERR;
     }
@@ -700,7 +741,7 @@ exclude_isexcluded(const char* ipaddr) {
     found = _records_find(ipaddr, NULL) == NULL ? RETVAL_ERR : RETVAL_OK;
 
     retval = pthread_mutex_unlock(&exclude_mutex);
-    if ( retval != 0 ) {
+    if (retval != 0) {
 	out_syserr(retval, "Unable to unlock exclude_mutex");
 	return RETVAL_ERR;
     }
@@ -719,27 +760,32 @@ exclude_isexcluded(const char* ipaddr) {
  * @return 0 on success, else -1. errno will be set to the system error if any.
  */
 int
-exclude_readfile(const char* fpath) {
-    int retval;
+exclude_readfile(const char *fpath) {
+    int       retval;
     pthread_attr_t tattr;
-    /* Needed to make some phtread implementations happy, i.e. not letting them
-       seg faulting when creating the ghread */
+    /*
+     * Needed to make some phtread implementations happy, i.e. not letting them
+     * seg faulting when creating the ghread 
+     */
     pthread_t wdc;
-
 
     retval = pthread_attr_init(&tattr);
     if (retval != 0) {
-	out_syserr(retval, "Error initializing thread attributes for exclude file read thread");
+	out_syserr(retval,
+		   "Error initializing thread attributes for exclude file read thread");
 	return RETVAL_ERR;
     }
 
     retval = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
     if (retval != 0) {
-	out_syserr(retval, "Error setting detach state for exclude file read thread");
+	out_syserr(retval,
+		   "Error setting detach state for exclude file read thread");
 	return RETVAL_ERR;
     }
 
-    retval = pthread_create(&wdc, &tattr, _exclude_readfile_thread, (void*)fpath);
+    retval =
+	pthread_create(&wdc, &tattr, _exclude_readfile_thread,
+		       (void *) fpath);
     if (retval != 0) {
 	out_syserr(retval, "Error lauching exclude file read thread");
 	return RETVAL_ERR;

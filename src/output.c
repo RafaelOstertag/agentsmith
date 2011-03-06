@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -51,7 +52,7 @@ static int SYSLOG_INIT = 0;
 
 void
 out_done() {
-    if ( SYSLOG_INIT ) {
+    if (SYSLOG_INIT) {
 	closelog();
 	SYSLOG_INIT = 0;
     }
@@ -61,13 +62,13 @@ void
 out_settype(outtype_t type) {
     switch (type) {
     case SYSLOG:
-	if ( !SYSLOG_INIT ) {
-	    openlog (PACKAGE_NAME, LOG_PID, LOG_DAEMON);
+	if (!SYSLOG_INIT) {
+	    openlog(PACKAGE_NAME, LOG_PID, LOG_DAEMON);
 	    SYSLOG_INIT = 1;
 	}
 	break;
     case CONSOLE:
-	if ( SYSLOG_INIT ) {
+	if (SYSLOG_INIT) {
 	    closelog();
 	    SYSLOG_INIT = 0;
 	}
@@ -83,9 +84,9 @@ out_gettype() {
 
 void
 out_err(const char *format, ...) {
-    char buff[BUFFSIZE];
+    char      buff[BUFFSIZE];
 
-    va_list ap;
+    va_list   ap;
     va_start(ap, format);
     vsnprintf(buff, BUFFSIZE, format, ap);
     va_end(ap);
@@ -102,27 +103,27 @@ out_err(const char *format, ...) {
 
 void
 out_syserr(int no, const char *format, ...) {
-    char buff[BUFFSIZE];
-    char buff2[BUFFSIZE];
-    va_list ap;
+    char      buff[BUFFSIZE];
+    char      buff2[BUFFSIZE];
+    va_list   ap;
 
 #ifdef HAVE_STRERROR_R
 #ifdef DEBUG
 #warning "++++ Using strerror_r() ++++"
 #endif
 #ifdef STRERROR_R_CHAR_P
-    char buff3[BUFFSIZE];
-    char *strerr;
+    char      buff3[BUFFSIZE];
+    char     *strerr;
     strerr = strerror_r(no, buff3, BUFFSIZE);
 #else
-    char strerr[BUFFSIZE];
+    char      strerr[BUFFSIZE];
     strerror_r(no, strerr, BUFFSIZE);
 #endif
 #elif HAVE_STRERROR
 #ifdef DEBUG
 #warning "++++ Using strerror() ++++"
 #endif
-    char *strerr;
+    char     *strerr;
     strerr = strerror(no);
 #else
 #error "Neither strerror_r nor strerror available"
@@ -146,9 +147,9 @@ out_syserr(int no, const char *format, ...) {
 
 void
 out_msg(const char *format, ...) {
-    char buff[BUFFSIZE];
+    char      buff[BUFFSIZE];
 
-    va_list ap;
+    va_list   ap;
     va_start(ap, format);
     vsnprintf(buff, BUFFSIZE, format, ap);
     va_end(ap);
@@ -167,9 +168,9 @@ out_msg(const char *format, ...) {
 void
 out_dbg(const char *format, ...) {
 
-    char buff[BUFFSIZE];
+    char      buff[BUFFSIZE];
 
-    va_list ap;
+    va_list   ap;
     va_start(ap, format);
     vsnprintf(buff, BUFFSIZE, format, ap);
     va_end(ap);

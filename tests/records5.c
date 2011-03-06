@@ -1,3 +1,4 @@
+
 /* $Id$
  *
  * Tests the records functions single threaded.
@@ -37,19 +38,21 @@ callback2(hostrecord_t *ptr) {
     return RETVAL_OK;
 }
 
-int main (int wdc1, char** wdc2) {
-    int retval;
+int
+main(int wdc1, char **wdc2) {
+    int       retval;
     hostrecord_t *ptr;
-    char str[BUFFSIZE];
-    unsigned long i,k;
+    char      str[BUFFSIZE];
+    unsigned long i, k;
 
     records_init();
 
-    /* Fill the records in. It is expected that some reallocations take place,
-       so make surce ITERATIONS * ITERATIONS > records_dbg_get_chunksize().
-    */
-    for (i=0; i<ITERATIONS; i++) {
-	for (k=0; k<ITERATIONS; k++) {
+    /*
+     * Fill the records in. It is expected that some reallocations take place,
+     * so make surce ITERATIONS * ITERATIONS > records_dbg_get_chunksize().
+     */
+    for (i = 0; i < ITERATIONS; i++) {
+	for (k = 0; k < ITERATIONS; k++) {
 	    snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 	    retval = records_add_ip(str);
 	    if (retval != 0) {
@@ -65,18 +68,19 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    if (num_entries != ITERATIONS*ITERATIONS) {
-	out_err("records_enumerate() did not enumerate all records %i, but only %i",
-		ITERATIONS*ITERATIONS,num_entries);
+    if (num_entries != ITERATIONS * ITERATIONS) {
+	out_err
+	    ("records_enumerate() did not enumerate all records %i, but only %i",
+	     ITERATIONS * ITERATIONS, num_entries);
 	exit(1);
     }
 
-    /* 
+    /*
      * here we test the hostrecord_t.remove field 
      */
 
-    for (i=0; i<ITERATIONS; i++) {
-	for (k=0; k<ITERATIONS; k++) {
+    for (i = 0; i < ITERATIONS; i++) {
+	for (k = 0; k < ITERATIONS; k++) {
 	    snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 	    retval = records_add_ip(str);
 	    if (retval != 0) {
@@ -98,27 +102,36 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    /* Make absolutely positively sure there is no leftover */
-    for (i=0; i<ITERATIONS; i++) {
-	for (k=0; k<ITERATIONS; k++) {
+    /*
+     * Make absolutely positively sure there is no leftover 
+     */
+    for (i = 0; i < ITERATIONS; i++) {
+	for (k = 0; k < ITERATIONS; k++) {
 	    hostrecord_t *ptr;
 	    snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 	    ptr = records_get(str);
 	    if (ptr != 0) {
-		fprintf(stderr, "records_get() unexpected returned a record for '%s'\n", ptr->ipaddr);
+		fprintf(stderr,
+			"records_get() unexpected returned a record for '%s'\n",
+			ptr->ipaddr);
 		exit(1);
 	    }
 	}
     }
 
-    if ( records_dbg_get_vector_size() != records_dbg_get_vector_chunksize() ) {
-	out_err("records_dbg_get_vector_size() != records_dbg_get_vector_chunksize().\nrecords_dbg_get_vector_size() == %i\nrecords_dbg_get_vector_chunksize()==%i",records_dbg_get_vector_size(),records_dbg_get_vector_chunksize());
+    if (records_dbg_get_vector_size() != records_dbg_get_vector_chunksize()) {
+	out_err
+	    ("records_dbg_get_vector_size() != records_dbg_get_vector_chunksize().\nrecords_dbg_get_vector_size() == %i\nrecords_dbg_get_vector_chunksize()==%i",
+	     records_dbg_get_vector_size(),
+	     records_dbg_get_vector_chunksize());
 	exit(1);
     }
-    if ( records_dbg_get_vector_fill() != 0 ) {
-	out_err("records_dbg_get_vector_fill().\nrecords_dbg_get_vector_fill()==%i.",records_dbg_get_vector_fill());
+    if (records_dbg_get_vector_fill() != 0) {
+	out_err
+	    ("records_dbg_get_vector_fill().\nrecords_dbg_get_vector_fill()==%i.",
+	     records_dbg_get_vector_fill());
 	exit(1);
     }
     records_destroy(NULL);
-    exit (0);
+    exit(0);
 }

@@ -22,6 +22,6 @@
 #define REGEX_H
 
 extern void regex_prepare();
-extern void regex_do(const char* buff);
+extern void regex_do(const char *buff);
 
 #endif

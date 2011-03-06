@@ -1,3 +1,4 @@
+
 /* $Id$
  *
  * Tests the records functions single threaded.
@@ -21,15 +22,16 @@
 #define BUFFSIZE 256
 #define ITERATIONS 32
 
-int main (int wdc1, char** wdc2) {
-    int retval;
-    char str[BUFFSIZE];
-    unsigned long i,k;
+int
+main(int wdc1, char **wdc2) {
+    int       retval;
+    char      str[BUFFSIZE];
+    unsigned long i, k;
 
     records_init();
 
-    for (i=0; i<ITERATIONS; i++) {
-	for (k=0; k<ITERATIONS; k++) {
+    for (i = 0; i < ITERATIONS; i++) {
+	for (k = 0; k < ITERATIONS; k++) {
 	    snprintf(str, BUFFSIZE, "192.168.%i.%i", i, k);
 	    retval = records_add_ip(str);
 	    if (retval != 0) {
@@ -39,5 +41,5 @@ int main (int wdc1, char** wdc2) {
 	}
     }
     records_destroy(NULL);
-    exit (0);
+    exit(0);
 }

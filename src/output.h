@@ -28,8 +28,7 @@ enum _outtype {
 
 typedef enum _outtype outtype_t;
 
-/* Call this function upon exit of the program. It will cleanup stuff is SYSLOG
-   is used, or does nothing if CONSOLE is used. */
+/* Call this function upon exit of the program. It will cleanup stuff is SYSLOG is used, or does nothing if CONSOLE is used. */
 extern void out_done();
 extern void out_settype(outtype_t type);
 extern outtype_t out_gettype();

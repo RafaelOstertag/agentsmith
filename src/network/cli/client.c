@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -49,7 +50,7 @@
 #include "output.h"
 
 enum {
-    MAXCLIENTQUEUES=256,
+    MAXCLIENTQUEUES = 256,
     HOSTRECORDVECTORLEN = 25
 };
 
@@ -64,20 +65,22 @@ static hostrecord_t *temp_hr_vector[HOSTRECORDVECTORLEN];
 static int temp_hr_vector_fill = 0;
 
 int
-client_start(const addrinfo_list_t* aglist) {
-    int i;
-    const addrinfo_list_t* ptr;
+client_start(const addrinfo_list_t *aglist) {
+    int       i;
+    const addrinfo_list_t *ptr;
 
     assert(aglist != NULL);
 
-    memset(queues, 0, sizeof(client_queue_t*) * MAXCLIENTQUEUES);
-    memset(temp_hr_vector, 0, sizeof(hostrecord_t*) * HOSTRECORDVECTORLEN);
+    memset(queues, 0, sizeof (client_queue_t *) * MAXCLIENTQUEUES);
+    memset(temp_hr_vector, 0, sizeof (hostrecord_t *) * HOSTRECORDVECTORLEN);
     temp_hr_vector_fill = 0;
 
     ptr = aglist;
-    for(i=0; i<MAXCLIENTQUEUES && ptr != 0; i++) {
-	queues[i] = client_queue_init(ptr->addr->ai_family, ptr->addr->ai_addr, ptr->addr->ai_addrlen);
-	if ( queues[i] == NULL ) {
+    for (i = 0; i < MAXCLIENTQUEUES && ptr != 0; i++) {
+	queues[i] =
+	    client_queue_init(ptr->addr->ai_family, ptr->addr->ai_addr,
+			      ptr->addr->ai_addrlen);
+	if (queues[i] == NULL) {
 	    out_err("Client: error creating new queue");
 	    return RETVAL_ERR;
 	}
@@ -95,27 +98,32 @@ client_start(const addrinfo_list_t* aglist) {
  */
 int
 client_queue_record(const hostrecord_t *hr) {
-    int retval;
+    int       retval;
 
-    assert (hr != NULL);
+    assert(hr != NULL);
 
-    if ( client_started == 0 ) return RETVAL_ERR;
+    if (client_started == 0)
+	return RETVAL_ERR;
 
     if (temp_hr_vector_fill >= HOSTRECORDVECTORLEN) {
 	out_dbg("Client queue flush forced");
 	retval = client_queue_flush();
-	if (retval == RETVAL_ERR) return RETVAL_ERR;
+	if (retval == RETVAL_ERR)
+	    return RETVAL_ERR;
 
-	/* LEAVE FUNCTION */
+	/*
+	 * LEAVE FUNCTION 
+	 */
 	return client_queue_record(hr);
     }
 
-    temp_hr_vector[temp_hr_vector_fill] = (hostrecord_t*) malloc(sizeof(hostrecord_t));
+    temp_hr_vector[temp_hr_vector_fill] =
+	(hostrecord_t *) malloc(sizeof (hostrecord_t));
     if (temp_hr_vector[temp_hr_vector_fill] == NULL) {
 	out_err("Insufficient memory. Dying now");
 	exit(1);
     }
-    memcpy(temp_hr_vector[temp_hr_vector_fill], hr, sizeof(hostrecord_t));
+    memcpy(temp_hr_vector[temp_hr_vector_fill], hr, sizeof (hostrecord_t));
 
     ++temp_hr_vector_fill;
 
@@ -127,48 +135,54 @@ client_queue_record(const hostrecord_t *hr) {
  */
 int
 client_queue_flush() {
-    int retval, i;
+    int       retval, i;
 
     assert(temp_hr_vector_fill <= HOSTRECORDVECTORLEN);
 
-    if ( client_started == 0 ) {
+    if (client_started == 0) {
 	out_dbg("client_queue_flush(): client not started.");
-	/* This prevents the action thread from spewing error messages when
-	   flushing at startup and the client is not ready. Leave it this
-	   way. */
+	/*
+	 * This prevents the action thread from spewing error messages when
+	 * flushing at startup and the client is not ready. Leave it this
+	 * way. 
+	 */
 	return RETVAL_OK;
     }
-    if ( temp_hr_vector_fill < 1 ) return RETVAL_OK;
+    if (temp_hr_vector_fill < 1)
+	return RETVAL_OK;
 
-    for(i=0; i<MAXCLIENTQUEUES && queues[i] != NULL; i++) {
-	retval = client_queue_append(queues[i], (const hostrecord_t **)temp_hr_vector, temp_hr_vector_fill);
-	if ( queues[i] == NULL ) {
+    for (i = 0; i < MAXCLIENTQUEUES && queues[i] != NULL; i++) {
+	retval =
+	    client_queue_append(queues[i],
+				(const hostrecord_t **) temp_hr_vector,
+				temp_hr_vector_fill);
+	if (queues[i] == NULL) {
 	    out_err("Client: error appending to client worker queue");
 	    return RETVAL_ERR;
 	}
     }
 
-    for (i=0; i< temp_hr_vector_fill ; i++)
+    for (i = 0; i < temp_hr_vector_fill; i++)
 	free(temp_hr_vector[i]);
 
-    memset(temp_hr_vector, 0, sizeof(hostrecord_t*) * HOSTRECORDVECTORLEN);
+    memset(temp_hr_vector, 0, sizeof (hostrecord_t *) * HOSTRECORDVECTORLEN);
     temp_hr_vector_fill = 0;
     return RETVAL_OK;
 }
 
 int
 client_stop() {
-    int retval, i;
+    int       retval, i;
 
-    for(i=0; i<MAXCLIENTQUEUES && queues[i] != 0; i++) {
+    for (i = 0; i < MAXCLIENTQUEUES && queues[i] != 0; i++) {
 	retval = client_queue_destroy(queues[i]);
-	if ( queues[i] == NULL )
+	if (queues[i] == NULL)
 	    out_err("Client: Appending to client worker queue");
     }
 
-    for (i=0; i< temp_hr_vector_fill ; i++)
+    for (i = 0; i < temp_hr_vector_fill; i++)
 	free(temp_hr_vector[i]);
 
-    client_started = 0;    
+    client_started = 0;
     return RETVAL_OK;
 }

@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -28,7 +29,7 @@
 #include "records.h"
 #include "cfg.h"
 
-extern int client_start(const addrinfo_list_t* aglist);
+extern int client_start(const addrinfo_list_t *aglist);
 extern int client_queue_record(const hostrecord_t *hr);
 extern int client_queue_flush();
 extern int client_stop();

@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010, 2011 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -49,7 +50,7 @@
 enum enum_mode {
     SYNC,
     ASYNC
-} ;
+};
 typedef enum enum_mode enum_mode_t;
 
 /**
@@ -60,29 +61,47 @@ typedef enum enum_mode enum_mode_t;
  * net_command_to_buff() and net_buff_to_command() in netshared.c
  */
 struct _hostrecord {
-	/* The origin of this record. May be localhost or an IP address of the
-	   agentsmith daemon sent this record */
-	char origin[IPADDR_SIZE];
-	char ipaddr[IPADDR_SIZE];
-	/* When the ip address was first seen */
-	int64_t firstseen;
-	/* When the ip address was last seen */
-	int64_t lastseen;
-	/* How much time must elapse until the record is purged from memory */
-	int64_t purge_after;
-	/* The subsequent occurrences must happen in this time interval */
-	int64_t time_interval;
-	/* The number of occurrences of the ip address */
-	int32_t occurrences;
-	/* This is the threshold of occurrences until the action is
-	   performed */
-	int32_t action_threshold;
-	/* If this is set != 0, the record will be removed when
-	   records_maintenance()  */
-	int32_t remove;
-	/* Will be set when the record has been processed by the
-	   action_thread() */
-	int32_t processed;
+    /*
+     * The origin of this record. May be localhost or an IP address of the
+     * agentsmith daemon sent this record 
+     */
+    char      origin[IPADDR_SIZE];
+    char      ipaddr[IPADDR_SIZE];
+    /*
+     * When the ip address was first seen 
+     */
+    int64_t   firstseen;
+    /*
+     * When the ip address was last seen 
+     */
+    int64_t   lastseen;
+    /*
+     * How much time must elapse until the record is purged from memory 
+     */
+    int64_t   purge_after;
+    /*
+     * The subsequent occurrences must happen in this time interval 
+     */
+    int64_t   time_interval;
+    /*
+     * The number of occurrences of the ip address 
+     */
+    int32_t   occurrences;
+    /*
+     * This is the threshold of occurrences until the action is
+     * performed 
+     */
+    int32_t   action_threshold;
+    /*
+     * If this is set != 0, the record will be removed when
+     * records_maintenance()  
+     */
+    int32_t   remove;
+    /*
+     * Will be set when the record has been processed by the
+     * action_thread() 
+     */
+    int32_t   processed;
 };
 typedef struct _hostrecord hostrecord_t;
 #define size_hostrecord_t (4*8+4*4+2*46)
@@ -92,26 +111,29 @@ typedef struct _hostrecord hostrecord_t;
  *
  * If the callback function returns a value != 0, the enumeration stops.
  */
-typedef int (*records_enum_callback)(hostrecord_t*);
+typedef int (*records_enum_callback) (hostrecord_t *);
 
 /**
  * The callback function which gets called before record_maintenance() is
  * removing a record.
  */
-typedef void (*records_remove_callback)(hostrecord_t*);
+typedef void (*records_remove_callback) (hostrecord_t *);
 
 extern pthread_mutex_t vector_mutex;
 extern void records_init();
 extern void records_destroy(records_remove_callback cb);
+
 /*
  * Performs maintenance on records, i.e. tries to free space and removes
  * records that are marked for deletion.
  */
 extern int records_maintenance(records_remove_callback cb);
+
 /* This is supposed to be called from the local agentsmith */
 extern int records_add_ip(const char *ipaddr);
+
 /* this is supposed to be called from a server worker thread */
-extern int records_add_record(const hostrecord_t* hr);
+extern int records_add_record(const hostrecord_t *hr);
 extern int records_remove(const char *ipaddr);
 extern int records_enumerate(records_enum_callback cb, enum_mode_t mode);
 extern hostrecord_t *records_get(const char *ipaddr);

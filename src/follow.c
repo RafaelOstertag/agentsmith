@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -52,44 +53,46 @@
 #include "regex.h"
 
 static char BUFF[BUFFSIZE];
-static int stop = 0; /* Will be set by stop_following to 1 in order to stop */
+static int stop = 0;		/* Will be set by stop_following to 1 in order to stop */
+
 /* This will be fed to usleep() [usec] */
 static const int sleep_time = 250000;
+
 /* This will be fed to sleep() [sec] */
 static const int err_sleep_time = 30;
 
 static void
-readtoeof (FILE *file) {
+readtoeof(FILE * file) {
     static int buffpos = 0;
-    int c;
+    int       c;
 
     while (!stop) {
 	c = fgetc(file);
-	if ( feof (file) ) {
+	if (feof(file)) {
 	    clearerr(file);
 	    break;
 	}
-	if ( ferror (file) ) {
+	if (ferror(file)) {
 	    out_syserr(errno, "File error. Sleeping for %i seconds",
 		       err_sleep_time);
 	    sleep(err_sleep_time);
 	    return;
 	}
 
-	BUFF[buffpos] = (unsigned char)c;
+	BUFF[buffpos] = (unsigned char) c;
 	buffpos++;
-	if (buffpos == BUFFSIZE-1) {
+	if (buffpos == BUFFSIZE - 1) {
 	    BUFF[buffpos] = '\0';
-	    buffpos=0;
+	    buffpos = 0;
 	    /*
 	     * This will check if we have a regex match
 	     */
 	    regex_do(BUFF);
 	    continue;
 	}
-	if ( c == '\n' ) {
+	if (c == '\n') {
 	    BUFF[buffpos] = '\0';
-	    buffpos=0;
+	    buffpos = 0;
 	    /*
 	     * This will check if we have a regex match
 	     */
@@ -99,67 +102,80 @@ readtoeof (FILE *file) {
 }
 
 void
-follow (const char* fname) {
+follow(const char *fname) {
     struct stat sb;
-    FILE *file;
-    off_t curpos, lastpos;
-    ino_t curino, lastino;
-    int retval;
+    FILE     *file;
+    off_t     curpos, lastpos;
+    ino_t     curino, lastino;
+    int       retval;
 
     file = fopen(fname, "r");
     if (file == NULL) {
 	out_syserr(errno, "Unable to open '%s'", fname);
-	exit (1);
+	exit(1);
     }
 
-    retval = stat ( fname, &sb);
+    retval = stat(fname, &sb);
     if (retval == -1) {
 	out_syserr(errno, "Unable to stat '%s'", fname);
-	exit (1);
+	exit(1);
     }
-    lastpos=curpos=sb.st_size;
-    lastino=curino=sb.st_ino;
+    lastpos = curpos = sb.st_size;
+    lastino = curino = sb.st_ino;
     retval = fseek(file, curpos, SEEK_SET);
     if (retval == -1) {
 	out_syserr(errno, "Unable to seek '%s'", fname);
-	exit (1);
+	exit(1);
     }
 
     while (!stop) {
 	retval = stat(fname, &sb);
 	if (retval == -1) {
-	    /* The file is gone... */
+	    /*
+	     * The file is gone... 
+	     */
 
-	    /* This check is neccessary because we might end up several times
-	       here before the file reappears */
-	    if ( file != NULL ) {
-		fclose ( file );
+	    /*
+	     * This check is neccessary because we might end up several times
+	     * here before the file reappears 
+	     */
+	    if (file != NULL) {
+		fclose(file);
 		file = NULL;
 	    }
 	    out_err("The file '%s' has gone. Going to sleep for %i seconds",
-		    fname,
-		    err_sleep_time);
+		    fname, err_sleep_time);
 	    sleep(err_sleep_time);
 	    continue;
 	} else {
-	    /* Maybe the file has reappeared */
-	    if ( file == NULL ) {
-		/* Ok, the file really reappeared */
+	    /*
+	     * Maybe the file has reappeared 
+	     */
+	    if (file == NULL) {
+		/*
+		 * Ok, the file really reappeared 
+		 */
 		out_msg("'%s' has reappeared.", fname);
-		file = fopen ( fname, "r" );
-		if ( file == NULL) {
-		    out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds", fname, err_sleep_time);
+		file = fopen(fname, "r");
+		if (file == NULL) {
+		    out_syserr(errno,
+			       "Unable to re-open '%s'. Going to sleep for %i seconds",
+			       fname, err_sleep_time);
 		    sleep(err_sleep_time);
 		    continue;
 		}
 	    } else {
-		/* Maybe the inode changed? */
-		if ( lastino != curino ) {
-		    out_msg("inode changed from %i to %i on '%s'.", 
+		/*
+		 * Maybe the inode changed? 
+		 */
+		if (lastino != curino) {
+		    out_msg("inode changed from %i to %i on '%s'.",
 			    lastino, curino, fname);
-		    file = freopen( fname, "r", file);
-		    if ( file == NULL ) {
-			out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds", fname, err_sleep_time);
+		    file = freopen(fname, "r", file);
+		    if (file == NULL) {
+			out_syserr(errno,
+				   "Unable to re-open '%s'. Going to sleep for %i seconds",
+				   fname, err_sleep_time);
 			sleep(err_sleep_time);
 			continue;
 		    }
@@ -167,24 +183,29 @@ follow (const char* fname) {
 		}
 	    }
 	}
-	curpos=sb.st_size;
-	if ( curpos > lastpos ) {
+	curpos = sb.st_size;
+	if (curpos > lastpos) {
 	    readtoeof(file);
-	    lastpos=curpos;
-	} else if ( lastpos > curpos ) {
-	    out_msg("'%s' shrunk from %i to %i bytes", fname, lastpos, curpos);
-	    file = freopen( fname, "r", file);
-	    if ( file == NULL ) {
-	    	out_syserr(errno, "Unable to re-open '%s'. Going to sleep for %i seconds.", fname, err_sleep_time);
-	    	sleep(err_sleep_time);
-	    	continue;
+	    lastpos = curpos;
+	} else if (lastpos > curpos) {
+	    out_msg("'%s' shrunk from %i to %i bytes", fname, lastpos,
+		    curpos);
+	    file = freopen(fname, "r", file);
+	    if (file == NULL) {
+		out_syserr(errno,
+			   "Unable to re-open '%s'. Going to sleep for %i seconds.",
+			   fname, err_sleep_time);
+		sleep(err_sleep_time);
+		continue;
 	    }
 	    rewind(file);
 	    clearerr(file);
-	    /* Reset the lastpos, since the file shrunk */
+	    /*
+	     * Reset the lastpos, since the file shrunk 
+	     */
 	    lastpos = 0;
 	    readtoeof(file);
-	    lastpos=curpos;
+	    lastpos = curpos;
 	}
 	usleep(sleep_time);
     }

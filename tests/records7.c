@@ -1,3 +1,4 @@
+
 /* $Id$
  *
  * Tests the records functions single threaded.
@@ -25,10 +26,11 @@
  * Check the maintenance function to make sure we loose nothing
  */
 
-int main (int wdc1, char** wdc2) {
-    int retval;
-    char str[BUFFSIZE];
-    unsigned long i,k;
+int
+main(int wdc1, char **wdc2) {
+    int       retval;
+    char      str[BUFFSIZE];
+    unsigned long i, k;
 
     records_init();
 
@@ -62,8 +64,10 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    if ( records_dbg_get_vector_fill() != EXPECTED_FILL ) {
-	fprintf(stderr, "Expected fill is %i, but the actual value %il differs.\n", EXPECTED_FILL, records_dbg_get_vector_fill() );
+    if (records_dbg_get_vector_fill() != EXPECTED_FILL) {
+	fprintf(stderr,
+		"Expected fill is %i, but the actual value %il differs.\n",
+		EXPECTED_FILL, records_dbg_get_vector_fill());
     }
 
     retval = records_maintenance(NULL);
@@ -72,10 +76,12 @@ int main (int wdc1, char** wdc2) {
 	exit(1);
     }
 
-    if ( records_dbg_get_vector_fill() != EXPECTED_FILL ) {
-	fprintf(stderr, "After maintenance, expected fill is %i, but the actual value %il differs.\n", EXPECTED_FILL, records_dbg_get_vector_fill() );
+    if (records_dbg_get_vector_fill() != EXPECTED_FILL) {
+	fprintf(stderr,
+		"After maintenance, expected fill is %i, but the actual value %il differs.\n",
+		EXPECTED_FILL, records_dbg_get_vector_fill());
     }
 
     records_destroy(NULL);
-    exit (0);
+    exit(0);
 }

@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2011 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -22,12 +23,12 @@
 #define NETWORK_WORKER_H
 
 struct _worker_thread_args {
-	int connfd;
-	socklen_t addrlen;
-	void* addr;
+    int       connfd;
+    socklen_t addrlen;
+    void     *addr;
 };
 typedef struct _worker_thread_args worker_thread_args_t;
 
-extern void* network_server_worker(void *args);
+extern void *network_server_worker(void *args);
 
 #endif

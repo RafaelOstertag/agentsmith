@@ -90,10 +90,16 @@ network_server_worker(void *args) {
 		serv, NI_MAXSERV,
 		NI_NUMERICHOST | NI_NUMERICSERV);
 
+
+    /*
+     * Try to lock the semaphore. If the semaphore cannot be locked, sleep one
+     * second. Try it MAX_LOCK_TRIES at max. If no lock can be aquired, end the
+     * thread.
+     */
  REDO:
     lock_tries++;
     if (lock_tries >= MAX_LOCK_TRIES) {
-	out_err("Server Worker [%i]: unable to lock worker_semaphore. Aborting after %i attempts",
+	out_err("Server Worker [%li]: unable to lock worker_semaphore. Aborting after %i attempts",
 		pthread_self(), MAX_LOCK_TRIES);
 	goto ENDNOPOST;
     }
@@ -101,17 +107,20 @@ network_server_worker(void *args) {
     retval = sem_trywait(&worker_semaphore);
     switch (errno) {
 	case EAGAIN:
-	    out_dbg("Server Worker [%i]: cannot lock worker_semaphore. Retrying...", pthread_self());
+	    out_dbg("Server Worker [%li]: cannot lock worker_semaphore. Retrying...",
+		    pthread_self());
 	    sleep(1);
 	    goto REDO;
 	case 0:
 	    break;
 	default:
-	    out_syserr(errno, "Server Worker [%i]: error locking worker_semaphore", pthread_self());
+	    out_syserr(errno, "Server Worker [%li]: error locking worker_semaphore",
+		       pthread_self());
 	    goto ENDNOPOST;
     }
 
-#ifdef KERNEL_SUNOS
+#ifdef KERNEL_SUNOS /* SunOS does not support the SO_RCVTIMEO socket option, so
+		       we have to use select */
 #ifdef DEBUG
 #warning "++++ Compiling in code for SUNOS ++++"
 #endif
@@ -124,24 +133,24 @@ network_server_worker(void *args) {
     while ( (retval = select(wrk_args->connfd+1, &readready, NULL, NULL, &timeout)) < 0 ) {
 	saverrno = errno;
 	if ( saverrno == EINTR ) {
-	    out_dbg("Server Worker [%i]: select on read was interrupted. Retrying...",
+	    out_dbg("Server Worker [%li]: select on read was interrupted. Retrying...",
 		    pthread_self());
 	    continue;
 	}
 	
-	out_syserr(saverrno, "Server Worker [%i]: error in select",
+	out_syserr(saverrno, "Server Worker [%li]: error in select",
 		   pthread_self());
 	goto END;
     }
 
     if ( retval == 0 ) {
-	out_err("Server Worker [%i]: time out waiting for data from %s port %s",
+	out_err("Server Worker [%li]: time out waiting for data from %s port %s",
 		pthread_self(), host, serv);
 	goto END;
     }
 
     if (FD_ISSET(wrk_args->connfd, &readready) == 0) {
-	out_err("Server Worker [%i]: data is ready for reading, but not on connfd %i",
+	out_err("Server Worker [%li]: data is ready for reading, but not on connfd %i",
 		pthread_self(), wrk_args->connfd);
 	goto END;
     }
@@ -149,28 +158,30 @@ network_server_worker(void *args) {
 	
     while ( (nread = net_read(wrk_args->connfd, buff, REMOTE_COMMAND_SIZE, &retval)) !=0 ) {
 	if ( nread == RETVAL_ERR ) {
-	    out_syserr(retval, "Server Worker [%i]: error reading from client %s port %s",
+	    out_syserr(retval, "Server Worker [%li]: error reading from client %s port %s",
 		       pthread_self(), host, serv);
 	    goto END;
 	}
 
 	if ( nread != REMOTE_COMMAND_SIZE ) {
-	    out_err("Server Worker [%i]: read error: expected %i bytes, read %i bytes",
+	    out_err("Server Worker [%li]: read error: expected %i bytes, read %i bytes",
 		    pthread_self(), REMOTE_COMMAND_SIZE, nread);
 	    goto END;
 	}
 
-	/* Translate the buffer. Little/Bigendian transformation is taken care
-	   of by this function */
+	/* Translate the buffer to the command and host
+	   record. Little/Bigendian transformation is taken care of by this
+	   function */
 	net_buff_to_command(buff, &rcommand, &hostrecord);
 
 	switch (rcommand) {
 	    case ADD:
-#ifdef DEBUG
-		out_dbg("Server Worker [%i]: remote command: ADD", pthread_self());
-#endif
+		out_dbg("Server Worker [%li]: remote command: ADD", pthread_self());
+
 		if ( CONFIG.remote_authoritative == 0 &&
 		     exclude_isexcluded(hostrecord.ipaddr) == RETVAL_OK) {
+		    out_msg("Server Worker [%li]: Ignoring %s received from %s port %s due to exclusion",
+			    pthread_self(), hostrecord.ipaddr,host,serv);
 		    break;
 		}
 
@@ -182,7 +193,7 @@ network_server_worker(void *args) {
 		hostrecord.origin[IPADDR_SIZE - 1] = '\0';
 
 #ifdef DEBUG
-		out_dbg("Server Worker [%i]: Received remote command...", 
+		out_dbg("Server Worker [%li]: Received remote command...", 
 			pthread_self());
 		__dbg_dump_host_record(&hostrecord);
 #endif
@@ -194,28 +205,36 @@ network_server_worker(void *args) {
 		 */
 		retval = records_add_record(&(hostrecord));
 		if ( retval == RETVAL_ERR ) {
-		    out_err("Server Worker [%i]: Unable to add record for '%s' received from %s port %s",
+		    out_err("Server Worker [%li]: Unable to add record for '%s' received from %s port %s",
 			    pthread_self(), hostrecord.ipaddr, host, serv);
 		}
+
+		/*
+		 * Log the addition of the host record
+		 */
+		out_msg("Server Worker [%li]: Received record for IP Address %s from %s port %s",
+			pthread_self(),
+			hostrecord.ipaddr,
+			host, serv);
 		break;
 	    case REMOVE:
 #ifdef DEBUG
-		out_dbg("Server Worker [%i]: remote command: REMOVE",
+		out_dbg("Server Worker [%li]: remote command: REMOVE",
 			pthread_self());
 #endif
-		out_msg("Server Worker [%i]: REMOVE command not implemented",
+		out_msg("Server Worker [%li]: REMOVE command not implemented",
 			pthread_self());
 		break;
 	    case INFORMATION:
 #ifdef DEBUG
-		out_dbg("Server Worker [%i]: remote command: INFORMATION",
+		out_dbg("Server Worker [%li]: remote command: INFORMATION",
 			pthread_self());
 #endif
-		out_msg("Server Worker [%i]: INFORMATION command not implemented",
+		out_msg("Server Worker [%li]: INFORMATION command not implemented",
 			pthread_self());
 		break;
 	    default:
-		out_err("Server Worker [%i]: remote command not understood",
+		out_err("Server Worker [%li]: remote command not understood",
 			pthread_self());
 		goto END;
 	}
@@ -224,10 +243,10 @@ network_server_worker(void *args) {
  END:
     retval = sem_post(&worker_semaphore);
     if ( retval != 0 )
-	out_err("Server Worker [%i]: Unable to post worker_semaphore",
+	out_err("Server Worker [%li]: Unable to post worker_semaphore",
 		pthread_self());
  ENDNOPOST:
-        out_dbg("Server Worker [%i]: closing connection to %s port %s",
+        out_dbg("Server Worker [%li]: closing connection to %s port %s",
 	    pthread_self(), host, serv);
     close(wrk_args->connfd);
     free(wrk_args->addr);

@@ -285,6 +285,9 @@ network_start_server() {
 
     pthread_cleanup_push(_network_server_shutdown_and_cleanup, NULL);
 
+    /*
+     * The big loop accepting incoming connections. It will be left only by canceling the thread.
+     */
     for (;;) {
 
 	rset = fd_set_listen;
@@ -308,6 +311,7 @@ network_start_server() {
 
 	out_dbg("Server: %i connections pending", retval);
 
+
 	for (i=0; i < used_fds; i++) {
 	    if (FD_ISSET(listen_fds[i], &rset)) {
 		/* The memory has to be free'd by the thread */
@@ -325,7 +329,7 @@ network_start_server() {
 			out_syserr(errno, "Server: error getting worker_semaphore value");
 			break;
 		    }
-		    out_dbg("Server: Already %i thread(s) active. Waiting for exit of running threads", CONFIG.maxinconnections);
+		    out_err("Server: Already %i thread(s) active. Waiting for exit of running threads", CONFIG.maxinconnections);
 		    sleep(1);
 
 		    if ( n >= MAXWAITWORKER ) {
@@ -342,6 +346,7 @@ network_start_server() {
 		    n++;
 		}
 
+		/* Accept the connection */
 		addrlen = MYSOCKADDRLEN;
 		retval = accept(listen_fds[i], sock_addr, &addrlen);
 		if (retval == -1) {
@@ -349,6 +354,7 @@ network_start_server() {
 		    continue;
 		}
 
+		/* This is used for writing a log entry */
 		getnameinfo(sock_addr, addrlen,
 			    host, NI_MAXHOST,
 			    serv, NI_MAXSERV,
@@ -371,11 +377,9 @@ network_start_server() {
 		    out_syserr(retval, "Server: error lauching network server worker thread");
 		}
 	    }
-	}
+	} /* for (i=0; i < used_fds; i++) */
 
-
-
-    }
+    } /* for (;;) */
 
     pthread_cleanup_pop(1);
 

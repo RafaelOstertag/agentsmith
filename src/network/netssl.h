@@ -25,8 +25,13 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
+
 
 extern int netssl_initalize();
 extern void netssl_disintegrate();
+/* extern int netssl_verify_callback(int ok, X509_STORE_CTX *ctx); */
 
 #endif

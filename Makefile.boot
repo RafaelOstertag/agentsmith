@@ -10,8 +10,8 @@ DIRS = autom4te.cache
 all: configure Makefile.in
 
 configure: configure.ac config.h.in Makefile.boot
-	aclocal
-	autoconf 
+	aclocal -I m4
+	autoconf -I m4
 
 config.h.in: configure.ac Makefile.boot
 	autoheader -f

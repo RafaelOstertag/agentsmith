@@ -79,15 +79,10 @@
 #define SERVERSERVUNK "Port unknown"
 #define HOSTIPUNK "localhost"
 
+
 static void
-_client_queue_worker_cleanup(void* args) {
-    queue_entry_t *ptr, *nextptr;
-
-    out_dbg("Client Worker [%i]: in _client_queue_cleanup",
-	       pthread_self());
-    if ( args == NULL ) return;
-
-    ptr = (queue_entry_t*) args;
+_client_queue_disintegrate_queue(queue_entry_t *ptr) {
+    queue_entry_t *nextptr;
 
     while ( ptr != NULL ) {
 	nextptr = ptr->next;
@@ -95,7 +90,37 @@ _client_queue_worker_cleanup(void* args) {
 	free(ptr);
 	ptr = nextptr;
     }
-    out_dbg("Client Worker [%i]: leaving _client_queue_cleanup",
+}	    
+
+static void
+_client_queue_worker_cleanup(void* args) {
+    int retval;
+    client_queue_t *queue;
+
+    out_dbg("Client Worker [%li]: in _client_queue_cleanup",
+	       pthread_self());
+    if ( args == NULL ) return;
+
+    queue = (client_queue_t*) args;
+
+    _client_queue_disintegrate_queue(queue->head);
+
+    /* Release the lock on the mutex, if it is still locked */
+    retval = pthread_mutex_trylock(&queue->mutex);
+    switch (retval) {
+	case 0:
+	case EBUSY:
+	    /* Ok, now release it */
+	    pthread_mutex_unlock(&queue->mutex);
+	    break;
+	default:
+	    out_syserr(retval, "Error unlocking the client queue mutex");
+	    break;
+    }
+
+
+
+    out_dbg("Client Worker [%li]: leaving _client_queue_cleanup",
 	       pthread_self());
 }
 
@@ -123,7 +148,7 @@ _client_queue_worker(void *arg) {
 			 serverserv, NI_MAXSERV,
 			 NI_NUMERICHOST | NI_NUMERICSERV);
     if ( retval != 0 ) {
-	out_err("Client Worker [%i]: Unable to get server's IP address (error: %s)",
+	out_err("Client Worker [%li]: Unable to get server's IP address (error: %s)",
 		pthread_self(),
 		gai_strerror(retval));
 	strncpy(serverhost, SERVERIPUNK, NI_MAXHOST);
@@ -135,7 +160,7 @@ _client_queue_worker(void *arg) {
 
     pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
-    pthread_cleanup_push(_client_queue_worker_cleanup, ptr);
+    pthread_cleanup_push(_client_queue_worker_cleanup, queue);
 
     /*
      * We stay in this loop until shutdown from the main thread
@@ -143,7 +168,7 @@ _client_queue_worker(void *arg) {
     for (;;) {
 	retval = pthread_mutex_lock(&(queue->mutex));
 	if ( retval != 0 ) {
-	    out_syserr(retval, "Client Worker [%i]: Unable to lock queue mutex",
+	    out_syserr(retval, "Client Worker [%li]: Unable to lock queue mutex",
 		       pthread_self());
 	    pthread_exit(NULL);
 	}
@@ -153,7 +178,7 @@ _client_queue_worker(void *arg) {
 	    retval = pthread_cond_wait(&(queue->cond), &(queue->mutex) );
 	    if ( retval != 0 ) {
 		out_syserr(retval,
-			   "Client Worker [%i]: Unable to wait for queue condition", pthread_self());
+			   "Client Worker [%li]: Unable to wait for queue condition", pthread_self());
 		pthread_exit(NULL);
 	    }
 	}
@@ -164,7 +189,7 @@ _client_queue_worker(void *arg) {
 
 	retval = pthread_mutex_unlock(&(queue->mutex));
 	if ( retval != 0 ) {
-	    out_syserr(retval, "Client Worker [%i]: Unable to lock queue mutex",
+	    out_syserr(retval, "Client Worker [%li]: Unable to lock queue mutex",
 		       pthread_self());
 	    pthread_exit(NULL);
 	}
@@ -177,7 +202,7 @@ _client_queue_worker(void *arg) {
 	    /* Connect to the server */
 	    sockfd = socket(queue->family, SOCK_STREAM, 0);
 	    if ( sockfd == -1 ) {
-		out_syserr(errno, "Client Worker [%i]: Unable to open socket",
+		out_syserr(errno, "Client Worker [%li]: Unable to open socket",
 			   pthread_self());
 		sleep(CONFIG.inform_retry_wait);
 		continue;
@@ -186,7 +211,7 @@ _client_queue_worker(void *arg) {
 	    retval = connect(sockfd, queue->sockaddr, queue->socklen);
 	    if ( retval != 0 ) {
 		out_syserr(errno,
-			   "Client Worker [%i]: Unable to connect to %s port %s",
+			   "Client Worker [%li]: Unable to connect to %s port %s",
 			   pthread_self(), serverhost, serverserv);
 		sleep(CONFIG.inform_retry_wait);
 		continue;
@@ -196,9 +221,9 @@ _client_queue_worker(void *arg) {
 	}
 
 	if (connect_success != 1) {
-	    out_err("Client Worker [%i]: Unable to connecto to %s port %s. Tried %i times",
+	    out_err("Client Worker [%li]: Unable to connecto to %s port %s. Tried %i times",
 		       pthread_self(), serverhost, serverserv, retries);
-	    _client_queue_worker_cleanup(ptr);	    
+	    _client_queue_disintegrate_queue(ptr);	    
 	    close(sockfd);
 	    continue;
 	}
@@ -206,21 +231,24 @@ _client_queue_worker(void *arg) {
 	/* Process the queue */
 	while ( ptr != NULL ) {
 	    nextptr = ptr->next;
-	    out_dbg("Client Worker [%i]: Processing queue entry",
+	    out_dbg("Client Worker [%li]: Processing queue entry",
 		    pthread_self());
 
 #ifdef DEBUG
-	    out_dbg("Client Worker [%i]: Send remote command to %s port %s", 
+	    out_dbg("Client Worker [%li]: Send remote command to %s port %s", 
 		    pthread_self(), serverhost, serverserv);
 	    __dbg_dump_host_record(ptr->record);
 #endif
 
+	    out_msg("Client Worker [%li]: Send IP Address %s to %s port %s",
+		    pthread_self(), ptr->record->ipaddr, serverhost,
+		    serverserv);
 	    net_command_to_buff(ADD, ptr->record, buff, REMOTE_COMMAND_SIZE);
 
 	    retval = 0;
 	    writeres = net_write(sockfd, buff, REMOTE_COMMAND_SIZE, &retval);
 	    if (writeres == RETVAL_ERR) 
-		out_syserr(retval, "Client Worker [%i]: Error writing to %s port %s", pthread_self(), serverhost, serverserv);
+		out_syserr(retval, "Client Worker [%li]: Error writing to %s port %s", pthread_self(), serverhost, serverserv);
 	    /* In case of an error we just continue, since we have to free the
 	       memory anyway */
 
@@ -313,14 +341,6 @@ client_queue_destroy(client_queue_t *queue) {
     if ( retval != 0 )
 	out_syserr(retval, "Error destroying client queue mutex");
 
-    ptr = queue->head;
-    while ( ptr != NULL ) {
-	next_ptr = ptr->next;
-	free(ptr->record);
-	free(ptr);
-	ptr = next_ptr;
-    }
-
     free(queue->sockaddr);
     free(queue);
 
@@ -350,7 +370,7 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record, int len)
 
     retval = pthread_mutex_lock(&(queue->mutex));
     if ( retval != 0 ) {
-	out_syserr(retval, "Client Worker [%i]: error locking queue mutex in client_queue_pop", pthread_self());
+	out_syserr(retval, "Client Worker [%li]: error locking queue mutex in client_queue_pop", pthread_self());
 	return RETVAL_ERR;
     }
 
@@ -421,11 +441,11 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record, int len)
  ENDOK:
     retval = pthread_cond_signal(&(queue->cond));
     if ( retval != 0 )
-	out_syserr(retval, "Client Worker [%i]: error signaling queue cond in client_queue_append", pthread_self());
+	out_syserr(retval, "Client Worker [%li]: error signaling queue cond in client_queue_append", pthread_self());
 
     retval = pthread_mutex_unlock(&(queue->mutex));
     if ( retval != 0 )
-	out_syserr(retval, "Client Worker [%i]: error locking queue mutex in client_queue_append", pthread_self());
+	out_syserr(retval, "Client Worker [%li]: error locking queue mutex in client_queue_append", pthread_self());
 
     return RETVAL_OK;
 }

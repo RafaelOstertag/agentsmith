@@ -82,6 +82,9 @@ readtoeof(FILE * file) {
 	BUFF[buffpos] = (unsigned char) c;
 	buffpos++;
 	if (buffpos == BUFFSIZE - 1) {
+	    /*
+	     * Buffer is full, terminate and check 
+	     */
 	    BUFF[buffpos] = '\0';
 	    buffpos = 0;
 	    /*
@@ -91,6 +94,9 @@ readtoeof(FILE * file) {
 	    continue;
 	}
 	if (c == '\n') {
+	    /*
+	     * A new line, now check 
+	     */
 	    BUFF[buffpos] = '\0';
 	    buffpos = 0;
 	    /*
@@ -185,9 +191,15 @@ follow(const char *fname) {
 	}
 	curpos = sb.st_size;
 	if (curpos > lastpos) {
+	    /*
+	     * There is new data in the file, read 
+	     */
 	    readtoeof(file);
 	    lastpos = curpos;
 	} else if (lastpos > curpos) {
+	    /*
+	     * The file shrunk 
+	     */
 	    out_msg("'%s' shrunk from %i to %i bytes", fname, lastpos,
 		    curpos);
 	    file = freopen(fname, "r", file);

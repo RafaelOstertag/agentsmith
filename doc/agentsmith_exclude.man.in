@@ -27,7 +27,7 @@ script will not be executed for hosts appearing in the
 @PACKAGE@.conf(@FILE_SECTION@) is used to specify the file to be read
 containing.
 .P
-It is possible to specify entire IP ranges using CIDR notation or
+It is possible to specify entire IP ranges using prefix length or
 single IP addresses. Both IPv4 and IPv6 addresses are supported.
 .P
 \fB@PACKAGE@\fR expects one IP address or range per line. Lines
@@ -44,6 +44,7 @@ of the file.
 .nf
 192.168.1.0/24
 172.16.1.1
+fd3e:be3e:ec34::/64
 
 .fi
 

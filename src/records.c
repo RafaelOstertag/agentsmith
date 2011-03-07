@@ -207,14 +207,13 @@ void
 records_init() {
     int       retval;
 
-    if (initialized)
-	return;
+    assert(initialized == 0);
 
     hr_vector =
 	(hostrecord_t **) calloc(sizeof (hostrecord_t *), hr_vector_size);
     if (hr_vector == NULL) {
 	out_err
-	    ("Unable to locate memory for the host record vector. Dying now");
+	    ("Unable to allocate memory for the host record vector. Dying now");
 	exit(3);
     }
     memset(hr_vector, 0, sizeof (hostrecord_t *) * hr_vector_size);
@@ -235,8 +234,6 @@ records_destroy(records_remove_callback cb) {
     int       retval;
 
     assert(initialized);
-    if (!initialized)
-	return;
 
     ptr = hr_vector;
     for (i = 0; i < hr_vector_size; i++) {
@@ -263,8 +260,6 @@ records_maintenance(records_remove_callback cb) {
     unsigned long i, last_used, new_size;
 
     assert(initialized);
-    if (!initialized)
-	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&vector_mutex);
     if (retval != 0) {
@@ -352,11 +347,6 @@ records_add_ip(const char *ipaddr) {
 
     assert(initialized);
     assert(ipaddr != NULL);
-    if (ipaddr == NULL)
-	return RETVAL_ERR;
-
-    if (!initialized)
-	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&vector_mutex);
     if (retval != 0) {
@@ -455,11 +445,6 @@ records_add_record(const hostrecord_t *hr) {
 
     assert(hr != NULL);
     assert(initialized);
-    if (hr == NULL)
-	return RETVAL_ERR;
-
-    if (!initialized)
-	return RETVAL_ERR;
 
     retval = pthread_mutex_lock(&vector_mutex);
     if (retval != 0) {
@@ -547,12 +532,6 @@ records_remove(const char *ipaddr) {
     assert(ipaddr != NULL);
     assert(initialized);
 
-    if (ipaddr == NULL)
-	return RETVAL_ERR;
-
-    if (!initialized)
-	return RETVAL_ERR;
-
     retval = pthread_mutex_lock(&vector_mutex);
     if (retval != 0) {
 	out_syserr(retval, "Unable to lock vector_mutex");
@@ -603,12 +582,6 @@ records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     assert(cb != NULL);
     assert(initialized);
 
-    if (cb == NULL)
-	return RETVAL_ERR;
-
-    if (!initialized)
-	return RETVAL_ERR;
-
     if (mode == ASYNC) {
 	retval = pthread_attr_init(&tattr);
 	if (retval != 0) {
@@ -638,20 +611,13 @@ records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     }
 }
 
-hostrecord_t
-         *
+hostrecord_t *
 records_get(const char *ipaddr) {
     int       retval;
     hostrecord_t *ptr;
 
     assert(ipaddr != NULL);
     assert(initialized);
-
-    if (ipaddr == NULL)
-	return NULL;
-
-    if (!initialized)
-	return NULL;
 
     retval = pthread_mutex_lock(&vector_mutex);
     if (retval != 0) {

@@ -1,0 +1,38 @@
+-i4
+-sob
+-ts8
+-nbad
+-bap
+-br
+-ce
+-cdw
+-cli0
+-cbi4
+-ss
+-npcs
+-cs
+-bs
+-saf
+-sai
+-saw
+-di10
+-nbc
+-psl
+-brs
+-brf
+-lp
+-ip4
+-cdb
+-sc
+-bbb
+-T addrinfo_list_t
+-T config_t
+-T in6_addr_t
+-T excluderecord_t
+-T ac_type_t
+-T enum_mode_t
+-T hostrecord_t
+-T queue_entry_t
+-T client_queue_t
+-T worker_thread_args_t
+-T outtype_t

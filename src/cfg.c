@@ -60,6 +60,10 @@ static int config_initialized = 0;
 #define DEFAULT_ACTION "/bin/true"
 #define DEFAULT_EXCLUDE ""
 #define DEFAULT_SSL_CA_TRUST ""
+#define DEFAULT_SSL_SERVER_CERT ""
+#define DEFAULT_SSL_SERVER_KEY ""
+#define DEFAULT_SSL_CLIENT_CERT ""
+#define DEFAULT_SSL_CLIENT_KEY ""
 #define DEFAULT_LISTEN_PORT "48621"
 #define DEFAULT_LISTEN "0.0.0.0:48621"
 #define DEFAULT_SERVER_BACKLOG 64
@@ -162,6 +166,12 @@ struct _cfgcfg cfgcfg[] = {
      NULL},
     {"ssl_ca_trust", CFG_VAL_PATH, R_OK | F_OK,
      (void *) &(CONFIG.ssl_ca_trust), NULL},
+    {"ssl_server_cert", CFG_VAL_PATH, R_OK | F_OK,
+     (void *) &(CONFIG.ssl_server_cert), NULL},
+    {"ssl_server_key", CFG_VAL_PATH, R_OK | F_OK,
+     (void *) &(CONFIG.ssl_server_key), NULL},
+    {"ssl_client_cert", CFG_VAL_PATH, R_OK | F_OK,
+     (void *) &(CONFIG.ssl_client_cert), NULL},
     {NULL, -1, -1, NULL, NULL}
 };
 
@@ -173,6 +183,11 @@ _init_config() {
     strncpy(CONFIG.action, DEFAULT_ACTION, _MAX_PATH);
     strncpy(CONFIG.exclude, DEFAULT_EXCLUDE, _MAX_PATH);
     strncpy(CONFIG.ssl_ca_trust, DEFAULT_SSL_CA_TRUST, _MAX_PATH);
+    strncpy(CONFIG.ssl_server_key, DEFAULT_SSL_SERVER_KEY, _MAX_PATH);
+    strncpy(CONFIG.ssl_server_cert, DEFAULT_SSL_SERVER_CERT, _MAX_PATH);
+    strncpy(CONFIG.ssl_client_key, DEFAULT_SSL_CLIENT_KEY, _MAX_PATH);
+    strncpy(CONFIG.ssl_client_cert, DEFAULT_SSL_CLIENT_CERT, _MAX_PATH);
+
     CONFIG.action_threshold = DEFAULT_ACTION_THRESHOLD;
     CONFIG.time_interval = DEFAULT_TIME_INTERVAL;
     CONFIG.purge_after = DEFAULT_PURGE_AFTER;
@@ -437,18 +452,32 @@ _config_sanitize() {
     CONFIG.server_backlog =
 	CONFIG.server_backlog <
 	1 ? DEFAULT_SERVER_BACKLOG : CONFIG.server_backlog;
+
     CONFIG.maxinconnections =
 	CONFIG.maxinconnections >
 	MAX_INCONN ? MAX_INCONN : CONFIG.maxinconnections;
+
     CONFIG.maxinconnections =
 	CONFIG.maxinconnections <
 	1 ? DEFAULT_MAXINCONNECTIONS : CONFIG.maxinconnections;
+
     CONFIG.server_timeout =
 	CONFIG.server_timeout <
 	1 ? DEFAULT_SERVER_TIMEOUT : CONFIG.server_timeout;
+
     CONFIG.inform_retry_wait =
 	CONFIG.inform_retry_wait <
 	1 ? DEFAULT_INFORM_RETRY_WAIT : CONFIG.inform_retry_wait;
+
+    CONFIG.inform = CONFIG.inform != 0 ? 1 : 0;
+
+    CONFIG.server = CONFIG.server != 0 ? 1 : 0;
+
+    CONFIG.action_threshold = CONFIG.action_threshold < 1 ? DEFAULT_ACTION_THRESHOLD : CONFIG.action_threshold;
+
+    CONFIG.time_interval = CONFIG.time_interval < 1 ? DEFAULT_TIME_INTERVAL : CONFIG.time_interval;
+
+    CONFIG.purge_after = CONIFG.purge_after < 1 ? DEFAULT_PURGE_AFTER : CONFIG.purge_after;
 }
 
 /**

@@ -233,11 +233,12 @@ main(int argc, char **argv) {
     signalhandler_setup();
 
     /*
-     * Start threads 
+     * Start threads. This will also start the server thread if server is
+     * enabled.
      */
     threads_start();
 
-    if (CONFIG.inform == 1 && CONFIG.inform_agents != 0) {
+    if (CONFIG.inform == 1 && CONFIG.inform_agents != NULL) {
 	retval = client_start(CONFIG.inform_agents);
 	if (retval != RETVAL_OK) {
 	    out_err("Error starting client. Aborting");
@@ -263,6 +264,12 @@ main(int argc, char **argv) {
     records_destroy(threads_records_callback_action_removal);
 
     exclude_destroy();
+
+    /*
+     * Shutdown the SSL stuff
+     */
+    if (CONFIG.inform == 1 || CONFIG.server == 1)
+	netssl_disintegrate();
 
     if (daemonmode) {
 	int       retval;

@@ -47,6 +47,17 @@
 #include <errno.h>
 #endif
 
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include "globals.h"
 #include "follow.h"
 #include "output.h"
@@ -55,16 +66,19 @@
 static char BUFF[BUFFSIZE];
 static int stop = 0;		/* Will be set by stop_following to 1 in order to stop */
 
-/* This will be fed to usleep() [usec] */
-static const int sleep_time = 250000;
+/* In nano seconds */
+static const long sleep_time = 250000000;
 
-/* This will be fed to sleep() [sec] */
+/* In seconds */
 static const int err_sleep_time = 30;
 
 static void
 readtoeof(FILE * file) {
     static int buffpos = 0;
     int       c;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     while (!stop) {
 	c = fgetc(file);
@@ -75,7 +89,16 @@ readtoeof(FILE * file) {
 	if (ferror(file)) {
 	    out_syserr(errno, "File error. Sleeping for %i seconds",
 		       err_sleep_time);
+
+#ifdef HAVE_NANOSLEEP
+	    time_wait.tv_sec = err_sleep_time;
+	    time_wait.tv_nsec = 0;
+	    nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 	    sleep(err_sleep_time);
+#endif
 	    return;
 	}
 
@@ -114,6 +137,9 @@ follow(const char *fname) {
     off_t     curpos, lastpos;
     ino_t     curino, lastino;
     int       retval;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     file = fopen(fname, "r");
     if (file == NULL) {
@@ -151,7 +177,15 @@ follow(const char *fname) {
 	    }
 	    out_err("The file '%s' has gone. Going to sleep for %i seconds",
 		    fname, err_sleep_time);
+#ifdef HAVE_NANOSLEEP
+	    time_wait.tv_sec = err_sleep_time;
+	    time_wait.tv_nsec = 0;
+	    nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 	    sleep(err_sleep_time);
+#endif
 	    continue;
 	} else {
 	    /*
@@ -167,7 +201,15 @@ follow(const char *fname) {
 		    out_syserr(errno,
 			       "Unable to re-open '%s'. Going to sleep for %i seconds",
 			       fname, err_sleep_time);
+#ifdef HAVE_NANOSLEEP
+		    time_wait.tv_sec = err_sleep_time;
+		    time_wait.tv_nsec = 0;
+		    nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 		    sleep(err_sleep_time);
+#endif
 		    continue;
 		}
 	    } else {
@@ -182,7 +224,15 @@ follow(const char *fname) {
 			out_syserr(errno,
 				   "Unable to re-open '%s'. Going to sleep for %i seconds",
 				   fname, err_sleep_time);
+#ifdef HAVE_NANOSLEEP
+			time_wait.tv_sec = err_sleep_time;
+			time_wait.tv_nsec = 0;
+			nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 			sleep(err_sleep_time);
+#endif
 			continue;
 		    }
 		    lastino = curino;
@@ -207,7 +257,15 @@ follow(const char *fname) {
 		out_syserr(errno,
 			   "Unable to re-open '%s'. Going to sleep for %i seconds.",
 			   fname, err_sleep_time);
+#ifdef HAVE_NANOSLEEP
+		time_wait.tv_sec = err_sleep_time;
+		time_wait.tv_nsec = 0;
+		nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 		sleep(err_sleep_time);
+#endif
 		continue;
 	    }
 	    rewind(file);
@@ -219,7 +277,15 @@ follow(const char *fname) {
 	    readtoeof(file);
 	    lastpos = curpos;
 	}
-	usleep(sleep_time);
+#ifdef HAVE_NANOSLEEP
+	time_wait.tv_sec = 0;
+	time_wait.tv_nsec = sleep_time;
+	nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
+	usleep(sleep_time / 1000);
+#endif
     }
     stop = 0;
 }

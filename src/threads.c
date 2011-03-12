@@ -51,6 +51,17 @@
 #include <string.h>
 #endif
 
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include "globals.h"
 #include "threads.h"
 #include "records.h"
@@ -58,8 +69,11 @@
 #include "server.h"
 #include "client.h"
 
-static const int maintenance_sleep_time = 60000000;
-static const int action_sleep_time = 500000;
+/* In seconds */
+static const long maintenance_sleep_time = 60;
+
+/* In nano seconds */
+static const long action_sleep_time = 500000000;
 static pthread_t action_thread_id;
 static pthread_t maintenance_thread_id;
 static pthread_t server_thread_id;
@@ -105,6 +119,7 @@ _do_action(const hostrecord_t *ptr, ac_type_t t) {
 	     * Add it the client queue, for distribution to other
 	     * agentsmiths 
 	     */
+	    assert(strlen(ptr->ipaddr) > 2);
 	    retval = client_queue_record(ptr);
 	    if (retval != RETVAL_OK)
 		out_err("Error queueing client host record to be sent.");
@@ -181,6 +196,9 @@ _records_callback_action_new(hostrecord_t *ptr) {
 static void *
 action_thread(void *wdc) {
     int       retval;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     for (;;) {
 	retval = records_enumerate(_records_callback_action_new, SYNC);
@@ -195,8 +213,16 @@ action_thread(void *wdc) {
 	    if (retval != RETVAL_OK)
 		out_err("Error flushing client host record queue.");
 	}
+#ifdef HAVE_NANOSLEEP
+	time_wait.tv_sec = 0;
+	time_wait.tv_nsec = action_sleep_time;
+	nanosleep(&time_wait, &time_wait_remaining);
+#else
 
-	usleep(action_sleep_time);
+#warning "Using usleep()"
+	usleep(action_sleep_time / 1000);
+#endif
+
 	pthread_testcancel();
     }
     return NULL;
@@ -205,6 +231,9 @@ action_thread(void *wdc) {
 static void *
 maintenance_thread(void *wdc) {
     int       retval;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     for (;;) {
 
@@ -212,7 +241,15 @@ maintenance_thread(void *wdc) {
 	retval = records_maintenance(threads_records_callback_action_removal);
 	out_dbg("Ending records maintenance");
 
-	usleep(maintenance_sleep_time);
+#ifdef HAVE_NANOSLEEP
+	time_wait.tv_sec = maintenance_sleep_time;
+	time_wait.tv_nsec = 0;
+	nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using usleep()"
+	usleep(maintenance_sleep_time * 1000000);
+#endif
 	pthread_testcancel();
     }
     return NULL;

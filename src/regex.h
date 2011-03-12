@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag 
  *
  * This file is part of agentsmith.

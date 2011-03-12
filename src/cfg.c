@@ -164,14 +164,16 @@ struct _cfgcfg cfgcfg[] = {
     {"inform_agent", CFG_VAL_CALLBACK, -1, NULL, _config_callback_inform},
     {"server_backlog", CFG_VAL_INT32, -1, (void *) &(CONFIG.server_backlog),
      NULL},
-    {"ssl_ca_trust", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_ca_trust), NULL},
+    {"ssl_ca_file", CFG_VAL_PATH, R_OK | F_OK,
+     (void *) &(CONFIG.ssl_ca_file), NULL},
     {"ssl_server_cert", CFG_VAL_PATH, R_OK | F_OK,
      (void *) &(CONFIG.ssl_server_cert), NULL},
     {"ssl_server_key", CFG_VAL_PATH, R_OK | F_OK,
      (void *) &(CONFIG.ssl_server_key), NULL},
     {"ssl_client_cert", CFG_VAL_PATH, R_OK | F_OK,
      (void *) &(CONFIG.ssl_client_cert), NULL},
+    {"ssl_client_key", CFG_VAL_PATH, R_OK | F_OK,
+     (void *) &(CONFIG.ssl_client_key), NULL},
     {NULL, -1, -1, NULL, NULL}
 };
 
@@ -182,7 +184,7 @@ _init_config() {
     strncpy(CONFIG.syslogfile, DEFAULT_LOGFILE, _MAX_PATH);
     strncpy(CONFIG.action, DEFAULT_ACTION, _MAX_PATH);
     strncpy(CONFIG.exclude, DEFAULT_EXCLUDE, _MAX_PATH);
-    strncpy(CONFIG.ssl_ca_trust, DEFAULT_SSL_CA_TRUST, _MAX_PATH);
+    strncpy(CONFIG.ssl_ca_file, DEFAULT_SSL_CA_TRUST, _MAX_PATH);
     strncpy(CONFIG.ssl_server_key, DEFAULT_SSL_SERVER_KEY, _MAX_PATH);
     strncpy(CONFIG.ssl_server_cert, DEFAULT_SSL_SERVER_CERT, _MAX_PATH);
     strncpy(CONFIG.ssl_client_key, DEFAULT_SSL_CLIENT_KEY, _MAX_PATH);
@@ -473,11 +475,16 @@ _config_sanitize() {
 
     CONFIG.server = CONFIG.server != 0 ? 1 : 0;
 
-    CONFIG.action_threshold = CONFIG.action_threshold < 1 ? DEFAULT_ACTION_THRESHOLD : CONFIG.action_threshold;
+    CONFIG.action_threshold =
+	CONFIG.action_threshold <
+	1 ? DEFAULT_ACTION_THRESHOLD : CONFIG.action_threshold;
 
-    CONFIG.time_interval = CONFIG.time_interval < 1 ? DEFAULT_TIME_INTERVAL : CONFIG.time_interval;
+    CONFIG.time_interval =
+	CONFIG.time_interval <
+	1 ? DEFAULT_TIME_INTERVAL : CONFIG.time_interval;
 
-    CONFIG.purge_after = CONIFG.purge_after < 1 ? DEFAULT_PURGE_AFTER : CONFIG.purge_after;
+    CONFIG.purge_after =
+	CONFIG.purge_after < 1 ? DEFAULT_PURGE_AFTER : CONFIG.purge_after;
 }
 
 /**
@@ -669,6 +676,11 @@ config_read(const char *file) {
     out_dbg("inform_retry=%i", CONFIG.inform_retry);
     out_dbg("inform_retry_wait=%i", CONFIG.inform_retry_wait);
     out_dbg("remote_authoritative=%i", CONFIG.remote_authoritative);
+    out_dbg("ssl_ca_file=%s", CONFIG.ssl_ca_file);
+    out_dbg("ssl_server_cert=%s", CONFIG.ssl_server_cert);
+    out_dbg("ssl_server_key=%s", CONFIG.ssl_server_key);
+    out_dbg("ssl_client_cert=%s", CONFIG.ssl_client_cert);
+    out_dbg("ssl_client_key=%s", CONFIG.ssl_client_key);
 
     if (CONFIG.remote_authoritative)
 	out_msg

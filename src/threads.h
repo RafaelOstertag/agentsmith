@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -25,6 +26,7 @@
 
 extern void threads_start();
 extern void threads_stop();
+
 /*
  * This function is exported because it is also called from main.c upon exit.
  */

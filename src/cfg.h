@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010 Rafael Ostertag 
  *
  * This file is part of agentsmith.
@@ -61,7 +62,11 @@ struct _config {
     char      syslogfile[_MAX_PATH];
     char      action[_MAX_PATH];
     char      exclude[_MAX_PATH];
-    char      ssl_ca_trust[_MAX_PATH];
+    char      ssl_ca_file[_MAX_PATH];
+    char      ssl_server_key[_MAX_PATH];
+    char      ssl_server_cert[_MAX_PATH];
+    char      ssl_client_key[_MAX_PATH];
+    char      ssl_client_cert[_MAX_PATH];
     char      regex[BUFFSIZE];
     int32_t   action_threshold;
     int64_t   time_interval;

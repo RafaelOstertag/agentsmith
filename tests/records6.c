@@ -29,6 +29,21 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include "globals.h"
 #include "records.h"
 #include "output.h"
@@ -104,6 +119,9 @@ main(int wdc1, char **wdc2) {
     char      str[BUFFSIZE];
     unsigned long i, k;
     pthread_t pth_add, pth_remove, pth_enumerate;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     out_msg("This test will take at least %i seconds.\n", SLEEP_TIME);
 
@@ -126,7 +144,15 @@ main(int wdc1, char **wdc2) {
     }
 
     out_msg("Waiting %i seconds", SLEEP_TIME);
-    sleep(SLEEP_TIME);
+#ifdef HAVE_NANOSLEEP
+	time_wait.tv_sec = SLEEP_TIME;
+	time_wait.tv_nsec = 0;
+	nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
+	sleep(SLEEP_TIME);
+#endif
 
     out_msg("Cancelling thread thread_add()");
     retval = pthread_cancel(pth_add);

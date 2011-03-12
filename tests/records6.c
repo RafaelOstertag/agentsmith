@@ -145,13 +145,13 @@ main(int wdc1, char **wdc2) {
 
     out_msg("Waiting %i seconds", SLEEP_TIME);
 #ifdef HAVE_NANOSLEEP
-	time_wait.tv_sec = SLEEP_TIME;
-	time_wait.tv_nsec = 0;
-	nanosleep(&time_wait, &time_wait_remaining);
+    time_wait.tv_sec = SLEEP_TIME;
+    time_wait.tv_nsec = 0;
+    nanosleep(&time_wait, &time_wait_remaining);
 #else
 
 #warning "Using sleep()"
-	sleep(SLEEP_TIME);
+    sleep(SLEEP_TIME);
 #endif
 
     out_msg("Cancelling thread thread_add()");

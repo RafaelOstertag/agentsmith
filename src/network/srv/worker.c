@@ -1,18 +1,19 @@
 
-/* Copyright (C) 2010 Rafael Ostertag
- *
+/*
+ * Copyright (C) 2010 Rafael Ostertag
+ * 
  * This file is part of agentsmith.
- *
+ * 
  * agentsmith is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
- *
- * agentsmith is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
+ * 
+ * agentsmith is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * 
  * You should have received a copy of the GNU General Public License along with
  * agentsmith.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -51,6 +52,18 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
+
+#ifdef HAVE_OPENSSL_BIO_H
+#include <openssl/bio.h>
+#endif
+
+#ifdef HAVE_OPENSSL_ERR_H
+#include <openssl/err.h>
+#endif
+
 #include "globals.h"
 #include "cfg.h"
 #include "server.h"
@@ -58,9 +71,19 @@
 #include "worker.h"
 #include "exclude.h"
 #include "netshared.h"
+#include "netssl.h"
 
 enum {
-    MAX_LOCK_TRIES = 5
+
+    /**
+     * How many times it is tried to lock the semaphore
+     */
+    MAX_LOCK_TRIES = 15,
+
+    /**
+     * How long we wait between lock tries (in seconds)
+     */
+    LOCK_WAIT_RETRY = 1
 };
 
 void     *
@@ -73,10 +96,16 @@ network_server_worker(void *args) {
     ssize_t   nread;
     worker_thread_args_t *wrk_args;
     hostrecord_t hostrecord;
-#ifdef KERNEL_SUNOS
     fd_set    readready;
     int       saverrno;
     struct timeval timeout;
+#ifdef HAVE_NANOSLEEP
+    struct timespec lock_wait, lock_wait_remaining;
+#endif
+
+#ifndef NOSSL
+    BIO      *sbio = NULL;
+    SSL      *ssl = NULL;
 #endif
 
     assert(args != NULL);
@@ -84,7 +113,7 @@ network_server_worker(void *args) {
     wrk_args = (worker_thread_args_t *) args;
 
     /*
-     * How many times we wait for the semaphore 
+     * How many times we wait for the semaphore
      */
     lock_tries = 0;
 
@@ -93,10 +122,19 @@ network_server_worker(void *args) {
 		serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
 
     /*
-     * Try to lock the semaphore. If the semaphore cannot be locked, sleep one
-     * second. Try it MAX_LOCK_TRIES at max. If no lock can be aquired, end the
-     * thread.
+     * Never got sem_trywait() working properly (tested on Solaris 10u8), leave
+     * it here anyway. May be somebody is more able to use sem_trywait() than I
+     * am. It is therefore expected, that the checks are made before spawning
+     * the thread.
      */
+
+    /* *INDENT-OFF* */
+/*
+    \/*
+     * Try to lock the semaphore. If the semaphore cannot be locked, sleep
+     * one second. Try it MAX_LOCK_TRIES at max. If no lock can be aquired,
+     * end the thread.
+     *\/
   REDO:
     lock_tries++;
     if (lock_tries >= MAX_LOCK_TRIES) {
@@ -108,11 +146,21 @@ network_server_worker(void *args) {
 
     retval = sem_trywait(&worker_semaphore);
     switch (errno) {
+    case EBUSY:
+    case EINTR:
     case EAGAIN:
 	out_dbg
 	    ("Server Worker [%li]: cannot lock worker_semaphore. Retrying...",
 	     pthread_self());
-	sleep(1);
+#ifdef HAVE_NANOSLEEP
+	lock_wait.tv_sec = LOCK_WAIT_RETRY;
+	lock_wait.tv_nsec = 0;
+	nanosleep(&lock_wait, &lock_wait_remaining);
+#else
+
+#warning "Using sleep()"
+	sleep(LOCK_WAIT_RETRY);
+#endif
 	goto REDO;
     case 0:
 	break;
@@ -122,12 +170,24 @@ network_server_worker(void *args) {
 		   pthread_self());
 	goto ENDNOPOST;
     }
+*/
+    /* *INDENT-ON* */
 
-#ifdef KERNEL_SUNOS		/* SunOS does not support the SO_RCVTIMEO socket option, so
-				 * we have to use select */
-#ifdef DEBUG
-#warning "++++ Compiling in code for SUNOS ++++"
-#endif
+    /*
+     * This is the code using sem_wait() instead sem_trywait() 
+     */
+    retval = sem_wait(&worker_semaphore);
+    if (retval != 0) {
+	out_syserr(errno,
+		   "Server Worker [%li]: unable to lock worker_semaphore",
+		   pthread_self());
+	goto ENDNOPOST;
+    }
+
+    /*
+     * Set the read time out. We use select(), since SO_RCVTIMEO crashed SSL
+     * (well it did in my case)
+     */
     timeout.tv_sec = CONFIG.server_timeout;
     timeout.tv_usec = 0;
 
@@ -144,7 +204,6 @@ network_server_worker(void *args) {
 		 pthread_self());
 	    continue;
 	}
-
 	out_syserr(saverrno, "Server Worker [%li]: error in select",
 		   pthread_self());
 	goto END;
@@ -156,24 +215,54 @@ network_server_worker(void *args) {
 	     pthread_self(), host, serv);
 	goto END;
     }
-
     if (FD_ISSET(wrk_args->connfd, &readready) == 0) {
 	out_err
 	    ("Server Worker [%li]: data is ready for reading, but not on connfd %i",
 	     pthread_self(), wrk_args->connfd);
 	goto END;
     }
-#endif
+#ifndef NOSSL
 
+    retval = netssl_server(wrk_args->connfd, &ssl, &sbio);
+    if (retval != RETVAL_OK) {
+	out_err
+	    ("Server Worker [%li]: Unable to establish connection with client %s port %s",
+	     pthread_self(), host, serv);
+	goto END;
+    }
+
+    /*
+     * Clear, to make SSL_read report error properly 
+     */
+    ERR_clear_error();
+
+    while ((nread = SSL_read(ssl, buff, REMOTE_COMMAND_SIZE)) != 0)
+#else
     while ((nread =
 	    net_read(wrk_args->connfd, buff, REMOTE_COMMAND_SIZE,
-		     &retval)) != 0) {
+		     &retval)) != 0)
+#endif /* NOSSL */
+    {
+#ifndef NOSSL
+	saverrno = errno;
+	if (nread < 0) {
+	    netssl_ssl_error_to_string(SSL_get_error(ssl, nread), saverrno);
+	    goto END;
+	}
+
+	/*
+	 * We have to clear for the next round 
+	 */
+	ERR_clear_error();
+
+#else
 	if (nread == RETVAL_ERR) {
 	    out_syserr(retval,
 		       "Server Worker [%li]: error reading from client %s port %s",
 		       pthread_self(), host, serv);
 	    goto END;
 	}
+#endif /* NOSSL */
 
 	if (nread != REMOTE_COMMAND_SIZE) {
 	    out_err
@@ -183,9 +272,8 @@ network_server_worker(void *args) {
 	}
 
 	/*
-	 * Translate the buffer to the command and host
-	 * record. Little/Bigendian transformation is taken care of by this
-	 * function 
+	 * Translate the buffer to the command and host record.
+	 * Little/Bigendian transformation is taken care of by this function
 	 */
 	net_buff_to_command(buff, &rcommand, &hostrecord);
 
@@ -201,12 +289,11 @@ network_server_worker(void *args) {
 		     pthread_self(), hostrecord.ipaddr, host, serv);
 		break;
 	    }
-
 	    hostrecord.remove = 0;	/* We want to have this value */
 	    hostrecord.processed = 0;	/* We want to have this value */
 
 	    /*
-	     * Copy the clients ip address to the record's origin field 
+	     * Copy the clients ip address to the record's origin field
 	     */
 	    strncpy(hostrecord.origin, host, IPADDR_SIZE);
 	    hostrecord.origin[IPADDR_SIZE - 1] = '\0';
@@ -266,9 +353,44 @@ network_server_worker(void *args) {
 	out_err("Server Worker [%li]: Unable to post worker_semaphore",
 		pthread_self());
   ENDNOPOST:
+
+#ifndef NOSSL
+    if (ssl != NULL) {
+
+	/*
+	 * Close the SSL connection
+	 */
+	retval = SSL_shutdown(ssl);
+      REDO_SHUTDOWN:
+	switch (retval) {
+	case 1:
+	    out_dbg
+		("Server Worker [%li]: SSL shutdown successful for client %s port %s",
+		 pthread_self(), host, serv);
+	    break;
+	case 0:
+	    retval = SSL_shutdown(ssl);
+	    out_dbg
+		("Server Worker [%li]: SSL shutdown not yet finished for client %s port %s",
+		 pthread_self(), host, serv);
+	    goto REDO_SHUTDOWN;
+	case -1:
+	    out_err
+		("Server Worker [%li]: SSL shutdown had an error with client %s port %s",
+		 pthread_self(), host, serv);
+	    break;
+	}
+
+	SSL_free(ssl);
+    }
+#endif /* NOSSL */
+    /*
+     * Close the connection 
+     */
     out_dbg("Server Worker [%li]: closing connection to %s port %s",
 	    pthread_self(), host, serv);
     close(wrk_args->connfd);
+
     free(wrk_args->addr);
     free(wrk_args);
 

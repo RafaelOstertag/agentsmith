@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2010, 2011 Rafael Ostertag
  *
  * This file is part of agentsmith.
@@ -29,9 +30,14 @@
 #include <openssl/ssl.h>
 #endif
 
+#ifdef HAVE_OPENSSL_BIO_H
+#include <openssl/bio.h>
+#endif
 
-extern int netssl_initalize();
+extern int netssl_initialize();
 extern void netssl_disintegrate();
-/* extern int netssl_verify_callback(int ok, X509_STORE_CTX *ctx); */
+extern int netssl_server(int sockfd, SSL ** ssl, BIO ** sbio);
+extern int netssl_client(int sockfd, SSL ** ssl, BIO ** sbio);
+extern void netssl_ssl_error_to_string(int err, int syserr);
 
 #endif

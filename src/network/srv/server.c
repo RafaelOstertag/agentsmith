@@ -84,9 +84,12 @@
 #include "worker.h"
 #include "output.h"
 #include "netshared.h"
-#include "netssl.h"
 
 enum {
+    /*
+     * The time we wait for worker threads to end their job.
+     * After that time has elapsed, the worker thread is spawned anyway. 
+     */
     MAXWAITWORKER = 10
 };
 
@@ -110,6 +113,8 @@ int       used_fds;
 /**
  * Initialize all the sockets and data structures needed for providing the
  * server part of agentsmith.
+ *
+ * Do not use SO_SNDTIMEO and SO_RCVTIMEO on socket. It will crash SSL.
  */
 static int
 _network_start_listening() {
@@ -118,17 +123,9 @@ _network_start_listening() {
     int       sockfd, retval, optval;
     struct addrinfo *ai;
     addrinfo_list_t *ptr;
-#ifndef KERNEL_OS
-    struct timeval timeout;
-#endif
 
     memset(listen_fds, 0, sizeof (int) * FD_SETSIZE);
     FD_ZERO(&fd_set_listen);
-
-#ifndef KERNEL_SUNOS
-    timeout.tv_sec = CONFIG.server_timeout;
-    timeout.tv_usec = 0;
-#endif
 
     used_fds = 0;
     ptr = CONFIG.listen;
@@ -161,28 +158,6 @@ _network_start_listening() {
 			   "Server: failed to set SO_REUSEADDR on sock fd %i",
 			   sockfd);
 	    }
-#ifndef KERNEL_SUNOS
-#ifdef DEBUG
-#warning "++++ Compiling in code for non-SUNOS ++++"
-#endif
-	    retval =
-		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout,
-			   sizeof (struct timeval));
-	    if (retval != 0) {
-		out_syserr(errno,
-			   "Server: failed to set SO_RCVTIMEO on sock fd %i",
-			   sockfd);
-	    }
-
-	    retval =
-		setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout,
-			   sizeof (struct timeval));
-	    if (retval != 0) {
-		out_syserr(errno,
-			   "Server: failed to set SO_SNDTIMEO on sock fd %i",
-			   sockfd);
-	    }
-#endif
 
 	    retval = bind(sockfd, ai->ai_addr, ai->ai_addrlen);
 	    if (retval != 0) {
@@ -219,6 +194,9 @@ _network_start_listening() {
 
 static void
 _network_server_shutdown_and_cleanup(void *wdc) {
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
     int       i, retval, n;
 
     if (!network_server_initialized)
@@ -242,7 +220,14 @@ _network_server_shutdown_and_cleanup(void *wdc) {
 
 	out_dbg("Server: worker_semaphore: value %i, wait until value is %i",
 		i, CONFIG.maxinconnections);
+#ifdef HAVE_NANOSLEEP
+	time_wait.tv_sec = 1;
+	time_wait.tv_nsec = 0;
+	nanosleep(&time_wait, &time_wait_remaining);
+#else
+#warning "Using sleep()"
 	sleep(1);
+#endif
 
 	if (n >= MAXWAITWORKER) {
 	    out_msg
@@ -277,6 +262,9 @@ network_start_server() {
     void     *sock_addr;
     pthread_attr_t tattr;
     pthread_t wdc;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
 
     if (network_server_initialized)
 	return RETVAL_ERR;
@@ -364,7 +352,15 @@ network_start_server() {
 		    out_err
 			("Server: Already %i thread(s) active. Waiting for exit of running threads",
 			 CONFIG.maxinconnections);
+#ifdef HAVE_NANOSLEEP
+		    time_wait.tv_sec = 1;
+		    time_wait.tv_nsec = 0;
+		    nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 		    sleep(1);
+#endif
 
 		    if (n >= MAXWAITWORKER) {
 			/*
@@ -376,7 +372,7 @@ network_start_server() {
 			 * so agentsmith connections won't come thru.
 			 */
 			out_err
-			    ("Server: error waiting for free worker threads");
+			    ("Server: error waiting for exit of running worker threads. Spawning new");
 			break;
 		    }
 		    n++;
@@ -405,8 +401,7 @@ network_start_server() {
 		/*
 		 * The memory has to be free'd by the thread 
 		 */
-		thr_args =
-		    (worker_thread_args_t *)
+		thr_args = (worker_thread_args_t *)
 		    malloc(sizeof (worker_thread_args_t));
 		if (thr_args == NULL) {
 		    out_err("Server: memory exhausted. Dying now");

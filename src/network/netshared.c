@@ -314,6 +314,9 @@ __dbg_dump_host_record(hostrecord_t *ptr) {
     /*
      * Get rid of the newlines 
      */
+    timebuff1[TIMEBUFSIZE - 1] = '\0';
+    timebuff2[TIMEBUFSIZE - 1] = '\0';
+
     timebuff1[strlen(timebuff1) - 1] = '\0';
     timebuff2[strlen(timebuff2) - 1] = '\0';
     out_dbg(format,

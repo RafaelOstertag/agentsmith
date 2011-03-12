@@ -136,9 +136,8 @@ _client_queue_worker(void *arg) {
     char      serverhost[NI_MAXHOST];
     char      serverserv[NI_MAXSERV];
     char      buff[REMOTE_COMMAND_SIZE];
-    int       retval, sockfd, retries = 0, connect_success = 0, errnosav = 0;
+    int       retval, sockfd = -1, retries = 0, connect_success = 0, errnosav = 0;
     ssize_t   writeres;
-    uint32_t  command;
     client_queue_t *queue;
     queue_entry_t *ptr, *nextptr;
 #ifdef HAVE_NANOSLEEP
@@ -366,7 +365,8 @@ _client_queue_worker(void *arg) {
 	}
 #endif /* NOSSL */
 
-	close(sockfd);
+	if ( sockfd > -1 )
+	    close(sockfd);
     }
 
     pthread_cleanup_pop(1);
@@ -427,7 +427,6 @@ client_queue_init(int af, const struct sockaddr *s, socklen_t sl) {
 int
 client_queue_destroy(client_queue_t *queue) {
     int       retval;
-    queue_entry_t *ptr, *next_ptr;
 
     assert(queue != NULL);
 

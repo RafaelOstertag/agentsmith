@@ -99,9 +99,11 @@ network_server_worker(void *args) {
     fd_set    readready;
     int       saverrno;
     struct timeval timeout;
+/*
 #ifdef HAVE_NANOSLEEP
     struct timespec lock_wait, lock_wait_remaining;
 #endif
+*/
 
 #ifndef NOSSL
     BIO      *sbio = NULL;

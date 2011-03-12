@@ -214,8 +214,8 @@ _config_callback_listen(const char *str) {
     int       retval, number_of_listen = 0;
     struct addrinfo hints;
     struct addrinfo *tmp;
-    addrinfo_list_t *newitem;
-    addrinfo_list_t *lastitem;
+    addrinfo_list_t *newitem = NULL;
+    addrinfo_list_t *lastitem = NULL;
 
     assert(CONFIG.listen == NULL);
     /*
@@ -337,8 +337,8 @@ _config_callback_inform(const char *str) {
     int       retval;
     struct addrinfo hints;
     struct addrinfo *tmp;
-    addrinfo_list_t *new_agent;
-    addrinfo_list_t *last_agent;
+    addrinfo_list_t *new_agent = NULL;
+    addrinfo_list_t *last_agent = NULL;
 
     assert(CONFIG.inform_agents == NULL);
     /*

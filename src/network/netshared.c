@@ -271,7 +271,7 @@ uint64_t
 htonll(uint64_t a) {
     struct ___tmp_conv_struct *sa;
     struct ___tmp_conv_struct *sb;
-    uint64_t  b;
+    uint64_t  b = 0;
     register int i;
 
     sa = (struct ___tmp_conv_struct *) &a;

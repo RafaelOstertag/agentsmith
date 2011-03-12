@@ -123,7 +123,6 @@ _netssl_verify_callback(int ok, X509_STORE_CTX * ctx) {
 int
 netssl_initialize() {
     int       retval, i;
-    BIO      *bio_in;
 
     assert(ssl_initialized == 0);
     assert(ssl_ctx_client == NULL);

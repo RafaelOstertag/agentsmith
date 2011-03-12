@@ -59,6 +59,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_OPENSSL_ERR_H
+#include <openssl/err.h>
+#endif
+
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -75,6 +79,7 @@
 #include "output.h"
 #include "globals.h"
 #include "netshared.h"
+#include "netssl.h"
 
 #define SERVERIPUNK "Server IP Unknown"
 #define SERVERSERVUNK "Port unknown"
@@ -131,11 +136,18 @@ _client_queue_worker(void *arg) {
     char      serverhost[NI_MAXHOST];
     char      serverserv[NI_MAXSERV];
     char      buff[REMOTE_COMMAND_SIZE];
-    int       retval, sockfd, retries = 0, connect_success = 0;
+    int       retval, sockfd, retries = 0, connect_success = 0, errnosav = 0;
     ssize_t   writeres;
     uint32_t  command;
     client_queue_t *queue;
     queue_entry_t *ptr, *nextptr;
+#ifdef HAVE_NANOSLEEP
+    struct timespec time_wait, time_wait_remaining;
+#endif
+#ifndef NOSSL
+    BIO      *sbio = NULL;
+    SSL      *ssl = NULL;
+#endif
 
     ptr = NULL;
 
@@ -216,7 +228,15 @@ _client_queue_worker(void *arg) {
 		out_syserr(errno,
 			   "Client Worker [%li]: Unable to open socket",
 			   pthread_self());
+#ifdef HAVE_NANOSLEEP
+		time_wait.tv_sec = CONFIG.inform_retry_wait;
+		time_wait.tv_nsec = 0;
+		nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 		sleep(CONFIG.inform_retry_wait);
+#endif
 		continue;
 	    }
 
@@ -225,7 +245,15 @@ _client_queue_worker(void *arg) {
 		out_syserr(errno,
 			   "Client Worker [%li]: Unable to connect to %s port %s",
 			   pthread_self(), serverhost, serverserv);
+#ifdef HAVE_NANOSLEEP
+		time_wait.tv_sec = CONFIG.inform_retry_wait;
+		time_wait.tv_nsec = 0;
+		nanosleep(&time_wait, &time_wait_remaining);
+#else
+
+#warning "Using sleep()"
 		sleep(CONFIG.inform_retry_wait);
+#endif
 		continue;
 	    }
 	    connect_success = 1;
@@ -240,6 +268,18 @@ _client_queue_worker(void *arg) {
 	    close(sockfd);
 	    continue;
 	}
+#ifndef NOSSL
+	/*
+	 * N.B.: Make sure ssl and sbio are NULL when calling this function
+	 */
+	retval = netssl_client(sockfd, &ssl, &sbio);
+	if (retval != RETVAL_OK) {
+	    out_err
+		("Client Worker [%li]: Unable to establish connection with server %s port %s",
+		 pthread_self(), serverhost, serverserv);
+	    goto SHUTDOWNCONN;
+	}
+#endif /* NOSSL */
 
 	/*
 	 * Process the queue 
@@ -258,14 +298,28 @@ _client_queue_worker(void *arg) {
 	    out_msg("Client Worker [%li]: Send IP Address %s to %s port %s",
 		    pthread_self(), ptr->record->ipaddr, serverhost,
 		    serverserv);
+	    assert(strlen(ptr->record->ipaddr) > 2);
 	    net_command_to_buff(ADD, ptr->record, buff, REMOTE_COMMAND_SIZE);
 
 	    retval = 0;
+#ifndef NOSSL
+	    /*
+	     * Clear, to make SSL_write report error properly 
+	     */
+	    ERR_clear_error();
+	    writeres = SSL_write(ssl, buff, REMOTE_COMMAND_SIZE);
+	    errnosav = errno;
+	    if (writeres != REMOTE_COMMAND_SIZE)
+		netssl_ssl_error_to_string(SSL_get_error(ssl, retval),
+					   errnosav);
+
+#else
 	    writeres = net_write(sockfd, buff, REMOTE_COMMAND_SIZE, &retval);
 	    if (writeres == RETVAL_ERR)
 		out_syserr(retval,
 			   "Client Worker [%li]: Error writing to %s port %s",
 			   pthread_self(), serverhost, serverserv);
+#endif /* NOSSL */
 	    /*
 	     * In case of an error we just continue, since we have to free the
 	     * memory anyway 
@@ -277,6 +331,40 @@ _client_queue_worker(void *arg) {
 	    ptr = nextptr;
 	    pthread_testcancel();
 	}
+
+      SHUTDOWNCONN:
+#ifndef NOSSL
+	if (ssl != NULL) {
+
+	    /*
+	     * Close the SSL connection
+	     */
+	    retval = SSL_shutdown(ssl);
+	  REDO_SHUTDOWN:
+	    switch (retval) {
+	    case 1:
+		out_dbg
+		    ("Client Worker [%li]: SSL shutdown successful for server %s port %s",
+		     pthread_self(), serverhost, serverserv);
+		break;
+	    case 0:
+		retval = SSL_shutdown(ssl);
+		out_dbg
+		    ("Client Worker [%li]: SSL shutdown not yet finished for server %s port %s",
+		     pthread_self(), serverhost, serverserv);
+		goto REDO_SHUTDOWN;
+	    case -1:
+		out_err
+		    ("Client Worker [%li]: SSL shutdown had an error with server %s port %s",
+		     pthread_self(), serverhost, serverserv);
+		break;
+	    }
+
+	    SSL_free(ssl);
+	    ssl = NULL;
+	    sbio = NULL;
+	}
+#endif /* NOSSL */
 
 	close(sockfd);
     }
@@ -395,7 +483,7 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record,
     retval = pthread_mutex_lock(&(queue->mutex));
     if (retval != 0) {
 	out_syserr(retval,
-		   "Client Worker [%li]: error locking queue mutex in client_queue_pop",
+		   "Client Worker [%li]: error locking queue mutex in client_queue_append",
 		   pthread_self());
 	return RETVAL_ERR;
     }
@@ -417,6 +505,8 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record,
 	queue->head->next = NULL;
 	memcpy(queue->head->record, record[0], sizeof (hostrecord_t));
 
+	assert(strlen(queue->head->record->ipaddr) > 2);
+
 	ptr = queue->head;
 
 	for (i = 1; i < len; i++) {
@@ -434,6 +524,7 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record,
 
 	    ptr->next->next = NULL;
 	    memcpy(ptr->next->record, record[i], sizeof (hostrecord_t));
+	    assert(strlen(ptr->next->record->ipaddr) > 2);
 	    ptr = ptr->next;
 	}
 
@@ -463,7 +554,9 @@ client_queue_append(client_queue_t *queue, const hostrecord_t **record,
 	}
 
 	ptr->next->next = NULL;
-	memcpy(ptr->next->record, &record[i], sizeof (hostrecord_t));
+	memcpy(ptr->next->record, record[i], sizeof (hostrecord_t));
+	assert(strlen(record[i]->ipaddr) > 2);
+	assert(strlen(ptr->next->record->ipaddr) > 2);
 	ptr = ptr->next;
 
     }

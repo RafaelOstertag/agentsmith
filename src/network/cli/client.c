@@ -101,15 +101,18 @@ client_queue_record(const hostrecord_t *hr) {
     int       retval;
 
     assert(hr != NULL);
+    assert(strlen(hr->ipaddr) > 2);
 
-    if (client_started == 0)
+    if (client_started == 0) {
 	return RETVAL_ERR;
+    }
 
     if (temp_hr_vector_fill >= HOSTRECORDVECTORLEN) {
 	out_dbg("Client queue flush forced");
 	retval = client_queue_flush();
-	if (retval == RETVAL_ERR)
+	if (retval == RETVAL_ERR) {
 	    return RETVAL_ERR;
+	}
 
 	/*
 	 * LEAVE FUNCTION 
@@ -124,6 +127,7 @@ client_queue_record(const hostrecord_t *hr) {
 	exit(1);
     }
     memcpy(temp_hr_vector[temp_hr_vector_fill], hr, sizeof (hostrecord_t));
+    assert(strlen(temp_hr_vector[temp_hr_vector_fill]->ipaddr) > 2);
 
     ++temp_hr_vector_fill;
 

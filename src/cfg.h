@@ -48,7 +48,7 @@ enum {
     /*
      * Maximum number of inbound connections (threads) 
      */
-    MAX_INCONN = 256,
+    MAX_INCONN = 256
 };
 
 struct _addrinfo_list {

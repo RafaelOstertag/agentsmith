@@ -21,8 +21,8 @@
 .SH DESCRIPTION
 The syntax of the file is very strict. Options must be placed at the
 very beginning of the line. It is not allowed to have leading spaces
-in front of the option. It is also not allowed to have the equal sign
-surrounded by trailing or leading spaces, e.g.:
+in front of the option name. It is also not allowed to have the equal
+sign surrounded by trailing or leading spaces, e.g.:
 .nf
 
 foo = bar
@@ -48,50 +48,59 @@ The following options are recognized:
 .IP \fIpidfile\fR
 The location of the pid file. That is where \fB@PACKAGE@\fR writes the process
 id when run in daemon mode.
-\br
 
 Default: @DEFAULT_PIDFILE@
 .IP \fIsyslogfile\fR
 The location of the file to be monitored, i.e. this file will be continuously
 monitored for new lines which are matched against the regular expression (see
 \fIregex\fR further down).
-\br
 
 Default: /var/log/authlog
 .IP \fIaction_threshold\fR
 The number of occurrences of a host until the action script will be called (see
 also \fItime_interval\fR). In this context, the term occurrence refers to the
 matching of the regular expression to  a line in \fIlogfile\fR.
-\br
 
 Default: 3
 .IP \fItime_interval\fR
-The action script will be called a host has \fIaction_threshold\fR occurrences
-within this time span in seconds.
-\br
+The action script will be called if a host has \fIaction_threshold\fR
+occurrences within this time span (in seconds).
 
 Default: 60
 .IP \fIpurge_after\fR
-If a host has no occurrence in the log file for \fIpurge_after\fR seconds, it
-will be purged from memory. For each host that is purged, the action script
-will be called (see also @PACKAGE@(@ADM_SECTION@)).
-\br
+If a host has no more occurrence in the log file for \fIpurge_after\fR
+seconds, it will be purged from memory. For each host that is purged,
+the action script will be called (see also @PACKAGE@(@ADM_SECTION@)).
 
 Default: 3600
+.IP \fIserver\fR
+Enable the server mode of agentsmith. In server mode, agentsmith
+allows other agentmsith daemons to update the local host records, and
+thus make the server execute the action script. A value of 1 (`one')
+enables the server. A value of 0 (`zero') disables the server.
+
+If the server is enabled, agentsmith requires \fIssl_ca_cert\fR,
+\fIssl_server_cert\fR, and \fIss_server_key\fR to be set properly.
+
+Default: 0
 .IP \fIaction\fR
 The file path to the action script. It will be called if a)
 \fIaction_threshold\fR is reached or exceeded in \fItime_interval\fR
 seconds b) the host record is removed due to purging.
-\br
+
 The action script is called with the following options
 .nf
 
- <\fIip_address\fR> <\fIoccurrences\fR> \fInew\fR|\fIremove\fR
+ <\fIip_address\fR> <\fIoccurrences\fR> \fInew\fR|\fIremove\fR <\fIorigin\fR>
 .fi
 
 The literal \fInew\fR is passed when a host meets the action threshold and time
 interval criteria. The literal \fIremove\fR is passed when a host is purged
 from memory.
+
+\fIorigin\fR is either the literal \fIlocalhost\fR if the host
+appeared in the local \fIsyslog\fR file, or the IP address of the
+agentsmith client sending this host information.
 \br
 
 Default: /bin/true
@@ -99,13 +108,11 @@ Default: /bin/true
 File that contains IP addresses to be ignored by \fB@PACKAGE@\fR. The
 specified file will be re-read upon \fISIGHUP\fR. See also
 agentsmith_exclude(@FILE_SECTION@).
-\br
 
 Default: none
 .IP \fIregex\fR
 The regular expression used to identify the IP address of offending hosts. See
 REGULAR EXPRESSION.
-\br
 
 Default: Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
 .\"=========================================================

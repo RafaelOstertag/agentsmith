@@ -24,10 +24,10 @@
 \fB@PACKAGE@\fR can be configured to ignore IP Addresses. The action
 script will not be executed for hosts appearing in the
 \fB@PACKAGE@_exclude\fR file. The \fIexclude\fR directive in
-@PACKAGE@.conf(@FILE_SECTION@) is used to specify the file to be read
-containing.
+@PACKAGE@.conf(@FILE_SECTION@) is used to specify the IP exclusion
+file.
 .P
-It is possible to specify entire IP ranges using prefix length or
+It is possible to specify entire IP ranges using a prefix length or a
 single IP addresses. Both IPv4 and IPv6 addresses are supported.
 .P
 \fB@PACKAGE@\fR expects one IP address or range per line. Lines

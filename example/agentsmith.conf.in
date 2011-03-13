@@ -93,7 +93,7 @@ server_timeout=5
 inform=0
 
 # Controls whether remote agentsmith informations are authoritative,
-# i.e. circumvent ip exclude checks.
+# i.e. circumvent IP exclude checks.
 #
 # 0 - non-authoritative
 # 1 - authoritative
@@ -121,8 +121,20 @@ inform_retry=30
 # Default 3
 inform_retry_wait=3
 
-# The CA Trust Store
+# The CA PEM file. If more than one CA is used, 
 ssl_ca_trust=
+
+# The server certificate
+ssl_server_cert=
+
+# The server private key
+ssl_server_key=
+
+# The client certificate
+ssl_client_cert=
+
+# The client private key
+ssl_client_key=
 
 # The action script. It will be called if 
 #

@@ -12,6 +12,8 @@ AC_PROG_CC
 AC_PROG_SED
 AC_PROG_RANLIB
 
+AC_SUBST([CPPFLAGS],["$CPPFLAGS -D_POSIX_PTHREAD_SEMANTICS=1"])
+
 # Checks for libraries.
 AC_USE_SYSTEM_EXTENSIONS
 AX_CHECK_SUNPRO_C(
@@ -109,13 +111,17 @@ AC_CHECK_MEMBER([struct in6_addr.__in6_u.__u6_addr8],
 )
 
 # Checks for library functions.
-AC_CHECK_LIB([nsl],[gethostbyname])
-AC_CHECK_LIB([socket],[connect])
-AC_CHECK_LIB([rt],[sem_init])
-AC_CHECK_LIB([ssl],[SSL_library_init])
-AC_CHECK_LIB([crypto],[ERR_load_crypto_strings])
-AC_CHECK_LIB([pcre],[pcre_compile],,[
-	AC_MSG_ERROR([libpcre was not found.])
+AC_SEARCH_LIBS([gethostbyname],[nsl])
+AC_SEARCH_LIBS([connect],[socket])
+AC_SEARCH_LIBS([sem_init],[rt])
+AC_SEARCH_LIBS([nanosleep],[rt])
+AC_SEARCH_LIBS([ERR_load_crypto_strings],[crypto],,
+	[AC_MSG_ERROR([libcrypto not found.])])
+AC_SEARCH_LIBS([SSL_library_init],[ssl],,
+	[AC_MSG_ERROR([libssl not found])],
+	[-lcrypto])
+AC_SEARCH_LIBS([pcre_compile],[pcre],,[
+	AC_MSG_ERROR([libpcre not found.])
 ])
 AC_SEARCH_LIBS([inet_pton],[c nsl],,[
         AC_MSG_ERROR([inet_pton() not found.])
@@ -132,7 +138,7 @@ AC_FUNC_FORK
 AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
 	AC_MSG_ERROR([libpcre lacks crucial function(s)])])
 
-AC_CHECK_FUNCS([atoi strerror vsnprintf strsep strchr strncpy usleep strdup memset htonl inet_pton inet_ntop sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime getaddrinfo freeaddrinfo gai_strerror socket connect accept bind select ntohl sem_destroy sem_init sem_trywait sem_post])
+AC_CHECK_FUNCS([atoi strerror vsnprintf strsep strchr strncpy usleep strdup memset htonl inet_pton inet_ntop sigprocmask sigaction pthread_mutex_init pthread_mutex_destroy pthread_create pthread_join pthread_testcancel pthread_cancel ceil ctime_r ctime getaddrinfo freeaddrinfo gai_strerror socket connect accept bind select ntohl sem_destroy sem_init sem_trywait sem_post nanosleep])
 
 AC_C_BIGENDIAN
 # Enable
@@ -171,6 +177,7 @@ myOS=`uname -s 2>/dev/null`
 case x$myOS in
      xSunOS)
      AC_DEFINE([KERNEL_SUNOS],[1],[Set to 1 if compiling on SunOS])
+     
      ;;
      xFreeBSD)
      AC_DEFINE([KERNEL_FREEBSD],[1],[Set to 1 if compiling on FreeBSD])

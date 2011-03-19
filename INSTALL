@@ -15,17 +15,18 @@ The default location of the configuration file is
 
    $SYSCONFDIR/agentsmith/agentsmith.conf
 
-Those  location can  be  changed by  either specifying  --localstatedir=<PATH>,
+Those location can be changed by either specifying --localstatedir=<PATH>,
 --sysconfdir=<PATH>, --with-pid=<FILEPATH>, or --with-config=<FILEPATH>.
 
-If the PCRE library cannot be found, make sure you set the proper CPPFLAGS, and 
-LDFLAGS environment variable before calling configure, e.g. 
+If the PCRE or OpenSSL library cannot be found, make sure you set the proper
+CPPFLAGS, and LDFLAGS environment variable before calling configure, e.g.
 
     $ export CPPFLAGS='-I/usr/local/include'
     $ export LDFLAGS='-L/usr/local/lib'
 
-Further, ensure that  the development packages for PCRE  are installed, this is
-especially important if you build agentsmith on a Linux distribution.
+Further, ensure that the development packages for PCRE and OpenSSL are
+installed, this is especially important if you build agentsmith on a Linux
+distribution.
 
 That's all folks.
 

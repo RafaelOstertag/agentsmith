@@ -1,9 +1,9 @@
 				  agentsmith
 
-		      Copyright (c) 2010 Rafael Ostertag
+		   Copyright (c) 2010. 2011 Rafael Ostertag
 
 
-agentsmith  is  a  daemon  that  monitors  a  log  file  for  remote  break-in
+agentsmith  is  a  daemon  that   monitors  a  log  file  for  remote  break-in
 attempts. It uses  a user customizable regular expression  to identify break-in
 attempts and calls a script or other suitable application upon detection.
 
@@ -17,7 +17,7 @@ agentsmith is known to work on Solaris 10, OpenSolaris, FreeBSD, OpenBSD, and
 Linux.
 
 It  requires a  more  or  less recent  version  of the  PCRE  library which  is
-available from http://www.pcre.org.
+available at http://www.pcre.org and OpenSSL (http://www.openssl.org).
 
 
 Installation

@@ -1,12 +1,12 @@
 NEWS
 ====
 
-agentsmith 0.2pre1
+agentsmith 0.2
 
  * Added support for IP Address exclusion.
 
  * Agentsmith can now act as server/client, exchanging information of break-in
-   attempts.
+   attempts securely using SSL.
 
 
 agentsmith 0.1

@@ -27,15 +27,14 @@ syslogfile=/var/log/authlog
 # Default: 3
 action_threshold=3
 
-# Maximum time between subsequent matches in
-# seconds. 'action_threshold' occurences of break-in attempts have to
-# happen within this time interval
+# Maximum time between subsequent matches in seconds. 'action_threshold'
+# occurences of break-in attempts have to happen within this time interval
 #
 # Default: 60
 time_interval=60
 
-# Remove host records after this many seconds have elapsed (this
-# should obviously be a value greater than time_interval)
+# Remove host records after this many seconds have elapsed (this should
+# obviously be a value greater than time_interval)
 #
 # Default: 3600
 purge_after=3600
@@ -123,25 +122,33 @@ inform_retry=30
 # Default 3
 inform_retry_wait=3
 
-# The CA PEM file. If more than one CA is used, they can be pasted in
-# this file.
+# The CA PEM file. If more than one CA is used, they can be pasted in this
+# file.
+#
+# Default none
 ssl_ca_file=
 
 # The server certificate.
 ssl_server_cert=
 
-# The server private key. If the private key is encrypted, agentsmith
-# will prompt for a password.
+# The server private key. If the private key is encrypted, agentsmith will
+# prompt for a password.
+#
+# Default none
 ssl_server_key=
 
 # The client certificate.
+#
+# Default none
 ssl_client_cert=
 
-# The client private key. If the private key is encrypted, agentsmith
-# will prompt for a password.
+# The client private key. If the private key is encrypted, agentsmith will
+# prompt for a password.
+#
+# Default none
 ssl_client_key=
 
-# The action script. It will be called if 
+# The action script. It will be called if
 #
 # a) action_threshold is reached in time_interval seconds.
 #

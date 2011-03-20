@@ -216,13 +216,6 @@ netssl_initialize() {
 	    exit(1);
 	}
 
-	if (!SSL_CTX_use_certificate_file
-	    (ssl_ctx_client, CONFIG.ssl_client_cert, SSL_FILETYPE_PEM)) {
-	    out_err("Unable to load client certificate (%s)",
-		    ERR_reason_error_string(ERR_get_error()));
-	    exit(1);
-	}
-
 	if (!SSL_CTX_use_PrivateKey_file
 	    (ssl_ctx_client, CONFIG.ssl_client_key, SSL_FILETYPE_PEM)) {
 	    out_err("Unable to load client key (%s)",

@@ -58,7 +58,7 @@ errors.
 .P
 After successful start \fB@PACKAGE@\fR will fork to background (unless the
 \fB-d\fR option is provided) and monitor the log file specified in the
-configuration dilw. It will only read new linwa added to the log file. Lines
+configuration file. It will only read new linwa added to the log file. Lines
 present in the log file prior starting \fB@PACKAGE@\fR are be ignored.
 .P
 Each new line added to the log file will be matched against the regular
@@ -103,7 +103,7 @@ expired. In that case, the script will be invoked with the following arguments:
 <\fIipaddress\fR> <\fIoccurrences\fR> remove <\fIsender\fR>
 .fi
 
-<\fIipaddress\fR>, <\fIoccurrences\fR>, and <\fIsender\ are the same as in case
+<\fIipaddress\fR>, <\fIoccurrences\fR>, and <\fIsender\fR> are the same as in case
 1) however <\fIoccurrences\fR> may be higher (depending on the action that was
 taken, i.e. the host has not been blocked by the action script). The literal
 word 'remove' is used to indicate that the host will be purged from memory.
@@ -117,7 +117,11 @@ It is important that the execution bit is set (see also chmod(1)) and
 .\"=========================================================
 .\" Inform Mode
 .\"=========================================================
-.SH Inform Mode
+.SH 
+.\"=========================================================
+.\" Inform Mode
+.\"=========================================================
+.SS Inform Mode
 \fB@PACKAGE@\fR can inform other agentsmith instances running on remote hosts
 of break-in attempts detected.
 .P
@@ -125,7 +129,7 @@ In order to provide authentication, \fB@PACKAGE\fR employs SSL.
 .\"=========================================================
 .\" Server Mode
 .\"=========================================================
-.SH Server Mode
+.SS Server Mode
 \fB@PACKAGE@\fR can receive IP addresses to block from remote \fB@PACKAGE@\fR
 instances. Upon receiving IP addresses from remote instances, the action script
 of the receiving \fB@PACKAGE@\

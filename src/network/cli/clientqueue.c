@@ -273,7 +273,7 @@ _client_queue_worker(void *arg) {
 
 	if (connect_success != 1) {
 	    out_err
-		("Client Worker [%li]: Unable to connecto to %s port %s. Tried %i times",
+		("Client Worker [%li]: Unable to connect to %s port %s. Tried %i times",
 		 pthread_self(), serverhost, serverserv, retries);
 	    _client_queue_disintegrate_queue(ptr);
 	    close(sockfd);

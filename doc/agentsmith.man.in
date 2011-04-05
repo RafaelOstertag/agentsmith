@@ -40,7 +40,7 @@ script or application.
 .P
 The criteria what is considered a break-in attempt can be configured by means
 of a regular expression. See @PACKAGE@.conf(@FILE_SECTION@) for further
-information about this.
+information on this.
 .\"=========================================================
 .\" OPTIONS
 .\"=========================================================
@@ -93,38 +93,40 @@ option is provided) and monitor the log file specified in the configuration
 file. It will only read new lines added to the log file. Lines present in the
 log file prior starting
 .B @PACKAGE@
-are be ignored.
+are ignored.
 .P
 Each new line added to the log file will be matched against the regular
 expression specified in the configuration file. If a line matches,
 .B @PACKAGE@
-will read the value from the catching expression which has to
-be a host IP address. This IP address will then be remembered by
+will read the value from the catching expression which has to be a host IP
+address (hereafter called ``offending host''). The offending host will then be
+remembered by
 .B @PACKAGE@.
-If the host IP address exceeds the configured threshold of occurrences within
-the specified time span, the action script will be called.
+If the offending host exceeds the configured threshold of occurrences within
+a specified time span, the action script will be called.
 .P
-The action script is only called once for each host that meets the above
+The action script is only called once for each offending host that meets the above
 mentioned criteria.
 .P
-If a IP address remembered by
+However, the last seen time stamp will be updated regardless, for each further occurrence of the
+offending host after the action script has been called.
+.P
+If an IP address remembered by
 .B @PACKAGE@
 is not seen for a specified amount of time, the action script will be called
-again and the IP address will be purged from memory.
+again and the offending host will be purged from memory.
 .P
 .B @PACKAGE@
-uses no persistent storage for holding the host IP addresses, thus the
-information is only kept during the run time of the process and is lost upon
-termination.
-.P
-\fB@PACKAGE@\fR
+uses no persistent storage for storing offending hosts, thus the information is
+only kept during the run-time of the process and is lost upon termination.
 .\"== Action Script
 .SS Action Script
 The action script is called in two cases:
 .TP 5
 1)
-A host has triggered the action script as explained above. The script will be
-invoked by
+.\"
+An offending host has triggered the action script as explained above. The
+script will be invoked by
 .B @PACKAGE@
 with the following arguments:
 .sp 1
@@ -136,14 +138,15 @@ with the following arguments:
 <\fIipaddress\fR> is the IP address of the offending host, i.e. the IP address
 that has been catched by the regular expression. <\fIoccurrences\fR> is the
 number of occurrences. The literal word 'new' is used to indicate that the call
-of the action script is for a new host. <\fIsender\fR> is the origin of the IP
-address, i.e. the instance of agentsmith that encountered the IP address of the
-offending host (see Networking).
+of the action script is for a new host. <\fIsender\fR> is the origin of the
+offending host, i.e. the instance of agentsmith that encountered the offending
+host (see Networking).
 .TP
 2)
-A host entry will be purged from memory, due to user request or because it
-has expired. In that case, the script will be invoked with the following
-arguments:
+.\" 
+An offending host entry will be purged from memory, due to user request or
+because it has expired. In either case, the script will be invoked with the
+following arguments:
 .sp 1
 .ti 20
 .nf
@@ -152,12 +155,12 @@ arguments:
 .sp 1
 <\fIipaddress\fR>, <\fIoccurrences\fR>, and <\fIsender\fR> are the same as in
 case 1) however <\fIoccurrences\fR> may be higher. The literal word 'remove' is
-used to indicate that the host will be purged from memory.
+used to indicate that the offending host will be purged from memory.
 .P
 The action script is the corner stone of 
 .B @PACKAGE@.
-You are completely free to put whatever you suit in this file, e.g. commands
-for updating firewall rules, commands for sending mails, and so on.
+You are completely free to put whatever you suits in this file, e.g. commands
+for updating firewall rules, for sending mails, and so on.
 .P
 It is important that the execution bit is set (see also chmod(1)) and
 .B @PACKAGE@
@@ -167,14 +170,15 @@ has read and execution access to the file.
 .\"=========================================================
 .SS Networking
 .B @PACKAGE@
-can exchange host records (IP addresses) with instances running on remote hosts
-and thus trigger remote action scripts.
+can exchange information on offending hosts with instances running on remote
+hosts and thus trigger remote action scripts.
 .P
 In order to provide authentication and prevent unauthorized access
 .B @PACKAGE@
 employs OpenSSL.
 .B @PACKAGE@
-will not work without proper SSL certificates.
+will only exchange information with a another instance if both sides can verify
+the certificate of the peer. 
 .\" == Inform Mode
 .TP 5
 .B Inform Mode

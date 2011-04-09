@@ -23,13 +23,13 @@ The syntax of the file is very strict. Options must be placed at the
 very beginning of the line. It is not allowed to have leading spaces
 in front of the option name. It is also not allowed to have the equal
 sign surrounded by trailing or leading spaces, e.g.:
+.sp 1
 .nf
-
 foo = bar
 foo= bar
 foo =bar
-
 .fi
+.sp 1
 are all invalid configuration directives.
 .P
 Comments start with a \fB#\fR at the beginning of the line with no leading
@@ -45,89 +45,269 @@ configuration file has been altered.
 .\"=========================================================
 .SH OPTIONS
 The following options are recognized:
-.IP \fIpidfile\fR
-The location of the pid file. That is where \fB@PACKAGE@\fR writes the process
-id when run in daemon mode.
-
+.\" pidfile
+.TP 5
+.I pidfile
+The location of the PID file. That is where \fB@PACKAGE@\fR writes the PID of
+the daemon when run in daemon mode.
+.sp 1
 Default: @DEFAULT_PIDFILE@
-.IP \fIsyslogfile\fR
-The location of the file to be monitored, i.e. this file will be continuously
+.\" syslogfile
+.TP
+.I syslogfile
+The location of the file to be monitored, i.e. the file that will be continuously
 monitored for new lines which are matched against the regular expression (see
 \fIregex\fR further down).
-
+.sp 1
 Default: /var/log/authlog
-.IP \fIaction_threshold\fR
+.\" action_threshold
+.TP
+.I action_threshold
 The number of occurrences of a host until the action script will be called (see
 also \fItime_interval\fR). In this context, the term occurrence refers to the
-matching of the regular expression to  a line in \fIlogfile\fR.
-
+matching of the regular expression to a line in \fIlogfile\fR.
+.sp 1
 Default: 3
-.IP \fItime_interval\fR
+.\" time_interval
+.TP
+.I time_interval
 The action script will be called if a host has \fIaction_threshold\fR
 occurrences within this time span (in seconds).
-
+.sp 1
 Default: 60
-.IP \fIpurge_after\fR
-If a host has no more occurrence in the log file for \fIpurge_after\fR
-seconds, it will be purged from memory. For each host that is purged,
-the action script will be called (see also @PACKAGE@(@ADM_SECTION@)).
-
+.TP
+.\" purge_after
+.I purge_after
+If a host has no more occurrences in the log file for \fIpurge_after\fR
+seconds, it will be purged from memory. For each host that is purged, the
+action script will be called (see also @PACKAGE@(@ADM_SECTION@)).
+.sp 1
 Default: 3600
-.IP \fIserver\fR
-Enable the server mode of agentsmith. In server mode, agentsmith
-allows other agentmsith daemons to update the local host records, and
-thus make the server execute the action script. A value of 1 (`one')
-enables the server. A value of 0 (`zero') disables the server.
-
-If the server is enabled, agentsmith requires \fIssl_ca_cert\fR,
-\fIssl_server_cert\fR, and \fIss_server_key\fR to be set properly.
-
-Default: 0
-.IP \fIaction\fR
-The file path to the action script. It will be called if a)
-\fIaction_threshold\fR is reached or exceeded in \fItime_interval\fR
-seconds b) the host record is removed due to purging.
-
+.TP
+.\" action
+.I action
+The file path to the action script. It will be called if \fIaction_threshold\fR
+is reached or exceeded in \fItime_interval\fR seconds, or the offending host is
+removed from memory due to purging.
+.br
 The action script is called with the following options
+.sp 1
+.ti 15
 .nf
-
  <\fIip_address\fR> <\fIoccurrences\fR> \fInew\fR|\fIremove\fR <\fIorigin\fR>
 .fi
-
+.sp 1
 The literal \fInew\fR is passed when a host meets the action threshold and time
 interval criteria. The literal \fIremove\fR is passed when a host is purged
 from memory.
-
+.br
 \fIorigin\fR is either the literal \fIlocalhost\fR if the host
 appeared in the local \fIsyslog\fR file, or the IP address of the
-agentsmith client sending this host information.
-\br
-
+.B @PACKAGE@
+instance sending the offending host information.
+.sp 1
 Default: /bin/true
-.IP \fIexclude\fR
-File that contains IP addresses to be ignored by \fB@PACKAGE@\fR. The
-specified file will be re-read upon \fISIGHUP\fR. See also
+.\" exclude
+.TP
+.I exclude
+File that contains IP addresses to be ignored by \fB@PACKAGE@\fR. The specified
+file will be re-read upon \fISIGHUP\fR. See also
 agentsmith_exclude(@FILE_SECTION@).
-
+.sp 1
 Default: none
-.IP \fIregex\fR
+.\" regex
+.TP
+.I regex
 The regular expression used to identify the IP address of offending hosts. See
 REGULAR EXPRESSION.
-
-Default: Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
+.sp 1
+Default: Failed keyboard-interactive for [\\w ]+ from
+([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
+.\"== Networking Options
+.SS Networking Options
+Options in this section are used to configure communication between 
+.B @PACKAGE@
+instances. Please note, that SSL has to be set up when network
+communication is enabled, too (see SSL Configuration below).
+.\" server
+.TP 5
+.I server
+Enable the server mode of 
+.B @PACKAGE@.
+In server mode,
+.B @PACKAGE@
+allows other remote
+.B @PACKAGE@
+instances to trigger the local action script. A value of 1 (`one') enables the
+server. A value of 0 (`zero') disables the server.
+.br
+If the server is enabled,
+.B @PACKAGE@
+requires
+.I ssl_ca_cert,
+.I ssl_server_cert,
+and
+.I ssl_server_key
+to be set properly.
+.sp 1
+Default: 0
+.\" maxinconnections
+.TP
+.I maxinconnections
+The maximum concurrent connections allowed from remote
+.B @PACKAGE@
+instances. The maximum value is 256.
+.sp 1
+Default: 5
+.\" server_timeout
+.TP
+.I server_timeout
+Time to wait for data from remote
+.B @PACKAGE@
+instances in seconds.
+.sp 1
+Default: 5
+.\" listen
+.TP
+.I listen
+This tells 
+.B @PACKAGE@
+on which IP addresses to listen. IPv4/IPv6 Adresses and
+host names can be used. IPv6 addresses have to be enclosed in square brackets,
+e.g.
+.sp 1
+.ti 15
+.nf
+[fe80::e2cb:4eff:feb7:2af5]
+.fi
+.sp 1
+At maximum 256 IP addresses can be specified, each separated by space. The
+listening port can be specified using a colon. If no port is specified, the
+default port 48621 is used (see also
+.B EXAMPLE).
+.br
+Please note, that if a host name resolves to multiple IP addresses,
+.B @PACKAGE@
+tries to listen on all addresses resolved.
+.sp 1
+Default: 0.0.0.0:48621
+.\" remote_authoritative
+.TP
+.I remote_authoritative
+If set to 1 (`one')
+.B @PACKAGE@
+will not consult the exclusion file specified with
+.I exclude
+when receiving offending host information from remote
+.B @PACKAGE@
+instances. Setting this option to 0 (`zero') makes
+.B @PACKAGE@
+check offending hosts received from remote instances whether they are to be
+ignored.
+.sp 1
+Default: 0
+.\" inform
+.TP
+.I inform
+If set to 1 (`one') let inform
+.B @PACKAGE@
+other
+.B @PACKAGE@
+instances about occurrences of offending hosts and thus trigger remote actions
+scripts. It will only inform instances specified with the
+.I inform_agent
+options.
+.P
+Enabling this option requires also
+.I ssl_ca_file,
+.I ssl_client_cert,
+and
+.I ssl_client_key
+to be set.
+.sp 1
+Default: 0
+.\" inform_agent
+.TP
+.I inform_agent
+A space separated list of IPv4/IPv6 addresses or host names to be informed
+about offending hosts. The syntax is identical to the
+.I listen
+option above.
+.sp 1
+Default: none
+.\" inform_retry
+.TP
+.I inform_retry
+How many times
+.B @PACKAGE@
+should retry to connect a remote instance if it is not responding.
+.sp 1
+Default: 30
+.\" inform_retry_wait
+.TP
+.I inform_retry_wait
+How many seconds to wait between subsequent attempts to connect remote
+.B @PACKAGE@
+instances. If after
+.I inform_retry
+*
+.I inform_retry_wait
+seconds an instance cannot be connected, the data to be sent to this instance
+is discarded.
+.sp 1
+Default: 3
+.\" == SSL Configuration
+.SS SSL Configuration
+In order to communicate with remote instances,
+.B @PACKAGE@
+uses SSL for encryption and authentication. Network communication is not
+possible without proper SSL certificates.
+.TP 5
+.I ssl_ca_file
+Path to the file containing the Certificate Authority bundle in PEM format used
+in Server and Inform Mode.
+.sp 1
+Default: none
+.TP
+.I ssl_server_cert
+Path to the file containing the server certificate in PEM format.
+.sp 1
+Default: none
+.TP
+.I ssl_server_key
+Path to the file containing the server private key in PEM format. Please note,
+that if the key is encrypted
+.B @PACKAGE@
+will prompt for the password.
+.sp 1
+Default: none
+.TP
+.I ssl_client_cert
+Path to the file containing the client certificate in PEM format.
+.sp 1
+Default: none
+.TP
+.I ssl_client_key
+Path to the file containing the client private key in PEM format. Please not,
+that if the key is encrypted
+.B @PACKAGE@
+will prompt for the password.
+.sp 1
+Default: none
 .\"=========================================================
 .\" REGULAR EXPRESSION
 .\"=========================================================
 .SH REGULAR EXPRESSION
-\fB@PACKAGE@\fR uses Perl compatible regular expressions. The expression used by
-\fB@PACKAGE@\fR may only contain one catching pattern \'(...)\' which has to
-catch the IP address of the offending host. If you need to use alternations
-\'(...|...)\' write them like this
+\fB@PACKAGE@\fR uses Perl compatible regular expressions. The expression used
+by \fB@PACKAGE@\fR may only contain one catching pattern \'(...)\' which has to
+catch the IP address of the offending host. If alternations \'(...|...)\' have
+to be used, they can be written as follows
+.sp 1
+.ti 15
 .nf
-
 (?:a|b)
 .fi
-
+.sp 1
 Invoking \fB@PACKAGE@\fR with the \fB-t\fR option set will test the regular
 expression for correctness as required by \fB@PACKAGE@\fR.
 .\"=========================================================
@@ -135,23 +315,24 @@ expression for correctness as required by \fB@PACKAGE@\fR.
 .\"=========================================================
 .SH EXAMPLE
 This is an example configuration with default values filled in
+.sp 1
 .nf
-
-pidfile=@DEFAULT_PIDFILE@
-syslogfile=/var/log/authlog
-action_threshold=3
-time_interval=60
-purge_after=3600
-action=/bin/true
-regex=Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
+  pidfile=@DEFAULT_PIDFILE@
+  syslogfile=/var/log/authlog
+  action_threshold=3
+  time_interval=60
+  purge_after=3600
+  action=/bin/true
+  server=1
+  listen=127.0.0.1:48621 [::1]:48621 host.example.com:48650
+  regex=Failed keyboard-interactive for [\\w ]+ from ([\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3})
 .fi
-
 .\"=========================================================
 .\" SEE ALSO
 .\"=========================================================
 .SH SEE ALSO
 @PACKAGE@(@ADM_SECTION@), agentsmith_exclude(@FILE_SECTION@), PCRE \-
-Perl Compatible Regular Expressions (http://www.pcre.org)
+Perl Compatible Regular Expressions (http://www.pcre.org), OpenSSL (http://www.openssl.org)
 .\"=========================================================
 .\" AUTHOR
 .\"=========================================================

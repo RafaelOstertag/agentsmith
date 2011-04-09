@@ -1,4 +1,4 @@
-\" -*- nroff -*-
+.\" -*- nroff -*-
 .\" $Id$
 .TH @PACKAGE@ @ADM_SECTION@ 2011
 .\"=========================================================
@@ -53,7 +53,7 @@ File path of the configuration file to use. If not specified, the default
 @DEFAULT_CONFIGFILE@ is used. See also @PACKAGE@.conf(@FILE_SECTION@).
 .TP
 \fB\-p\fR \fIpidfile\fR
-File path of the file where the pid of the daemon will be written to. If not
+File path of the file where the PID of the daemon will be written to. If not
 specified, the default @DEFAULT_PIDFILE@ is used.
 .TP
 .B \-d
@@ -96,7 +96,7 @@ log file prior starting
 are ignored.
 .P
 Each new line added to the log file will be matched against the regular
-expression specified in the configuration file. If a line matches,
+expression. If a line matches,
 .B @PACKAGE@
 will read the value from the catching expression which has to be a host IP
 address (hereafter called ``offending host''). The offending host will then be
@@ -136,11 +136,12 @@ with the following arguments:
 .fi
 .sp 1
 <\fIipaddress\fR> is the IP address of the offending host, i.e. the IP address
-that has been catched by the regular expression. <\fIoccurrences\fR> is the
+that has been caught by the regular expression. <\fIoccurrences\fR> is the
 number of occurrences. The literal word 'new' is used to indicate that the call
 of the action script is for a new host. <\fIsender\fR> is the origin of the
-offending host, i.e. the instance of agentsmith that encountered the offending
-host (see Networking).
+offending host, i.e. the instance of
+.B @PACKAGE@
+that encountered the offending host (see Networking).
 .TP
 2)
 .\" 
@@ -179,28 +180,42 @@ employs OpenSSL.
 .B @PACKAGE@
 will only exchange information with a another instance if both sides can verify
 the certificate of the peer. 
-.\" == Inform Mode
+.\"== Inform Mode
 .TP 5
 .B Inform Mode
 In inform mode
 .B @PACKAGE@
 can inform other
 .B @PACKAGE@
-instances running on remote hosts of break-in attempts detected.
+instances running on remote hosts of offending hosts detected. It will,
+however, not inform remote instances when offending hosts are purged from
+memory. Further,
+.B @PACKAGE@
+informs other instances only if the offending host triggers the action script,
+any further occurrence of the offending host will not passed on to remote
+instances.
 .br
 It is possible to specify several
 .B @PACKAGE@
-instances to be informed about new host records.
-.\" == Server Mode
+instances to be informed about offending hosts.
+.\"== Server Mode
 .TP
 .B Server Mode
 .B @PACKAGE@
-can receive host records to block from remote
+can receive offending hosts to block from remote
 .B @PACKAGE@
-instances. Upon receiving host records from remote instances, the action script
+instances. Upon receiving offending host informations from remote instances, the action script
 of the receiving
 .B @PACKAGE@
 will be called.
+.br
+.B @PACKAGE@
+can be configured to check remotely received offending hosts for exclusion, or
+to ignore the local exclusion list.
+.P
+It is possible to run
+.B @PACKAGE@
+in both modes simultaneously.
 .\"=========================================================
 .\" CONFIGURATION
 .\"=========================================================
@@ -221,7 +236,8 @@ is
 Regular messages are sent to
 .B daemon.info.
 Error messages are sent to
-.B daemon.error. If
+.B daemon.error.
+If
 .B @PACKAGE@
 is compiled with debug code, debug messages are sent to
 .B daemon.debug.
@@ -238,14 +254,14 @@ Following signals are recognized (see also kill(1)):
 .TP 5
 .I SIGHUP
 If an exclude file has been specified (see also
-agentsmith_exclude(@FILE_SECTION@)), its content will be re-read.
+@PACKAGE@_exclude(@FILE_SECTION@)), its content will be re-read.
 .TP
 .I SIGUSR1
-Request the list of the hosts that have attempted to break\-in will be printed
-to the system log (see also LOGGING).
+Request the list of offending hosts. It will be printed to the system log (see
+also LOGGING).
 .TP
 .I SIGUSR2
-Request that the known hosts are purged from the memory. This will also call
+Request that all offending hosts are purged from memory. This will also call
 the action script with the 'remove' option.
 .TP
 .I SIGTERM
@@ -258,7 +274,7 @@ gracefully.
 .SH FILES
 .TP 5
 .I @DEFAULT_PIDFILE@
-The default file path of the pid file. Can be overridden with the
+The default file path of the PID file. Can be overridden with the
 .B -p
 option.
 .TP
@@ -277,9 +293,10 @@ Although calling
 with the
 .B -t
 option shows no error, it is possible that
-.B @PACKAGE@ does not start because it cannot write the pid
-file. Please make sure you check the system log after starting
-.B@PACKAGE@
+.B @PACKAGE@
+does not start because it cannot write the PID file. Please make sure you check
+the system log after starting
+.B @PACKAGE@
 as daemon to make sure it started successfully.
 .TP
 *
@@ -305,7 +322,7 @@ it will repeatedly suspend for 30 seconds until the file reappears.
 .\" SEE ALSO
 .\"=========================================================
 .SH SEE ALSO
-@PACKAGE@.conf(@FILE_SECTION@), agentsmith_exclude(@FILE_SECTION@)
+@PACKAGE@.conf(@FILE_SECTION@), @PACKAGE@_exclude(@FILE_SECTION@)
 .\"=========================================================
 .\" AUTHOR
 .\"=========================================================

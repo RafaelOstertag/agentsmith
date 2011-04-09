@@ -3,9 +3,12 @@
 		   Copyright (c) 2010, 2011 Rafael Ostertag
 
 
-agentsmith  is  a  daemon  that   monitors  a  log  file  for  remote  break-in
-attempts. It uses  a user customizable regular expression  to identify break-in
-attempts and calls a script or other suitable application upon detection.
+agentsmith  is a  daemon that  continuously monitors  a log  file  for break-in
+attempts by remote  hosts. Upon detection of a break-in  attempt, it launches a
+user defined script or application.
+
+The criteria what  is considered a break-in attempt can  be configured by means
+of a regular expression.
 
 For more information refer to the man pages.
 
@@ -29,9 +32,9 @@ Refer to the INSTALL file
 Examples
 --------
 
-After building agentsmith,the example/ directory holds examples for
+After building agentsmith, the example/ directory holds examples for
 
- * action scripts (this is what gets executed if a break-in attempt is
+ * action scripts (this is what gets executed if a break-in attempts are
    detected)
 
  * configuration file (agentsmith.conf.example)

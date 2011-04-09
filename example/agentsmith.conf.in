@@ -16,7 +16,7 @@
 # the regular expression. So, it is always a good idea to use -t switch after
 # modifying the configuration file.
 
-# The location of the pid file
+# The location of the PID file
 pidfile=@DEFAULT_PIDFILE@
 
 # The log file to monitor for break-in attempts.
@@ -28,7 +28,7 @@ syslogfile=/var/log/authlog
 action_threshold=3
 
 # Maximum time between subsequent matches in seconds. 'action_threshold'
-# occurences of break-in attempts have to happen within this time interval
+# occurrences of break-in attempts have to happen within this time interval
 #
 # Default: 60
 time_interval=60
@@ -39,13 +39,13 @@ time_interval=60
 # Default: 3600
 purge_after=3600
 
-# This file contains the IP Addresses and ranges to be excluded. All addresses
-# listed will be ignored, and the action script will not be called.
+# This file contains the IP addresses and ranges to be excluded. All addresses
+# listed will be ignored, and the action scrIPt will not be called.
 #
-# Default: empty
-#exclude=@sysconfdir@/agentsmith/exclude
+# Default: none
+#exclude=@sysconfdir@/@PACKAGE@/exclude
 
-# Enable the server mode. In server mode, agentsmith allows other agentsmith
+# Enable the server mode. In server mode, @PACKAGE@ allows other @PACKAGE@
 # daemons to update the local deny list.
 #
 # 0 - disable the listening
@@ -54,29 +54,28 @@ purge_after=3600
 # Default: 0
 server=0
 
-# The maximum concurrent connections allowed from other agentsmith daemons.
+# The maximum concurrent connections allowed from other @PACKAGE@ daemons.
 #
 # Maximum value: 256
 #
 # Default: 5
 maxinconnections=5
 
-# Time out waiting for data from remote agentsmith clients
+# Time out waiting for data from remote @PACKAGE@ clients
 #
 # Default: 5
 server_timeout=5
 
-# This tells agentsmith on which interfaces to listen. You can use IPv4/IPv6
+# This tells @PACKAGE@ on which IP address to listen. You can use IPv4/IPv6
 # Adresses or host names. If using IPv6 addresses, make sure to enclose them in
 # square brackets, e.g.
 #
 # [fe80::e2cb:4eff:feb7:2af5]
 #
-# There can be at maximum 256 listen directives, each separated by space.
+# At maximum 256 IP addresses can be specified, each separated by space.
 #
-# Syntax
-#
-# listen=<ipv4|hostname>[:port]|[<ipv6][:port] ...
+# The listening port can be specified using a colon. If no port is specified,
+# the default port 48621 is used.
 #
 # Example:
 # listen=127.0.0.1:48621 [::1]:48621 host.example.com:48650
@@ -84,16 +83,7 @@ server_timeout=5
 # Default: 0.0.0.0:48621
 #listen=0.0.0.0:48621
 
-# Specify whether or not the local agentsmith daemon informs other agentsmith
-# daemons about ip addresses that reached above defined thresholds.
-#
-# 0 - do not inform
-# 1 - do inform
-#
-# Default: 0
-inform=0
-
-# Controls whether remote agentsmith informations are authoritative,
+# Controls whether remote @PACKAGE@ informations are authoritative,
 # i.e. circumvent IP exclude checks.
 #
 # 0 - non-authoritative
@@ -102,22 +92,31 @@ inform=0
 # Default: 0
 remote_authoritative=0
 
+# Specify whether or not the local @PACKAGE@ daemon informs other @PACKAGE@
+# daemons about IP addresses that reached above defined thresholds.
+#
+# 0 - do not inform
+# 1 - do inform
+#
+# Default: 0
+inform=0
+
 # Specify which agents to inform. The syntax is identical to the listen
 # directive above.
 #
 # Default: none
 #inform_agent=
 
-# How many times should agentsmith retry informing other agentsmith' when they
+# How many times should @PACKAGE@ retry informing other @PACKAGE@' when they
 # are unavailable.
 #
 # Default: 30
 inform_retry=30
 
-# The number seconds to wait before retry informing agentsmith.
+# The number seconds to wait before retry informing @PACKAGE@.
 #
 # After 'inform_retry * inform_retry_wait' seconds data not sent to remote
-# agentsmith's will be discarded.
+# @PACKAGE@'s will be discarded.
 #
 # Default 3
 inform_retry_wait=3
@@ -126,29 +125,29 @@ inform_retry_wait=3
 # file.
 #
 # Default none
-ssl_ca_file=
+#ssl_ca_file=
 
 # The server certificate.
-ssl_server_cert=
+#ssl_server_cert=
 
-# The server private key. If the private key is encrypted, agentsmith will
-# prompt for a password.
+# The server private key. If the private key is encrypted, @PACKAGE@ will
+# prompt for the password.
 #
 # Default none
-ssl_server_key=
+#ssl_server_key=
 
 # The client certificate.
 #
 # Default none
-ssl_client_cert=
+#ssl_client_cert=
 
-# The client private key. If the private key is encrypted, agentsmith will
-# prompt for a password.
+# The client private key. If the private key is encrypted, @PACKAGE@ will
+# prompt for the password.
 #
 # Default none
-ssl_client_key=
+#ssl_client_key=
 
-# The action script. It will be called if
+# The action scrIPt. It will be called if
 #
 # a) action_threshold is reached in time_interval seconds.
 #
@@ -157,12 +156,12 @@ ssl_client_key=
 #
 # The action is invoked with the following options
 #
-# <ip_address> <occurrences> <new|remove> <origin>
+# <IP_address> <occurrences> <new|remove> <origin>
 #
-# Make sure it has the execution bit set, i.e. chmod +x <action_script>
-action=@sysconfdir@/agentsmith/action/action.sh
+# Make sure it has the execution bit set, i.e. chmod +x <action_scrIPt>
+action=@sysconfdir@/@PACKAGE@/action/action.sh
 
-# The (PERL) regular expression used to extract the ip addresses. Be aware, it
+# The (PERL) regular expression used to extract the IP addresses. Be aware, it
 # may only contain one catching '(...)' pattern. If you need to use alternation
 # '(...|...)' use '(?:...|...)'
 #

@@ -16,10 +16,10 @@
 # or the record for this host is being removed due to the purge_after time. In
 # the first case the value is 'new' in the second case 'remove'
 #
-# The fourth and last command line argument is the agentsmith instance the
-# break-in attempt has been detected. It is the IP address of a remote
-# agentsmith instance, or the literal 'localhost' if it originates from the
-# local agentsmith instance.
+# The fourth and last command line argument is the @PACKAGE@ instance which
+# the break-in attempt has detected. It is the IP address of a remote
+# @PACKAGE@ instance, or the literal 'localhost' if it originates from the
+# local @PACKAGE@ instance.
 
 OS=`uname -s`
 HOSTNAME=`hostname`
@@ -33,12 +33,12 @@ then
 	mail "${MAILTO}" <<EOF
 Subject: Mail from @PACKAGE@ ($3)
 
-agentsmith regrets to inform you, that the host $1 has attempted $2 times
+@PACKAGE@ regrets to inform you, that the host $1 has attempted $2 times
 to access ${HOSTNAME} using an invalid account or wrong password.
 EOF
     else
 	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-agentsmith regrets to inform you, that the host $1 has attempted $2 times
+@PACKAGE@ regrets to inform you, that the host $1 has attempted $2 times
 to access ${HOSTNAME} using an invalid account or wrong password.
 EOF
     fi
@@ -52,11 +52,11 @@ then
 	mail "${MAILTO}" <<EOF
 Subject: Mail from @PACKAGE@ ($3)
 
-agentsmith has unblocked access for $1 to ${HOSTNAME}.
+@PACKAGE@ has unblocked access for $1 to ${HOSTNAME}.
 EOF
     else
 	mail -s "Mail from @PACKAGE@ ($3)" "${MAILTO}" <<EOF
-agentsmith has unblocked access for $1 to ${HOSTNAME}.
+@PACKAGE@ has unblocked access for $1 to ${HOSTNAME}.
 EOF
     fi
 fi

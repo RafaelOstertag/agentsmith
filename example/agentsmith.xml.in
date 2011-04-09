@@ -42,7 +42,13 @@ This is the SMF manifest for @PACKAGE@ for Solaris 10 or later.
 	    type='method'
 	    name='stop'
 	    exec=':kill -15'
-	    timeout_seconds='15' />
+	    timeout_seconds='60' />
+
+	<exec_method
+	    type='method'
+	    name='refresh'
+	    exec=':kill -1'
+	    timeout_seconds='60' />
 
 	<stability value='Evolving' />
 
@@ -53,6 +59,7 @@ This is the SMF manifest for @PACKAGE@ for Solaris 10 or later.
 	    <documentation>
 		<manpage title='@PACKAGE@' section='1' manpath='@mandir@' />
 		<manpage title='@PACKAGE@.conf' section='4' manpath='@mandir@' />
+		<manpage title='@PACKAGE@_exclude' section='4' manpath='@mandir@' />
 	    </documentation>
 	</template>
     </service>

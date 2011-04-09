@@ -1,4 +1,4 @@
-# Enter the IP Addresses and/or IP Ranges to be ignored by @PACKAGE@.
+# Add the IP addresses and/or IP ranges to be ignored by @PACKAGE@.
 #
 # Comments start with '#'. Comments are only allowed at the start of the line. 
 #

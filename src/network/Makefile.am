@@ -10,7 +10,11 @@ AM_CPPFLAGS+=-DNDEBUG
 endif
 
 noinst_LIBRARIES = libnetshared.a
+
+libnetshared_a_CFLAGS = $(STDC_CFLAGS)
+
 libnetshared_a_SOURCES = netshared.h netshared.c netssl.h netssl.c
+
 
 CFLOW_FLAGS = --level-indent 2 --format posix --omit-arguments
 

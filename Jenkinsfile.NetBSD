@@ -1,0 +1,16 @@
+@Library('agentsmithJenkins') _
+
+properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'GithubProjectProperty', displayName: '', projectUrlStr: 'https://github.com/RafaelOstertag/agentsmith/'], pipelineTriggers([[$class: 'PeriodicFolderTrigger', interval: '1d']])])
+
+node("netbsd") {
+    agentsmith.notify {
+	os = "NetBSD"
+	agentsmith.checkout()
+        agentsmith.makeChangeLog()
+	agentsmith.autoconf()
+	agentsmith.configure os
+	agentsmith.buildDoc os
+	agentsmith.build os
+	agentsmith.check os
+    }
+}

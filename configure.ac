@@ -115,9 +115,9 @@ AC_SEARCH_LIBS([gethostbyname],[nsl])
 AC_SEARCH_LIBS([connect],[socket])
 AC_SEARCH_LIBS([sem_init],[rt])
 AC_SEARCH_LIBS([nanosleep],[rt])
-AC_SEARCH_LIBS([ERR_load_crypto_strings],[crypto],,
+AC_SEARCH_LIBS([EVP_DecodeFinal],[crypto],,
 	[AC_MSG_ERROR([libcrypto not found.])])
-AC_SEARCH_LIBS([SSL_library_init],[ssl],,
+AC_SEARCH_LIBS([TLSv1_method],[ssl],,
 	[AC_MSG_ERROR([libssl not found])],
 	[-lcrypto])
 AC_SEARCH_LIBS([pcre_compile],[pcre],,[

@@ -9,7 +9,6 @@ node("openbsd") {
         agentsmith.makeChangeLog()
 	agentsmith.autoconf()
 	agentsmith.configure os
-	agentsmith.buildDoc os
 	agentsmith.build os
 	agentsmith.check os
     }

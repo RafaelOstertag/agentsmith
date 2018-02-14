@@ -138,22 +138,6 @@ AC_FUNC_FORK
 # Misc functions
 AC_CHECK_FUNCS([accept atoi bind ceil connect ctime ctime_r freeaddrinfo gai_strerror getaddrinfo htonl inet_ntop inet_pton memset ntohl select sigaction sigprocmask socket strchr strdup strerror strncpy strsep usleep vsnprintf nanosleep])
 
-# PCRE Functions
-AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
-	AC_MSG_ERROR([libpcre lacks crucial function(s)])])
-
-# Semaphore functions
-AC_CHECK_FUNCS([sem_destroy sem_init sem_post sem_trywait],,
-	[AC_MSG_ERROR([semaphore function missing])])
-
-# Pthread functions
-AC_CHECK_FUNCS([pthread_cancel pthread_cond_destroy pthread_cond_init pthread_cond_signal pthread_create pthread_join pthread_mutex_destroy pthread_mutex_init pthread_setcanceltype pthread_testcancel pthread_self],,
-	[AC_MSG_ERROR([posix thread function missing])])
-
-# OpenSSL functions
-AC_CHECK_FUNCS([BIO_new_socket CRYPTO_num_locks CRYPTO_set_id_callback CRYPTO_set_locking_callback ERR_clear_error ERR_get_error ERR_reason_error_string SSL_CTX_load_verify_locations SSL_CTX_new SSL_CTX_set_verify SSL_CTX_use_PrivateKey_file SSL_CTX_use_certificate_file SSL_accept SSL_connect SSL_free SSL_new SSL_read SSL_set_bio SSL_write X509_NAME_get_text_by_NID X509_STORE_CTX_get_current_cert X509_get_issuer_name X509_get_subject_name X509_verify_cert_error_string],,
-	[AC_MSG_ERROR([OpenSSL function missing])])
-
 AC_C_BIGENDIAN
 # Enable
 AC_SUBST([ENABLE_DEBUG],[no],[Whether or not debug code should be built])

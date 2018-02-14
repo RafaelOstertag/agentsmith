@@ -203,7 +203,7 @@ main(int argc, char **argv) {
 	    out_err("Exiting now.");
 	    exit(1);
 	}
-	fprintf(pfile, "%li\n", getpid());
+	fprintf(pfile, "%li\n", (long)getpid());
 	fclose(pfile);
     }
 

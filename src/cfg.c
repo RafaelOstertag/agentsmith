@@ -523,10 +523,11 @@ _set_config_option(const char *token, const char *value) {
 		sscanf(value, "%i", (int32_t *) ptr->ptr);
 		break;
 	    case CFG_VAL_INT64:
-		if (sizeof (long) == 8)
-		    sscanf(value, "%li", (int64_t *) ptr->ptr);
-		else
-		    sscanf(value, "%lli", (int64_t *) ptr->ptr);
+#if SIZEOF_LONG == 8
+                sscanf(value, "%li", (int64_t *) ptr->ptr);
+#else
+                sscanf(value, "%lli", (int64_t *) ptr->ptr);
+#endif
 		break;
 	    case CFG_VAL_CALLBACK:
 		ptr->cb(value);

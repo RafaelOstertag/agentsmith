@@ -55,6 +55,8 @@
 #include <pthread.h>
 #endif
 
+#include<string.h>
+
 #include "globals.h"
 #include "netssl.h"
 #include "output.h"
@@ -63,6 +65,8 @@
 static int ssl_initialized = 0;
 static SSL_CTX *ssl_ctx_client = NULL;
 static SSL_CTX *ssl_ctx_server = NULL;
+
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
 
 /*
  * Used for locking
@@ -79,6 +83,8 @@ _netssl_locking_callback(int mode, int type, char *file, int line) {
 	pthread_mutex_unlock(&(lock_cs[type]));
     }
 }
+#endif
+
 
 unsigned long
 _netssl_thread_id() {
@@ -134,7 +140,9 @@ _netssl_verify_callback(int ok, X509_STORE_CTX * ctx) {
 
 int
 netssl_initialize() {
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
     int       retval, i;
+#endif
 
     assert(ssl_initialized == 0);
     assert(ssl_ctx_client == NULL);
@@ -145,6 +153,7 @@ netssl_initialize() {
     SSL_library_init();
     OpenSSL_add_all_algorithms();
 
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
     /*
      * Initialize locking
      */
@@ -170,6 +179,7 @@ netssl_initialize() {
 
     CRYPTO_set_id_callback((unsigned long (*)()) _netssl_thread_id);
     CRYPTO_set_locking_callback((void (*)()) _netssl_locking_callback);
+#endif
 
     if (CONFIG.inform) {
 	/*
@@ -180,7 +190,7 @@ netssl_initialize() {
 	    exit(1);
 	}
 	if (strlen(CONFIG.ssl_client_cert) < 1) {
-	    out_err("No client certificate specfied");
+	    out_err("No client certificate specified");
 	    exit(1);
 	}
 	if (strlen(CONFIG.ssl_client_key) < 1) {
@@ -188,7 +198,7 @@ netssl_initialize() {
 	    exit(1);
 	}
 
-	ssl_ctx_client = SSL_CTX_new(SSLv3_client_method());
+	ssl_ctx_client = SSL_CTX_new(TLS_client_method());
 	if (ssl_ctx_client == NULL) {
 	    out_err("Unable to initialize SSL Context for client (%s)",
 		    ERR_reason_error_string(ERR_get_error()));
@@ -241,7 +251,7 @@ netssl_initialize() {
 	    exit(1);
 	}
 
-	ssl_ctx_server = SSL_CTX_new(SSLv3_server_method());
+	ssl_ctx_server = SSL_CTX_new(TLS_server_method());
 	if (ssl_ctx_server == NULL) {
 	    out_err("Unable to initialize SSL Context for server (%s)",
 		    ERR_reason_error_string(ERR_get_error()));
@@ -284,7 +294,9 @@ netssl_initialize() {
 
 void
 netssl_disintegrate() {
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
     int       retval, i;
+#endif
 
     assert(ssl_initialized != 0);
 
@@ -302,6 +314,7 @@ netssl_disintegrate() {
 	ssl_ctx_server = NULL;
     }
 
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
     for (i = 0; i < CRYPTO_num_locks(); i++) {
 	retval = pthread_mutex_destroy(&(lock_cs[i]));
 	if (retval != 0)
@@ -310,11 +323,12 @@ netssl_disintegrate() {
 	out_dbg("SSL disintegrate: %8ld:%s", lock_count[i],
 		CRYPTO_get_lock_name(i));
     }
-
-    ERR_free_strings();
-
+    
     free(lock_cs);
     free(lock_count);
+#endif
+
+    ERR_free_strings();
 }
 
 /**

@@ -61,6 +61,11 @@
 #include "output.h"
 #include "records.h"
 
+struct _records_enumerate_arguments {
+    records_enum_callback cb;
+};
+typedef struct _records_enumerate_arguments records_enumerate_arguments;
+
 static hostrecord_t **hr_vector = NULL;
 
 /* The chunk size we pre-allocate */
@@ -133,11 +138,16 @@ _records_enumerate(records_enum_callback cb) {
 static void *
 _records_enumerate_thread(void *args) {
     int       retval;
+    records_enumerate_arguments *rec_args;
     records_enum_callback cb;
 
     assert(args != NULL);
+    
+    rec_args = (records_enumerate_arguments*) args;
 
-    cb = (records_enum_callback) args;
+    cb = (records_enum_callback) rec_args->cb;
+    
+    free(args);
 
     retval = _records_enumerate(cb);
     if (retval != RETVAL_OK)
@@ -590,6 +600,7 @@ records_enumerate(records_enum_callback cb, enum_mode_t mode) {
     int       retval;
     pthread_attr_t tattr;
     pthread_t wdc;
+    records_enumerate_arguments *thread_args;
 
     assert(cb != NULL);
     assert(initialized);
@@ -608,12 +619,21 @@ records_enumerate(records_enum_callback cb, enum_mode_t mode) {
 		       "Error setting detach state for record enumeration thread");
 	    return RETVAL_ERR;
 	}
-
+        
+        // The thread will free the memory occupied.
+        thread_args = malloc(sizeof(records_enumerate_arguments));
+        if (thread_args == NULL) {
+            out_err("No memory");
+            return RETVAL_ERR;
+        }
+        
+        thread_args->cb = cb;
+        
 	retval =
 	    pthread_create(&wdc, &tattr, _records_enumerate_thread,
-			   (void *) cb);
+			   (void *) thread_args);
 	if (retval != 0) {
-	    out_syserr(retval, "Error lauching record enumeration thread");
+	    out_syserr(retval, "Error launching record enumeration thread");
 	    return RETVAL_ERR;
 	}
 

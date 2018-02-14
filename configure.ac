@@ -19,7 +19,7 @@ AC_SUBST([CPPFLAGS],["$CPPFLAGS -D_POSIX_PTHREAD_SEMANTICS=1"])
 
 # Checks for libraries.
 AC_USE_SYSTEM_EXTENSIONS
-AX_CHECK_COMPILE_FLAG([-std=c11], [AC_SUBST([STDC_CFLAGS],[-std=c11])], [AC_SUBST([STDC_FLAGS],[])])
+AX_CHECK_COMPILE_FLAG([-std=c11], [AC_SUBST([STDC_CFLAGS],[-std=c11])])
 AX_CHECK_SUNPRO_C(
 	[AC_SUBST([CFLAGS],["$CFLAGS -mt"])],
 	[:])
@@ -29,6 +29,7 @@ AC_CHECK_LIB([m],[ceil],,[
 AX_PTHREAD([
 	AC_SUBST([LIBS],["$PTHREAD_LIBS $LIBS"])
 	AC_SUBST([CFLAGS],["$CFLAGS $PTHREAD_CFLAGS"])
+        AC_SUBST([LDFLAGS],["$LDFLAGS $PTHREAD_CFLAGS"])
 	AC_SUBST([CC],["$PTHREAD_CC"])
 	],
 	[AC_MSG_ERROR([Threading not support on this platform])])
@@ -61,6 +62,7 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_CHECK_SIZEOF([long])
 
 AC_CHECK_TYPES([pthread_mutex_t, in_addr_t, struct addrinfo],,
 	[AC_MSG_ERROR([Crucial data type not found])],

@@ -151,7 +151,7 @@ client_queue_record(const hostrecord_t *hr) {
  */
 int
 client_queue_flush() {
-    int       retval, i;
+    int       i;
 
     assert(temp_hr_vector_fill <= HOSTRECORDVECTORLEN);
 
@@ -168,8 +168,7 @@ client_queue_flush() {
 	return RETVAL_OK;
 
     for (i = 0; i < MAXCLIENTQUEUES && queues[i] != NULL; i++) {
-	retval =
-	    client_queue_append(queues[i],
+        client_queue_append(queues[i],
 				(const hostrecord_t **) temp_hr_vector,
 				temp_hr_vector_fill);
 	if (queues[i] == NULL) {
@@ -188,10 +187,10 @@ client_queue_flush() {
 
 int
 client_stop() {
-    int       retval, i;
+    int       i;
 
     for (i = 0; i < MAXCLIENTQUEUES && queues[i] != 0; i++) {
-	retval = client_queue_destroy(queues[i]);
+	client_queue_destroy(queues[i]);
 	if (queues[i] == NULL)
 	    out_err("Client: Appending to client worker queue");
     }

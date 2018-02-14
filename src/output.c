@@ -211,7 +211,7 @@ out_dbg(const char *format, ...) {
 	break;
     case SYSLOG:
 #ifdef HAVE_SYSLOG_R
-        syslog_r(LOG_DEBUG, "%s", buff);
+        syslog_r(LOG_DEBUG, &data, "%s", buff);
 #else
 	syslog(LOG_DEBUG, "%s", buff);
 #endif

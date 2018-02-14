@@ -1,5 +1,7 @@
 *~
 *#
+nbproject/
+
 ChangeLog
 obj*/
 Makefile.in

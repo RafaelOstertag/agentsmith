@@ -120,9 +120,6 @@ out_syserr(int no, const char *format, ...) {
     va_list   ap;
 
 #ifdef HAVE_STRERROR_R
-#ifdef DEBUG
-#warning "++++ Using strerror_r() ++++"
-#endif
 #ifdef STRERROR_R_CHAR_P
     char      buff3[BUFFSIZE];
     char     *strerr;
@@ -132,9 +129,6 @@ out_syserr(int no, const char *format, ...) {
     strerror_r(no, strerr, BUFFSIZE);
 #endif
 #elif HAVE_STRERROR
-#ifdef DEBUG
-#warning "++++ Using strerror() ++++"
-#endif
     char     *strerr;
     strerr = strerror(no);
 #else

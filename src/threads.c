@@ -234,8 +234,6 @@ action_thread(void *wdc) {
         time_wait.tv_nsec = action_sleep_time;
         nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using usleep()"
         usleep(action_sleep_time / 1000);
 #endif
 
@@ -260,8 +258,6 @@ maintenance_thread(void *wdc) {
         time_wait.tv_nsec = 0;
         nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using usleep()"
         usleep(maintenance_sleep_time * 1000000);
 #endif
         pthread_testcancel();

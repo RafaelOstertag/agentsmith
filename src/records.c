@@ -389,8 +389,6 @@ records_add_ip(const char *ipaddr) {
 #ifndef CHECK
 	if (ptr->lastseen - ptr->firstseen <= ptr->time_interval)
 	    ptr->occurrences++;
-#else
-#warning "++++ CHECK is enabled ++++"
 #endif
 
 	goto END_OK;
@@ -425,8 +423,6 @@ records_add_ip(const char *ipaddr) {
     hr_vector[pos_newrec]->time_interval = CONFIG.time_interval;
     hr_vector[pos_newrec]->purge_after = CONFIG.purge_after;
     hr_vector[pos_newrec]->action_threshold = CONFIG.action_threshold;
-#else
-#warning "++++ CHECK is enabled ++++"
 #endif
     hr_vector[pos_newrec]->occurrences = 1;
     hr_vector[pos_newrec]->remove = 0;

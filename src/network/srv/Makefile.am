@@ -9,4 +9,6 @@ endif
 
 noinst_LIBRARIES = libserver.a
 
+libserver_a_CFLAGS = $(STDC_CFLAGS)
+
 libserver_a_SOURCES = server.h server.c worker.h worker.c

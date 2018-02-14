@@ -9,4 +9,6 @@ endif
 
 noinst_LIBRARIES = libclient.a
 
+libclient_a_CFLAGS = $(STDC_CFLAGS)
+
 libclient_a_SOURCES = clientqueue.h clientqueue.c client.h client.c

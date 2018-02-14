@@ -142,7 +142,7 @@ AC_FUNC_REALLOC
 AC_FUNC_FORK
 
 # Misc functions
-AC_CHECK_FUNCS([accept atoi bind ceil connect ctime ctime_r freeaddrinfo gai_strerror getaddrinfo htonl inet_ntop inet_pton memset ntohl select sigaction sigprocmask socket strchr strdup strerror strncpy strsep usleep vsnprintf nanosleep])
+AC_CHECK_FUNCS([accept atoi bind ceil connect ctime ctime_r freeaddrinfo gai_strerror getaddrinfo htonl inet_ntop inet_pton memset ntohl select sigaction sigprocmask socket strchr strdup strerror strncpy strsep usleep vsnprintf nanosleep syslog_r])
 
 AC_C_BIGENDIAN
 # Enable

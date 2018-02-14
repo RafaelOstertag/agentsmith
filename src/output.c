@@ -97,6 +97,9 @@ out_gettype() {
 void
 out_err(const char *format, ...) {
     char      buff[BUFFSIZE];
+#ifdef HAVE_SYSLOG_R
+     struct syslog_data data = SYSLOG_DATA_INIT
+#endif
 
     va_list   ap;
     va_start(ap, format);
@@ -104,19 +107,27 @@ out_err(const char *format, ...) {
     va_end(ap);
 
     switch (OTYPE) {
-    case CONSOLE:
-	fprintf(stderr, "%s\n", buff);
-	break;
-    case SYSLOG:
-	syslog(LOG_ERR, buff);
+        case CONSOLE:
+            fprintf(stderr, "%s\n", buff);
+            break;
+        case SYSLOG:
+#ifdef HAVE_SYSLOG_R
+            syslog_r(LOG_ERR, &data, "%s", buff);
+#else
+            syslog(LOG_ERR, "%s", buff);
+#endif
 	break;
     }
+    va_end(ap);
 }
 
 void
 out_syserr(int no, const char *format, ...) {
     char      buff[BUFFSIZE];
     char      buff2[BUFFSIZE];
+#ifdef HAVE_SYSLOG_R
+     struct syslog_data data = SYSLOG_DATA_INIT
+#endif
     va_list   ap;
 
 #ifdef HAVE_STRERROR_R
@@ -146,7 +157,11 @@ out_syserr(int no, const char *format, ...) {
 	fprintf(stderr, "%s\n", buff2);
 	break;
     case SYSLOG:
-	syslog(LOG_ERR, buff2);
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_ERR, &data, "%s", buff2);
+#else
+	syslog(LOG_ERR, "%s", buff2);
+#endif
 	break;
     }
 }
@@ -154,6 +169,9 @@ out_syserr(int no, const char *format, ...) {
 void
 out_msg(const char *format, ...) {
     char      buff[BUFFSIZE];
+#ifdef HAVE_SYSLOG_R
+     struct syslog_data data = SYSLOG_DATA_INIT
+#endif
 
     va_list   ap;
     va_start(ap, format);
@@ -165,7 +183,11 @@ out_msg(const char *format, ...) {
 	fprintf(stdout, "%s\n", buff);
 	break;
     case SYSLOG:
-	syslog(LOG_INFO, buff);
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &data, "%s", buff);
+#else
+	syslog(LOG_INFO, "%s", buff);
+#endif
 	break;
     }
 }
@@ -173,7 +195,9 @@ out_msg(const char *format, ...) {
 #ifdef DEBUG
 void
 out_dbg(const char *format, ...) {
-
+#ifdef HAVE_SYSLOG_R
+     struct syslog_data data = SYSLOG_DATA_INIT
+#endif
     char      buff[BUFFSIZE];
 
     va_list   ap;
@@ -186,7 +210,11 @@ out_dbg(const char *format, ...) {
 	fprintf(stdout, "DEBUG: %s\n", buff);
 	break;
     case SYSLOG:
-	syslog(LOG_DEBUG, buff);
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_DEBUG, "%s", buff);
+#else
+	syslog(LOG_DEBUG, "%s", buff);
+#endif
 	break;
     }
 }

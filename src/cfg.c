@@ -523,9 +523,11 @@ _set_config_option(const char *token, const char *value) {
 		sscanf(value, "%i", (int32_t *) ptr->ptr);
 		break;
 	    case CFG_VAL_INT64:
-#if SIZEOF_LONG == 8
+#if SIZEOF_LONG == 8 && __OpenBSD__ != 1
                 sscanf(value, "%li", (int64_t *) ptr->ptr);
 #else
+                // OpenBSD defines int64_t as (long long), so we need %lli on
+                // OpenBSD
                 sscanf(value, "%lli", (int64_t *) ptr->ptr);
 #endif
 		break;

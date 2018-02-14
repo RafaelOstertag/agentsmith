@@ -1,7 +1,13 @@
 NEWS
 ====
 
-agentsmith 0.2
+0.3
+---
+
+* OpenSSL 1.1 support.
+
+0.2
+---
 
  * Added support for IP address exclusion.
 
@@ -9,8 +15,8 @@ agentsmith 0.2
    instances of offending hosts securely using SSL.
 
 
-agentsmith 0.1
+0.1
+---
 
  * Initial release.
 
-$Id$

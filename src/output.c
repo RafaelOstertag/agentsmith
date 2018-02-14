@@ -98,7 +98,7 @@ void
 out_err(const char *format, ...) {
     char      buff[BUFFSIZE];
 #ifdef HAVE_SYSLOG_R
-     struct syslog_data data = SYSLOG_DATA_INIT
+     struct syslog_data data = SYSLOG_DATA_INIT;
 #endif
 
     va_list   ap;
@@ -126,7 +126,7 @@ out_syserr(int no, const char *format, ...) {
     char      buff[BUFFSIZE];
     char      buff2[BUFFSIZE];
 #ifdef HAVE_SYSLOG_R
-     struct syslog_data data = SYSLOG_DATA_INIT
+     struct syslog_data data = SYSLOG_DATA_INIT;
 #endif
     va_list   ap;
 
@@ -170,7 +170,7 @@ void
 out_msg(const char *format, ...) {
     char      buff[BUFFSIZE];
 #ifdef HAVE_SYSLOG_R
-     struct syslog_data data = SYSLOG_DATA_INIT
+     struct syslog_data data = SYSLOG_DATA_INIT;
 #endif
 
     va_list   ap;
@@ -196,7 +196,7 @@ out_msg(const char *format, ...) {
 void
 out_dbg(const char *format, ...) {
 #ifdef HAVE_SYSLOG_R
-     struct syslog_data data = SYSLOG_DATA_INIT
+     struct syslog_data data = SYSLOG_DATA_INIT;
 #endif
     char      buff[BUFFSIZE];
 

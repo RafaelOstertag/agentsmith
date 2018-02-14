@@ -198,7 +198,11 @@ netssl_initialize() {
 	    exit(1);
 	}
 
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
+        ssl_ctx_client = SSL_CTX_new(TLSv1_2_client_method());
+#else
 	ssl_ctx_client = SSL_CTX_new(TLS_client_method());
+#endif
 	if (ssl_ctx_client == NULL) {
 	    out_err("Unable to initialize SSL Context for client (%s)",
 		    ERR_reason_error_string(ERR_get_error()));
@@ -251,7 +255,11 @@ netssl_initialize() {
 	    exit(1);
 	}
 
+#if OPENSSL_VERSION_NUMBER  < 0x10100000
+        ssl_ctx_client = SSL_CTX_new(TLSv1_2_client_method());
+#else
 	ssl_ctx_server = SSL_CTX_new(TLS_server_method());
+#endif
 	if (ssl_ctx_server == NULL) {
 	    out_err("Unable to initialize SSL Context for server (%s)",
 		    ERR_reason_error_string(ERR_get_error()));

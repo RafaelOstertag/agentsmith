@@ -127,6 +127,11 @@ inform_retry_wait=3
 # Default none
 #ssl_ca_file=
 
+# The CRL file.
+#
+# Default none
+#ssl_crl_file=
+
 # The server certificate.
 #ssl_server_cert=
 

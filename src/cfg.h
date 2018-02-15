@@ -75,6 +75,7 @@ struct _config {
     char      action[_MAX_PATH];
     char      exclude[_MAX_PATH];
     char      ssl_ca_file[_MAX_PATH];
+    char ssl_crl_file[_MAX_PATH];
     char      ssl_server_key[_MAX_PATH];
     char      ssl_server_cert[_MAX_PATH];
     char      ssl_client_key[_MAX_PATH];

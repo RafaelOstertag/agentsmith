@@ -60,7 +60,7 @@
 #include "output.h"
 #include "cfg.h"
 
-config_t  CONFIG;
+config_t CONFIG;
 
 static int config_initialized = 0;
 
@@ -72,6 +72,7 @@ static int config_initialized = 0;
 #define DEFAULT_ACTION "/bin/true"
 #define DEFAULT_EXCLUDE ""
 #define DEFAULT_SSL_CA_TRUST ""
+#define DEFAULT_SSL_CRL ""
 #define DEFAULT_SSL_SERVER_CERT ""
 #define DEFAULT_SSL_SERVER_KEY ""
 #define DEFAULT_SSL_CLIENT_CERT ""
@@ -107,29 +108,29 @@ typedef int (*cfgcallback) (const char *);
  * mode if applicable and the pointer where the value is stored.
  */
 struct _cfgcfg {
-    char     *name;
+    char *name;
     enum cfgvaltype type;
 
-	/**
+    /**
      * This field is used if the type is CFG_VAL_PATH. It determines the
      * amode access() has to check for and is ignored otherwise.
      * 
      * A value of -1 indicates that no check is required even though
      * it is of type CFG_VAL_PATH.
      */
-    int       amode;
+    int amode;
 
-	/**
-	 * This points to the address where the value read from the
-	 * config file will be stored. It must be of the proper type
-	 * for 'type'
-	 */
-    void     *ptr;
+    /**
+     * This points to the address where the value read from the
+     * config file will be stored. It must be of the proper type
+     * for 'type'
+     */
+    void *ptr;
 
-	/**
-	 * This will be used if the 'type' is CFG_VAL_CALLBACK. Using
-	 * this, 'ptr' can be NULL.
-	 */
+    /**
+     * This will be used if the 'type' is CFG_VAL_CALLBACK. Using
+     * this, 'ptr' can be NULL.
+     */
     cfgcallback cb;
 };
 
@@ -150,42 +151,44 @@ struct _cfgcfg cfgcfg[] = {
      */
     {"pidfile", CFG_VAL_PATH, -1, (void *) &(CONFIG.pidfile), NULL},
     {"syslogfile", CFG_VAL_PATH, R_OK | F_OK, (void *) &(CONFIG.syslogfile),
-     NULL},
+        NULL},
     {"action", CFG_VAL_PATH, R_OK | F_OK | X_OK, (void *) &(CONFIG.action),
-     NULL},
+        NULL},
     {"exclude", CFG_VAL_PATH, R_OK | F_OK, (void *) &(CONFIG.exclude), NULL},
     {"regex", CFG_VAL_STR, -1, (void *) &(CONFIG.regex), NULL},
     {"action_threshold", CFG_VAL_INT32, -1,
-     (void *) &(CONFIG.action_threshold), NULL},
+        (void *) &(CONFIG.action_threshold), NULL},
     {"time_interval", CFG_VAL_INT64, -1, (void *) &(CONFIG.time_interval),
-     NULL},
+        NULL},
     {"purge_after", CFG_VAL_INT64, -1, (void *) &(CONFIG.purge_after), NULL},
     {"server", CFG_VAL_INT32, -1, (void *) &(CONFIG.server), NULL},
     {"server_timeout", CFG_VAL_INT32, -1, (void *) &(CONFIG.server_timeout),
-     NULL},
+        NULL},
     {"inform", CFG_VAL_INT32, -1, (void *) &(CONFIG.inform), NULL},
     {"inform_retry", CFG_VAL_INT32, -1, (void *) &(CONFIG.inform_retry),
-     NULL},
+        NULL},
     {"inform_retry_wait", CFG_VAL_INT32, -1,
-     (void *) &(CONFIG.inform_retry_wait), NULL},
+        (void *) &(CONFIG.inform_retry_wait), NULL},
     {"maxinconnections", CFG_VAL_INT32, -1,
-     (void *) &(CONFIG.maxinconnections), NULL},
+        (void *) &(CONFIG.maxinconnections), NULL},
     {"remote_authoritative", CFG_VAL_INT32, -1,
-     (void *) &(CONFIG.remote_authoritative), NULL},
+        (void *) &(CONFIG.remote_authoritative), NULL},
     {"listen", CFG_VAL_CALLBACK, -1, NULL, _config_callback_listen},
     {"inform_agent", CFG_VAL_CALLBACK, -1, NULL, _config_callback_inform},
     {"server_backlog", CFG_VAL_INT32, -1, (void *) &(CONFIG.server_backlog),
-     NULL},
+        NULL},
     {"ssl_ca_file", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_ca_file), NULL},
+        (void *) &(CONFIG.ssl_ca_file), NULL},
+    {"ssl_crl_file", CFG_VAL_PATH, R_OK | F_OK,
+        (void *) &(CONFIG.ssl_crl_file), NULL},
     {"ssl_server_cert", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_server_cert), NULL},
+        (void *) &(CONFIG.ssl_server_cert), NULL},
     {"ssl_server_key", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_server_key), NULL},
+        (void *) &(CONFIG.ssl_server_key), NULL},
     {"ssl_client_cert", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_client_cert), NULL},
+        (void *) &(CONFIG.ssl_client_cert), NULL},
     {"ssl_client_key", CFG_VAL_PATH, R_OK | F_OK,
-     (void *) &(CONFIG.ssl_client_key), NULL},
+        (void *) &(CONFIG.ssl_client_key), NULL},
     {NULL, -1, -1, NULL, NULL}
 };
 
@@ -197,6 +200,7 @@ _init_config() {
     strncpy(CONFIG.action, DEFAULT_ACTION, _MAX_PATH);
     strncpy(CONFIG.exclude, DEFAULT_EXCLUDE, _MAX_PATH);
     strncpy(CONFIG.ssl_ca_file, DEFAULT_SSL_CA_TRUST, _MAX_PATH);
+    strncpy(CONFIG.ssl_crl_file, DEFAULT_SSL_CA_TRUST, _MAX_PATH);
     strncpy(CONFIG.ssl_server_key, DEFAULT_SSL_SERVER_KEY, _MAX_PATH);
     strncpy(CONFIG.ssl_server_cert, DEFAULT_SSL_SERVER_CERT, _MAX_PATH);
     strncpy(CONFIG.ssl_client_key, DEFAULT_SSL_CLIENT_KEY, _MAX_PATH);
@@ -220,10 +224,10 @@ _init_config() {
  */
 static int
 _config_callback_listen(const char *str) {
-    char      host[BUFFSIZE];
-    char      port[BUFFSIZE];
-    char     *copy, *ptr, *colon;
-    int       retval, number_of_listen = 0;
+    char host[BUFFSIZE];
+    char port[BUFFSIZE];
+    char *copy, *ptr, *colon;
+    int retval, number_of_listen = 0;
     struct addrinfo hints;
     struct addrinfo *tmp;
     addrinfo_list_t *newitem = NULL;
@@ -234,7 +238,7 @@ _config_callback_listen(const char *str) {
      * Do some sanity checks
      */
     if (str == NULL)
-	return RETVAL_ERR;
+        return RETVAL_ERR;
 
     /*
      * Prepare hints
@@ -247,90 +251,90 @@ _config_callback_listen(const char *str) {
 
     ptr = strtok(copy, " ");
     while (ptr != NULL && number_of_listen < MAX_LISTEN) {
-	if (ptr[0] == '[') {
-	    /*
-	     * IPv6 Address
-	     */
+        if (ptr[0] == '[') {
+            /*
+             * IPv6 Address
+             */
 
-	    char     *closing;
+            char *closing;
 
-	    closing = strchr(ptr, ']');
-	    if (closing == NULL) {
-		out_err("'%s' is not a valid IPv6 address", ptr);
-		goto NEXT;
-	    }
+            closing = strchr(ptr, ']');
+            if (closing == NULL) {
+                out_err("'%s' is not a valid IPv6 address", ptr);
+                goto NEXT;
+            }
 
-	    /*
-	     * get port
-	     */
-	    colon = strchr(closing, ':');
-	    if (colon == NULL) {
-		strncpy(port, DEFAULT_LISTEN_PORT,
-			strlen(DEFAULT_LISTEN_PORT) + 1);
-	    } else {
-		strncpy(port, colon + 1, strlen(colon + 1));
-		port[strlen(colon + 1)] = '\0';
-	    }
+            /*
+             * get port
+             */
+            colon = strchr(closing, ':');
+            if (colon == NULL) {
+                strncpy(port, DEFAULT_LISTEN_PORT,
+                        strlen(DEFAULT_LISTEN_PORT) + 1);
+            } else {
+                strncpy(port, colon + 1, strlen(colon + 1));
+                port[strlen(colon + 1)] = '\0';
+            }
 
-	    /*
-	     * get host
-	     */
-	    if (colon != NULL) {
-		strncpy(host, ptr + 1, (colon - ptr - 2));
-		host[(colon - ptr - 2)] = '\0';
-	    } else {
-		strncpy(host, ptr + 1, strlen(ptr + 1));
-		host[strlen(ptr + 1) - 1] = '\0';
-	    }
-	} else {
-	    /*
-	     * IPv4 or host name
-	     */
-	    colon = strchr(ptr, ':');
+            /*
+             * get host
+             */
+            if (colon != NULL) {
+                strncpy(host, ptr + 1, (colon - ptr - 2));
+                host[(colon - ptr - 2)] = '\0';
+            } else {
+                strncpy(host, ptr + 1, strlen(ptr + 1));
+                host[strlen(ptr + 1) - 1] = '\0';
+            }
+        } else {
+            /*
+             * IPv4 or host name
+             */
+            colon = strchr(ptr, ':');
 
-	    if (colon == NULL) {
-		strncpy(host, ptr, strlen(ptr));
-		host[strlen(ptr)] = '\0';
-		strncpy(port, DEFAULT_LISTEN_PORT,
-			strlen(DEFAULT_LISTEN_PORT) + 1);
-	    } else {
-		strncpy(host, ptr, colon - ptr);
-		host[colon - ptr] = '\0';
-		strncpy(port, colon + 1, strlen(colon + 1));
-		port[strlen(colon + 1)] = '\0';
-	    }
-	}
+            if (colon == NULL) {
+                strncpy(host, ptr, strlen(ptr));
+                host[strlen(ptr)] = '\0';
+                strncpy(port, DEFAULT_LISTEN_PORT,
+                        strlen(DEFAULT_LISTEN_PORT) + 1);
+            } else {
+                strncpy(host, ptr, colon - ptr);
+                host[colon - ptr] = '\0';
+                strncpy(port, colon + 1, strlen(colon + 1));
+                port[strlen(colon + 1)] = '\0';
+            }
+        }
 
-	out_dbg("listen '%s' has been split to '%s' and '%s'", ptr, host,
-		port);
+        out_dbg("listen '%s' has been split to '%s' and '%s'", ptr, host,
+                port);
 
-	retval = getaddrinfo(host, port, &hints, &tmp);
-	if (retval != 0) {
-	    out_err
-		("Unable to obtain information for listening on '%s' port '%s' (%s)",
-		 host, port, gai_strerror(retval));
-	    goto NEXT;
-	}
+        retval = getaddrinfo(host, port, &hints, &tmp);
+        if (retval != 0) {
+            out_err
+                    ("Unable to obtain information for listening on '%s' port '%s' (%s)",
+                    host, port, gai_strerror(retval));
+            goto NEXT;
+        }
 
-	newitem = (addrinfo_list_t *) malloc(sizeof (addrinfo_list_t));
-	if (newitem == NULL) {
-	    out_err("Unable to allocate memory. Dying now");
-	    exit(1);
-	}
-	newitem->addr = tmp;
-	newitem->next = NULL;
+        newitem = (addrinfo_list_t *) malloc(sizeof (addrinfo_list_t));
+        if (newitem == NULL) {
+            out_err("Unable to allocate memory. Dying now");
+            exit(1);
+        }
+        newitem->addr = tmp;
+        newitem->next = NULL;
 
-	if (CONFIG.listen == NULL)
-	    CONFIG.listen = newitem;
-	else
-	    lastitem->next = newitem;
+        if (CONFIG.listen == NULL)
+            CONFIG.listen = newitem;
+        else
+            lastitem->next = newitem;
 
-	lastitem = newitem;
+        lastitem = newitem;
 
-	number_of_listen++;
+        number_of_listen++;
 
-      NEXT:
-	ptr = strtok(NULL, " ");
+NEXT:
+        ptr = strtok(NULL, " ");
     }
 
     free(copy);
@@ -343,10 +347,10 @@ _config_callback_listen(const char *str) {
  */
 static int
 _config_callback_inform(const char *str) {
-    char      host[BUFFSIZE];
-    char      port[BUFFSIZE];
-    char     *copy, *ptr, *colon;
-    int       retval;
+    char host[BUFFSIZE];
+    char port[BUFFSIZE];
+    char *copy, *ptr, *colon;
+    int retval;
     struct addrinfo hints;
     struct addrinfo *tmp;
     addrinfo_list_t *new_agent = NULL;
@@ -357,7 +361,7 @@ _config_callback_inform(const char *str) {
      * Do some sanity checks
      */
     if (str == NULL)
-	return RETVAL_ERR;
+        return RETVAL_ERR;
 
     /*
      * Prepare hints
@@ -370,87 +374,87 @@ _config_callback_inform(const char *str) {
 
     ptr = strtok(copy, " ");
     while (ptr != NULL) {
-	if (ptr[0] == '[') {
-	    /*
-	     * IPv6 Address
-	     */
+        if (ptr[0] == '[') {
+            /*
+             * IPv6 Address
+             */
 
-	    char     *closing;
+            char *closing;
 
-	    closing = strchr(ptr, ']');
-	    if (closing == NULL) {
-		out_err("'%s' is not a valid IPv6 address", ptr);
-		goto NEXT;
-	    }
+            closing = strchr(ptr, ']');
+            if (closing == NULL) {
+                out_err("'%s' is not a valid IPv6 address", ptr);
+                goto NEXT;
+            }
 
-	    /*
-	     * get port
-	     */
-	    colon = strchr(closing, ':');
-	    if (colon == NULL) {
-		strncpy(port, DEFAULT_LISTEN_PORT,
-			strlen(DEFAULT_LISTEN_PORT) + 1);
-	    } else {
-		strncpy(port, colon + 1, strlen(colon + 1));
-		port[strlen(colon + 1)] = '\0';
-	    }
+            /*
+             * get port
+             */
+            colon = strchr(closing, ':');
+            if (colon == NULL) {
+                strncpy(port, DEFAULT_LISTEN_PORT,
+                        strlen(DEFAULT_LISTEN_PORT) + 1);
+            } else {
+                strncpy(port, colon + 1, strlen(colon + 1));
+                port[strlen(colon + 1)] = '\0';
+            }
 
-	    /*
-	     * get host
-	     */
-	    if (colon != NULL) {
-		strncpy(host, ptr + 1, (colon - ptr - 2));
-		host[(colon - ptr - 2)] = '\0';
-	    } else {
-		strncpy(host, ptr + 1, strlen(ptr + 1));
-		host[strlen(ptr + 1) - 1] = '\0';
-	    }
-	} else {
-	    /*
-	     * IPv4 or host name
-	     */
-	    colon = strchr(ptr, ':');
+            /*
+             * get host
+             */
+            if (colon != NULL) {
+                strncpy(host, ptr + 1, (colon - ptr - 2));
+                host[(colon - ptr - 2)] = '\0';
+            } else {
+                strncpy(host, ptr + 1, strlen(ptr + 1));
+                host[strlen(ptr + 1) - 1] = '\0';
+            }
+        } else {
+            /*
+             * IPv4 or host name
+             */
+            colon = strchr(ptr, ':');
 
-	    if (colon == NULL) {
-		strncpy(host, ptr, strlen(ptr));
-		host[strlen(ptr)] = '\0';
-		strncpy(port, DEFAULT_LISTEN_PORT,
-			strlen(DEFAULT_LISTEN_PORT) + 1);
-	    } else {
-		strncpy(host, ptr, colon - ptr);
-		host[colon - ptr] = '\0';
-		strncpy(port, colon + 1, strlen(colon + 1));
-		port[strlen(colon + 1)] = '\0';
-	    }
-	}
+            if (colon == NULL) {
+                strncpy(host, ptr, strlen(ptr));
+                host[strlen(ptr)] = '\0';
+                strncpy(port, DEFAULT_LISTEN_PORT,
+                        strlen(DEFAULT_LISTEN_PORT) + 1);
+            } else {
+                strncpy(host, ptr, colon - ptr);
+                host[colon - ptr] = '\0';
+                strncpy(port, colon + 1, strlen(colon + 1));
+                port[strlen(colon + 1)] = '\0';
+            }
+        }
 
-	out_dbg("inform_agent '%s' has been split to '%s' and '%s'", ptr,
-		host, port);
+        out_dbg("inform_agent '%s' has been split to '%s' and '%s'", ptr,
+                host, port);
 
-	retval = getaddrinfo(host, port, &hints, &tmp);
-	if (retval != 0) {
-	    out_err
-		("Unable to obtain information for host '%s' port '%s' (%s)",
-		 host, port, gai_strerror(retval));
-	    goto NEXT;
-	}
+        retval = getaddrinfo(host, port, &hints, &tmp);
+        if (retval != 0) {
+            out_err
+                    ("Unable to obtain information for host '%s' port '%s' (%s)",
+                    host, port, gai_strerror(retval));
+            goto NEXT;
+        }
 
-	new_agent = (addrinfo_list_t *) malloc(sizeof (addrinfo_list_t));
-	if (new_agent == NULL) {
-	    out_err("Unable to allocate memory. Dying now");
-	    exit(1);
-	}
-	new_agent->addr = tmp;
-	new_agent->next = NULL;
+        new_agent = (addrinfo_list_t *) malloc(sizeof (addrinfo_list_t));
+        if (new_agent == NULL) {
+            out_err("Unable to allocate memory. Dying now");
+            exit(1);
+        }
+        new_agent->addr = tmp;
+        new_agent->next = NULL;
 
-	if (CONFIG.inform_agents == NULL)
-	    CONFIG.inform_agents = new_agent;
-	else
-	    last_agent->next = new_agent;
+        if (CONFIG.inform_agents == NULL)
+            CONFIG.inform_agents = new_agent;
+        else
+            last_agent->next = new_agent;
 
-	last_agent = new_agent;
-      NEXT:
-	ptr = strtok(NULL, " ");
+        last_agent = new_agent;
+NEXT:
+        ptr = strtok(NULL, " ");
     }
 
     free(copy);
@@ -464,39 +468,39 @@ _config_callback_inform(const char *str) {
 void
 _config_sanitize() {
     CONFIG.server_backlog =
-	CONFIG.server_backlog <
-	1 ? DEFAULT_SERVER_BACKLOG : CONFIG.server_backlog;
+            CONFIG.server_backlog <
+            1 ? DEFAULT_SERVER_BACKLOG : CONFIG.server_backlog;
 
     CONFIG.maxinconnections =
-	CONFIG.maxinconnections >
-	MAX_INCONN ? MAX_INCONN : CONFIG.maxinconnections;
+            CONFIG.maxinconnections >
+            MAX_INCONN ? MAX_INCONN : CONFIG.maxinconnections;
 
     CONFIG.maxinconnections =
-	CONFIG.maxinconnections <
-	1 ? DEFAULT_MAXINCONNECTIONS : CONFIG.maxinconnections;
+            CONFIG.maxinconnections <
+            1 ? DEFAULT_MAXINCONNECTIONS : CONFIG.maxinconnections;
 
     CONFIG.server_timeout =
-	CONFIG.server_timeout <
-	1 ? DEFAULT_SERVER_TIMEOUT : CONFIG.server_timeout;
+            CONFIG.server_timeout <
+            1 ? DEFAULT_SERVER_TIMEOUT : CONFIG.server_timeout;
 
     CONFIG.inform_retry_wait =
-	CONFIG.inform_retry_wait <
-	1 ? DEFAULT_INFORM_RETRY_WAIT : CONFIG.inform_retry_wait;
+            CONFIG.inform_retry_wait <
+            1 ? DEFAULT_INFORM_RETRY_WAIT : CONFIG.inform_retry_wait;
 
     CONFIG.inform = CONFIG.inform != 0 ? 1 : 0;
 
     CONFIG.server = CONFIG.server != 0 ? 1 : 0;
 
     CONFIG.action_threshold =
-	CONFIG.action_threshold <
-	1 ? DEFAULT_ACTION_THRESHOLD : CONFIG.action_threshold;
+            CONFIG.action_threshold <
+            1 ? DEFAULT_ACTION_THRESHOLD : CONFIG.action_threshold;
 
     CONFIG.time_interval =
-	CONFIG.time_interval <
-	1 ? DEFAULT_TIME_INTERVAL : CONFIG.time_interval;
+            CONFIG.time_interval <
+            1 ? DEFAULT_TIME_INTERVAL : CONFIG.time_interval;
 
     CONFIG.purge_after =
-	CONFIG.purge_after < 1 ? DEFAULT_PURGE_AFTER : CONFIG.purge_after;
+            CONFIG.purge_after < 1 ? DEFAULT_PURGE_AFTER : CONFIG.purge_after;
 }
 
 /**
@@ -505,45 +509,45 @@ _config_sanitize() {
 static void
 _set_config_option(const char *token, const char *value) {
     struct _cfgcfg *ptr;
-    int       known_option = 0;
+    int known_option = 0;
 
     assert(token != NULL && value != NULL);
 
     ptr = cfgcfg;
     while (ptr->name != NULL) {
-	if (strcmp(ptr->name, token) == 0) {
-	    switch (ptr->type) {
-	    case CFG_VAL_STR:
-		strncpy((char *) ptr->ptr, value, BUFFSIZE);
-		break;
-	    case CFG_VAL_PATH:
-		strncpy((char *) ptr->ptr, value, _MAX_PATH);
-		break;
-	    case CFG_VAL_INT32:
-		sscanf(value, "%i", (int32_t *) ptr->ptr);
-		break;
-	    case CFG_VAL_INT64:
+        if (strcmp(ptr->name, token) == 0) {
+            switch (ptr->type) {
+                case CFG_VAL_STR:
+                    strncpy((char *) ptr->ptr, value, BUFFSIZE);
+                    break;
+                case CFG_VAL_PATH:
+                    strncpy((char *) ptr->ptr, value, _MAX_PATH);
+                    break;
+                case CFG_VAL_INT32:
+                    sscanf(value, "%i", (int32_t *) ptr->ptr);
+                    break;
+                case CFG_VAL_INT64:
 #if SIZEOF_LONG == 8 && __OpenBSD__ != 1
-                sscanf(value, "%li", (int64_t *) ptr->ptr);
+                    sscanf(value, "%li", (int64_t *) ptr->ptr);
 #else
-                // OpenBSD defines int64_t as (long long), so we need %lli on
-                // OpenBSD
-                sscanf(value, "%lli", (int64_t *) ptr->ptr);
+                    // OpenBSD defines int64_t as (long long), so we need %lli on
+                    // OpenBSD
+                    sscanf(value, "%lli", (int64_t *) ptr->ptr);
 #endif
-		break;
-	    case CFG_VAL_CALLBACK:
-		ptr->cb(value);
-		break;
-	    default:
-		out_err("%i is not a known configuration type\n", ptr->type);
-		abort();
-	    }
-	    known_option = 1;
-	}
-	ptr++;
+                    break;
+                case CFG_VAL_CALLBACK:
+                    ptr->cb(value);
+                    break;
+                default:
+                    out_err("%i is not a known configuration type\n", ptr->type);
+                    abort();
+            }
+            known_option = 1;
+        }
+        ptr++;
     }
     if (!known_option) {
-	out_err("'%s' is not a known option", token);
+        out_err("'%s' is not a known option", token);
     }
 
     _config_sanitize();
@@ -569,15 +573,15 @@ _check_paths_in_config() {
 
     ptr = cfgcfg;
     while (ptr->name != NULL) {
-	if (ptr->type == CFG_VAL_PATH &&
-	    ptr->amode != -1 && strlen(ptr->ptr) > 0) {
-	    int       retval;
-	    retval = access((char *) ptr->ptr, ptr->amode);
-	    if (retval == -1) {
-		_file_access_error(errno, (char *) ptr->ptr);
-	    }
-	}
-	ptr++;
+        if (ptr->type == CFG_VAL_PATH &&
+                ptr->amode != -1 && strlen(ptr->ptr) > 0) {
+            int retval;
+            retval = access((char *) ptr->ptr, ptr->amode);
+            if (retval == -1) {
+                _file_access_error(errno, (char *) ptr->ptr);
+            }
+        }
+        ptr++;
     }
 }
 
@@ -586,75 +590,75 @@ _check_paths_in_config() {
  */
 int
 config_read(const char *file) {
-    int       retval;
-    FILE     *f;
-    char      line[BUFFSIZE], token[BUFFSIZE], value[BUFFSIZE];
-    char     *pos, *tmp;
+    int retval;
+    FILE *f;
+    char line[BUFFSIZE], token[BUFFSIZE], value[BUFFSIZE];
+    char *pos, *tmp;
 
     assert(file != NULL);
     retval = access(file, F_OK | R_OK);
     if (retval == -1) {
-	_file_access_error(errno, file);
+        _file_access_error(errno, file);
     }
 
     _init_config();
 
     f = fopen(file, "r");
     if (f == NULL) {
-	out_err("Unable to open %s", file);
-	exit(1);
+        out_err("Unable to open %s", file);
+        exit(1);
     }
 
     /*
      * Read the configuration file line by line
      */
     while (!feof(f)) {
-	fgets(line, BUFFSIZE, f);
-	if (strlen(line) < 2)
-	    continue;
+        fgets(line, BUFFSIZE, f);
+        if (strlen(line) < 2)
+            continue;
 
-	if (line[0] == '#')
-	    continue;
+        if (line[0] == '#')
+            continue;
 
-	tmp = line;
+        tmp = line;
 #ifdef HAVE_STRSEP
-	pos = strsep(&tmp, "=");
+        pos = strsep(&tmp, "=");
 #else
-	/*
-	 * On e.g., solaris 10 strsep() is not available, so we emulate
-	 * it...
-	 */
-	pos = strchr(tmp, '=');
-	if (pos != NULL) {
-	    tmp[pos - tmp] = '\0';
-	    if (pos + 1 != '\0') {
-		tmp = pos + 1;
-	    } else {
-		tmp = NULL;
-	    }
-	    pos = line;
-	}
+        /*
+         * On e.g., solaris 10 strsep() is not available, so we emulate
+         * it...
+         */
+        pos = strchr(tmp, '=');
+        if (pos != NULL) {
+            tmp[pos - tmp] = '\0';
+            if (pos + 1 != '\0') {
+                tmp = pos + 1;
+            } else {
+                tmp = NULL;
+            }
+            pos = line;
+        }
 #endif
-	if (pos != NULL) {
-	    strncpy(token, pos, BUFFSIZE);
-	    if (tmp == NULL || strlen(tmp) == 0)
-		continue;
-	    strncpy(value, tmp, BUFFSIZE);
-	    tmp = strchr(value, '\n');
-	    if (tmp != NULL)
-		*tmp = '\0';
-	    /*
-	     * Maybe the value is now empty, i.e. the configuration file has
-	     * line like:
-	     *
-	     * blabla=
-	     */
-	    if (strlen(value) == 0) {
-		out_msg("configuration option %s has no value", token);
-		continue;
-	    }
-	    _set_config_option(token, value);
-	}
+        if (pos != NULL) {
+            strncpy(token, pos, BUFFSIZE);
+            if (tmp == NULL || strlen(tmp) == 0)
+                continue;
+            strncpy(value, tmp, BUFFSIZE);
+            tmp = strchr(value, '\n');
+            if (tmp != NULL)
+                *tmp = '\0';
+            /*
+             * Maybe the value is now empty, i.e. the configuration file has
+             * line like:
+             *
+             * blabla=
+             */
+            if (strlen(value) == 0) {
+                out_msg("configuration option %s has no value", token);
+                continue;
+            }
+            _set_config_option(token, value);
+        }
     }
 
     _check_paths_in_config();
@@ -665,7 +669,7 @@ config_read(const char *file) {
      * If there are no listens in the config file, we add the default
      */
     if (CONFIG.listen == NULL)
-	_config_callback_listen(DEFAULT_LISTEN);
+        _config_callback_listen(DEFAULT_LISTEN);
 
     out_dbg("pidfile=%s", CONFIG.pidfile);
     out_dbg("syslogfile=%s", CONFIG.syslogfile);
@@ -674,14 +678,14 @@ config_read(const char *file) {
     out_dbg("regex=%s", CONFIG.regex);
     out_dbg("action_threshold=%i", CONFIG.action_threshold);
     if (sizeof (long) == 8)
-	out_dbg("time_interval=%li", CONFIG.time_interval);
+        out_dbg("time_interval=%li", CONFIG.time_interval);
     else
-	out_dbg("time_interval=%lli", CONFIG.time_interval);
+        out_dbg("time_interval=%lli", CONFIG.time_interval);
 
     if (sizeof (long) == 8)
-	out_dbg("purge_after=%li", CONFIG.purge_after);
+        out_dbg("purge_after=%li", CONFIG.purge_after);
     else
-	out_dbg("purge_after=%lli", CONFIG.purge_after);
+        out_dbg("purge_after=%lli", CONFIG.purge_after);
 
     out_dbg("server=%i", CONFIG.server);
     out_dbg("server_timeout=%i", CONFIG.server_timeout);
@@ -692,14 +696,15 @@ config_read(const char *file) {
     out_dbg("inform_retry_wait=%i", CONFIG.inform_retry_wait);
     out_dbg("remote_authoritative=%i", CONFIG.remote_authoritative);
     out_dbg("ssl_ca_file=%s", CONFIG.ssl_ca_file);
+    out_dbg("ssl_crl_file=%s", CONFIG.ssl_crl_file);
     out_dbg("ssl_server_cert=%s", CONFIG.ssl_server_cert);
     out_dbg("ssl_server_key=%s", CONFIG.ssl_server_key);
     out_dbg("ssl_client_cert=%s", CONFIG.ssl_client_cert);
     out_dbg("ssl_client_key=%s", CONFIG.ssl_client_key);
 
     if (CONFIG.remote_authoritative)
-	out_msg
-	    ("Exclude file will be ignored when receiving hosts from remote clients");
+        out_msg
+            ("Exclude file will be ignored when receiving hosts from remote clients");
 
     config_initialized = 1;
     return RETVAL_OK;
@@ -710,24 +715,24 @@ config_free() {
     addrinfo_list_t *ptr, *nextptr;
 
     if (!config_initialized)
-	return RETVAL_ERR;
+        return RETVAL_ERR;
 
     ptr = CONFIG.listen;
     nextptr = NULL;
     while (ptr != NULL) {
-	freeaddrinfo(ptr->addr);
-	nextptr = ptr->next;
-	free(ptr);
-	ptr = nextptr;
+        freeaddrinfo(ptr->addr);
+        nextptr = ptr->next;
+        free(ptr);
+        ptr = nextptr;
     }
 
     ptr = CONFIG.inform_agents;
     nextptr = NULL;
     while (ptr != NULL) {
-	freeaddrinfo(ptr->addr);
-	nextptr = ptr->next;
-	free(ptr);
-	ptr = nextptr;
+        freeaddrinfo(ptr->addr);
+        nextptr = ptr->next;
+        free(ptr);
+        ptr = nextptr;
     }
     config_initialized = 0;
 

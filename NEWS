@@ -1,12 +1,14 @@
 NEWS
 ====
 
-0.3-snapshot
+agentsmith 0.3
 ---
+
+* Require a Certificate Revocation List (CRL) as PEM file.
 
 * OpenSSL 1.1 support.
 
-0.2
+agentsmith 0.2
 ---
 
  * Added support for IP address exclusion.
@@ -15,7 +17,7 @@ NEWS
    instances of offending hosts securely using SSL.
 
 
-0.1
+agentsmith 0.1
 ---
 
  * Initial release.

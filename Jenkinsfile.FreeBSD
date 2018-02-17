@@ -11,6 +11,6 @@ node("freebsd") {
 	agentsmith.configure os
 	agentsmith.build os
 	agentsmith.check os
-//        release.roll()
+        release.roll()
     }
 }

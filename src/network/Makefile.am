@@ -13,4 +13,4 @@ noinst_LIBRARIES = libnetshared.a
 
 libnetshared_a_CFLAGS = $(STDC_CFLAGS)
 
-libnetshared_a_SOURCES = netshared.h netshared.c netssl.h netssl.c
+libnetshared_a_SOURCES = netshared.h netshared.c netssl.h netssl.c sslutils.c sslutils.h

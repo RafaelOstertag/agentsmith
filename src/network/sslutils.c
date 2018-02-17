@@ -234,7 +234,7 @@ static void _add_crl_to_ssl_ctx(SSL_CTX *ssl_ctx) {
     X509_VERIFY_PARAM_free(param);
 }
 
-void client_verification(SSL_CTX *ctx, const char *ca_file, const char *crl_file) {
+void client_verification(SSL_CTX *ctx) {
     assert(ctx != NULL);
     
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER |
@@ -242,7 +242,7 @@ void client_verification(SSL_CTX *ctx, const char *ca_file, const char *crl_file
             _sslutils_verify_callback);
 
     if (!SSL_CTX_load_verify_locations
-            (ctx, ca_file, NULL)) {
+            (ctx, CONFIG.ssl_ca_file, NULL)) {
         out_err("Unable to load Trust Store for client (%s)",
                 ERR_reason_error_string(ERR_get_error()));
         exit(1);

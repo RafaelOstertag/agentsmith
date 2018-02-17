@@ -1,6 +1,6 @@
 # $Id$
 AC_PREREQ([2.65])
-AC_INIT([agentsmith],[0.3],[rafi@guengel.ch])
+AC_INIT([agentsmith],[0.4-snapshot],[rafi@guengel.ch])
 AC_REVISION([$Rev$])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([silent-rules dist-bzip2 check-news])

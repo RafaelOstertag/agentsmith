@@ -48,6 +48,10 @@
 #include <openssl/err.h>
 #endif
 
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+
 #include <assert.h>
 #include <errno.h>
 

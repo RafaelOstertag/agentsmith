@@ -4,6 +4,8 @@ NEWS
 0.3
 ---
 
+* Require a Certificate Revocation List (CRL) as PEM file.
+
 * OpenSSL 1.1 support.
 
 0.2

@@ -225,7 +225,7 @@ static void _add_crl_to_ssl_ctx(SSL_CTX *ssl_ctx) {
     X509_STORE_add_crl(store, crl);
 
     param = X509_VERIFY_PARAM_new();
-    X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK || X509_V_FLAG_CRL_CHECK_ALL);
+    X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
     X509_STORE_set1_param(store, param);
     X509_VERIFY_PARAM_free(param);
 }

@@ -16,8 +16,7 @@ For more information refer to the man pages.
 Dependencies
 ------------
 
-agentsmith is known to work on Solaris 10, OpenSolaris, FreeBSD, OpenBSD, and
-Linux.
+agentsmith is known to work on FreeBSD, OpenBSD, Solaris 11 and Linux.
 
 It  requires a  more  or  less recent  version  of the  PCRE  library which  is
 available at http://www.pcre.org and OpenSSL (http://www.openssl.org).

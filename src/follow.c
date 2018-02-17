@@ -107,8 +107,6 @@ readtoeof(FILE * file) {
 	    time_wait.tv_nsec = 0;
 	    nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 	    sleep(err_sleep_time);
 #endif
 	    return;
@@ -194,8 +192,6 @@ follow(const char *fname) {
 	    time_wait.tv_nsec = 0;
 	    nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 	    sleep(err_sleep_time);
 #endif
 	    continue;
@@ -218,8 +214,6 @@ follow(const char *fname) {
 		    time_wait.tv_nsec = 0;
 		    nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 		    sleep(err_sleep_time);
 #endif
 		    continue;
@@ -241,8 +235,6 @@ follow(const char *fname) {
 			time_wait.tv_nsec = 0;
 			nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 			sleep(err_sleep_time);
 #endif
 			continue;
@@ -274,8 +266,6 @@ follow(const char *fname) {
 		time_wait.tv_nsec = 0;
 		nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 		sleep(err_sleep_time);
 #endif
 		continue;
@@ -294,8 +284,6 @@ follow(const char *fname) {
 	time_wait.tv_nsec = sleep_time;
 	nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 	usleep(sleep_time / 1000);
 #endif
     }

@@ -68,15 +68,8 @@ _records_callback_output(hostrecord_t *ptr) {
     char     *format =
 	"IP Addr %s origin %s first seen %s, last seen %s, occurrences %i, to be removed %i, processed %i";
 #ifdef HAVE_CTIME_R
-#ifdef DEBUG
-#warning "++++ Using ctime_r() ++++"
-#endif
 #define TIMEBUFSIZE 128
     char      timebuff1[TIMEBUFSIZE], timebuff2[TIMEBUFSIZE];
-#else
-#ifdef DEBUG
-#warning "++++ Using ctime() ++++"
-#endif
 #endif
     assert(ptr != NULL);
 

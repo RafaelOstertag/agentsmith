@@ -269,6 +269,11 @@ in Server and Inform Mode.
 .sp 1
 Default: none
 .TP
+.I ssl_crl_file
+Path to the file containing the Certificate Revocation List.
+.sp 1
+Default: none
+.TP
 .I ssl_server_cert
 Path to the file containing the server certificate in PEM format.
 .sp 1

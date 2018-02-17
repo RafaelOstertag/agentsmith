@@ -1,6 +1,6 @@
 # $Id$
 AC_PREREQ([2.65])
-AC_INIT([agentsmith],[0.2],[rafi@guengel.ch])
+AC_INIT([agentsmith],[0.3],[rafi@guengel.ch])
 AC_REVISION([$Rev$])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([silent-rules dist-bzip2 check-news])
@@ -12,10 +12,14 @@ AC_PROG_CC
 AC_PROG_SED
 AC_PROG_RANLIB
 
+AC_LANG([C])
+
+
 AC_SUBST([CPPFLAGS],["$CPPFLAGS -D_POSIX_PTHREAD_SEMANTICS=1"])
 
 # Checks for libraries.
 AC_USE_SYSTEM_EXTENSIONS
+AX_CHECK_COMPILE_FLAG([-std=c11], [AC_SUBST([STDC_CFLAGS],[-std=c11])])
 AX_CHECK_SUNPRO_C(
 	[AC_SUBST([CFLAGS],["$CFLAGS -mt"])],
 	[:])
@@ -25,6 +29,7 @@ AC_CHECK_LIB([m],[ceil],,[
 AX_PTHREAD([
 	AC_SUBST([LIBS],["$PTHREAD_LIBS $LIBS"])
 	AC_SUBST([CFLAGS],["$CFLAGS $PTHREAD_CFLAGS"])
+        AC_SUBST([LDFLAGS],["$LDFLAGS $PTHREAD_CFLAGS"])
 	AC_SUBST([CC],["$PTHREAD_CC"])
 	],
 	[AC_MSG_ERROR([Threading not support on this platform])])
@@ -57,6 +62,7 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_CHECK_SIZEOF([long])
 
 AC_CHECK_TYPES([pthread_mutex_t, in_addr_t, struct addrinfo],,
 	[AC_MSG_ERROR([Crucial data type not found])],
@@ -115,9 +121,9 @@ AC_SEARCH_LIBS([gethostbyname],[nsl])
 AC_SEARCH_LIBS([connect],[socket])
 AC_SEARCH_LIBS([sem_init],[rt])
 AC_SEARCH_LIBS([nanosleep],[rt])
-AC_SEARCH_LIBS([ERR_load_crypto_strings],[crypto],,
+AC_SEARCH_LIBS([EVP_DecodeFinal],[crypto],,
 	[AC_MSG_ERROR([libcrypto not found.])])
-AC_SEARCH_LIBS([SSL_library_init],[ssl],,
+AC_SEARCH_LIBS([TLSv1_method],[ssl],,
 	[AC_MSG_ERROR([libssl not found])],
 	[-lcrypto])
 AC_SEARCH_LIBS([pcre_compile],[pcre],,[
@@ -136,23 +142,7 @@ AC_FUNC_REALLOC
 AC_FUNC_FORK
 
 # Misc functions
-AC_CHECK_FUNCS([accept atoi bind ceil connect ctime ctime_r freeaddrinfo gai_strerror getaddrinfo htonl inet_ntop inet_pton memset ntohl select sigaction sigprocmask socket strchr strdup strerror strncpy strsep usleep vsnprintf nanosleep])
-
-# PCRE Functions
-AC_CHECK_FUNCS([pcre_study pcre_exec pcre_fullinfo],,[
-	AC_MSG_ERROR([libpcre lacks crucial function(s)])])
-
-# Semaphore functions
-AC_CHECK_FUNCS([sem_destroy sem_init sem_post sem_trywait],,
-	[AC_MSG_ERROR([semaphore function missing])])
-
-# Pthread functions
-AC_CHECK_FUNCS([pthread_cancel pthread_cond_destroy pthread_cond_init pthread_cond_signal pthread_create pthread_join pthread_mutex_destroy pthread_mutex_init pthread_setcanceltype pthread_testcancel pthread_self],,
-	[AC_MSG_ERROR([posix thread function missing])])
-
-# OpenSSL functions
-AC_CHECK_FUNCS([BIO_new_socket CRYPTO_num_locks CRYPTO_set_id_callback CRYPTO_set_locking_callback ERR_clear_error ERR_get_error ERR_reason_error_string SSL_CTX_load_verify_locations SSL_CTX_new SSL_CTX_set_verify SSL_CTX_use_PrivateKey_file SSL_CTX_use_certificate_file SSL_accept SSL_connect SSL_free SSL_new SSL_read SSL_set_bio SSL_write X509_NAME_get_text_by_NID X509_STORE_CTX_get_current_cert X509_get_issuer_name X509_get_subject_name X509_verify_cert_error_string],,
-	[AC_MSG_ERROR([OpenSSL function missing])])
+AC_CHECK_FUNCS([accept atoi bind ceil connect ctime ctime_r freeaddrinfo gai_strerror getaddrinfo htonl inet_ntop inet_pton memset ntohl select sigaction sigprocmask socket strchr strdup strerror strncpy strsep usleep vsnprintf nanosleep syslog_r])
 
 AC_C_BIGENDIAN
 # Enable

@@ -237,7 +237,6 @@ _network_server_shutdown_and_cleanup(void *wdc) {
 	time_wait.tv_nsec = 0;
 	nanosleep(&time_wait, &time_wait_remaining);
 #else
-#warning "Using sleep()"
 	sleep(1);
 #endif
 
@@ -369,8 +368,6 @@ network_start_server() {
 		    time_wait.tv_nsec = 0;
 		    nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 		    sleep(1);
 #endif
 

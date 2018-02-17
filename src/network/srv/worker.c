@@ -103,7 +103,7 @@ network_server_worker(void *args) {
     char      serv[NI_MAXSERV];
     char      buff[REMOTE_COMMAND_SIZE];
     uint32_t  rcommand;
-    int       retval, lock_tries;
+    int       retval;
     ssize_t   nread;
     worker_thread_args_t *wrk_args;
     hostrecord_t hostrecord;
@@ -125,70 +125,10 @@ network_server_worker(void *args) {
 
     wrk_args = (worker_thread_args_t *) args;
 
-    /*
-     * How many times we wait for the semaphore
-     */
-    lock_tries = 0;
-
     getnameinfo(wrk_args->addr, wrk_args->addrlen,
 		host, NI_MAXHOST,
 		serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
 
-    /*
-     * Never got sem_trywait() working properly (tested on Solaris 10u8), leave
-     * it here anyway. May be somebody is more able to use sem_trywait() than I
-     * am. It is therefore expected, that the checks are made before spawning
-     * the thread.
-     */
-
-    /* *INDENT-OFF* */
-/*
-    \/*
-     * Try to lock the semaphore. If the semaphore cannot be locked, sleep
-     * one second. Try it MAX_LOCK_TRIES at max. If no lock can be aquired,
-     * end the thread.
-     *\/
-  REDO:
-    lock_tries++;
-    if (lock_tries >= MAX_LOCK_TRIES) {
-	out_err
-	    ("Server Worker [%li]: unable to lock worker_semaphore. Aborting after %i attempts",
-	     pthread_self(), MAX_LOCK_TRIES);
-	goto ENDNOPOST;
-    }
-
-    retval = sem_trywait(&worker_semaphore);
-    switch (errno) {
-    case EBUSY:
-    case EINTR:
-    case EAGAIN:
-	out_dbg
-	    ("Server Worker [%li]: cannot lock worker_semaphore. Retrying...",
-	     pthread_self());
-#ifdef HAVE_NANOSLEEP
-	lock_wait.tv_sec = LOCK_WAIT_RETRY;
-	lock_wait.tv_nsec = 0;
-	nanosleep(&lock_wait, &lock_wait_remaining);
-#else
-
-#warning "Using sleep()"
-	sleep(LOCK_WAIT_RETRY);
-#endif
-	goto REDO;
-    case 0:
-	break;
-    default:
-	out_syserr(errno,
-		   "Server Worker [%li]: error locking worker_semaphore",
-		   pthread_self());
-	goto ENDNOPOST;
-    }
-*/
-    /* *INDENT-ON* */
-
-    /*
-     * This is the code using sem_wait() instead sem_trywait() 
-     */
     retval = sem_wait(&worker_semaphore);
     if (retval != 0) {
 	out_syserr(errno,

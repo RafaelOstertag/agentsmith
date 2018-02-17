@@ -1,4 +1,4 @@
-/* Copyright (C) 2010, 2011 by Rafael Ostertag
+/* Copyright (C) 2018 by Rafael Ostertag
  *
  * This file is part of agentsmith.
  *
@@ -28,10 +28,8 @@
  * all source files in the program, then also delete it here.
  */
 
-/* $Id$ */
-
-#ifndef NETWORK_NETSSL_H
-#define NETWORK_NETSSL_H
+#ifndef SSLUTILS_H
+#define SSLUTILS_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -41,14 +39,16 @@
 #include <openssl/ssl.h>
 #endif
 
-#ifdef HAVE_OPENSSL_BIO_H
-#include <openssl/bio.h>
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
 #endif
 
-extern int netssl_initialize();
-extern void netssl_disintegrate();
-extern int netssl_server(int sockfd, SSL ** ssl, BIO ** sbio);
-extern int netssl_client(int sockfd, SSL ** ssl, BIO ** sbio);
-extern void netssl_ssl_error_to_string(int err, int syserr);
 
-#endif
+void initialize_locking();
+void deinitialize_locking();
+
+void client_verification(SSL_CTX *ctx);
+void server_verification(SSL_CTX *ctx);
+
+#endif /* SSLUTILS_H */
+

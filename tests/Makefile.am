@@ -14,6 +14,8 @@ else
 AM_CPPFLAGS+=-DNDEBUG
 endif
 
+AM_CFLAGS = $(STDC_CFLAGS)
+
 records1_SOURCES = records1.c $(needed_files)
 records2_SOURCES = records2.c $(needed_files)
 records3_SOURCES = records3.c $(needed_files)

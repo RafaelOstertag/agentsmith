@@ -244,8 +244,6 @@ _client_queue_worker(void *arg) {
 		time_wait.tv_nsec = 0;
 		nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 		sleep(CONFIG.inform_retry_wait);
 #endif
 		continue;
@@ -261,8 +259,6 @@ _client_queue_worker(void *arg) {
 		time_wait.tv_nsec = 0;
 		nanosleep(&time_wait, &time_wait_remaining);
 #else
-
-#warning "Using sleep()"
 		sleep(CONFIG.inform_retry_wait);
 #endif
 		continue;
